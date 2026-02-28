@@ -1,27 +1,25 @@
 {
   "short_name": "GainsTracker",
   "name": "GainsTracker - Your Ultimate Workout Companion",
-   "icons": [
+  "icons": [
     {
-      "src": "icon.png",
+      "src": "exp.png",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
     },
     {
-      "src": "icon.png",
+      "src": "exp.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "icon.png",
+      "src": "exp.png",
       "type": "image/png",
       "sizes": "512x512"
     }
   ],
-  "start_url": "/",
-  "background_color": "#f8fafc",
-  "theme_color": "#10b981",
+  "start_url": ".",
   "display": "standalone",
-  "orientation": "portrait",
-  "scope": "/"
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
 }
