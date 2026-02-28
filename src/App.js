@@ -7,13 +7,15 @@ import ActiveWorkout from './pages/ActiveWorkout';
 import WorkoutReports from './pages/Reports';
 import CreateExercise from './pages/CreateExercise';
 import Navbar from './components/Navbar';
+import InstallPrompt from './components/InstallPrompt';
 
 const RootApp = () => {
   const { user } = useContext(AuthContext);
 
   return (
     <BrowserRouter>
-      <div className="pb-20"> {/* Padding for Bottom Navbar */}
+      <div className="pb-20"> 
+        <InstallPrompt />
         <Routes>
           <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
           <Route path="/" element={user ? <Home /> : <Navigate to="/login" />} />
