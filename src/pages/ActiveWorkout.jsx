@@ -154,7 +154,7 @@ const ActiveWorkout = () => {
       }))
     };
     try {
-      await axios.post('http://localhost:5000/api/workouts', workoutData, {
+      await axios.post(`http://localhost:5000/api/workouts`, workoutData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       handleDiscard(); 

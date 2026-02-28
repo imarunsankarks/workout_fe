@@ -36,7 +36,7 @@ const handleSubmit = async (e) => {
       type: formData.type
     };
 
-    await axios.post('http://localhost:5000/api/exercises', newMovement, {
+    await axios.post(`http://localhost:5000/api/exercises`, newMovement, {
       headers: {
         Authorization: `Bearer ${token}` // Protect the route
       }
