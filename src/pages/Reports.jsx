@@ -19,7 +19,7 @@ const Reports = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(`http://localhost:5000/api/workouts/${user.id}`, {
+        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/workouts/${user.id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const history = res.data;
@@ -89,7 +89,7 @@ const Reports = () => {
 
   const handleDeleteProfile = async () => {
     try {
-      await axios.delete(`http://localhost:5000/api/auth/delete-profile/${user.id}`, {
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/auth/delete-profile/${user.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       logout(); // Clear context and redirect to login

@@ -23,7 +23,7 @@ const Login = () => {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.post(`http://localhost:5000/api/auth/check-email`, { email });
+      const res = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/check-email`, { email });
       setIsNewUser(!res.data.exists);
       setStep(2);
     } catch (err) {
@@ -40,7 +40,7 @@ const Login = () => {
     setError('');
 
     try {
-      const res = await axios.post(`http://localhost:5000/api/auth/authenticate`, {
+      const res = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/authenticate`, {
         email,
         password,
         name,

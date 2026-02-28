@@ -59,7 +59,7 @@ const ActiveWorkout = () => {
 
   const fetchLibrary = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/exercises/${user.id}`, {
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/exercises/${user.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setLibrary(res.data);
@@ -154,7 +154,7 @@ const ActiveWorkout = () => {
       }))
     };
     try {
-      await axios.post(`http://localhost:5000/api/workouts`, workoutData, {
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/workouts`, workoutData, {
         headers: { Authorization: `Bearer ${token}` }
       });
       handleDiscard(); 
@@ -167,7 +167,7 @@ const ActiveWorkout = () => {
 
   const deleteLibraryItem = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/exercises/${id}`, {
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/exercises/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchLibrary();
@@ -178,7 +178,7 @@ const ActiveWorkout = () => {
   const updateLibraryItem = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:5000/api/exercises/${editingExercise._id}`, editingExercise, {
+      await axios.put(`${process.env.REACT_APP_API_URL}/api/exercises/${editingExercise._id}`, editingExercise, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchLibrary();

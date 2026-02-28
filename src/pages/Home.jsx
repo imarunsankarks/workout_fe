@@ -20,7 +20,7 @@ const Home = () => {
   // --- FETCH DATA FROM BACKEND ---
   const fetchWorkouts = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/workouts/${user.id}`, {
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/workouts/${user.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setHistory(res.data);
@@ -56,7 +56,7 @@ const Home = () => {
     if (!window.confirm("Delete this workout?")) return;
     
     try {
-      await axios.delete(`http://localhost:5000/api/workouts/${id}`, {
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/workouts/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchWorkouts();
