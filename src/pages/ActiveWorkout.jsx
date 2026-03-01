@@ -240,7 +240,7 @@ const ActiveWorkout = () => {
             ) : (
               <div className="space-y-2">
                 {ex.sets.map((set, sIdx) => (
-                  <div key={sIdx} className="flex items-center gap-3 bg-slate-50 p-2 px-4 rounded-2xl">
+                  <div key={sIdx} className="flex items-center justify-between gap-3 bg-slate-50 p-2 px-4 rounded-2xl">
                     <span className="text-[10px] font-black text-slate-300 uppercase">Set {sIdx+1}</span>
                     <span className="font-mono font-bold text-slate-700">{formatTime(set.time || 0)}</span>
                     <button 

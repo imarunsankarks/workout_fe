@@ -15,7 +15,8 @@ const Home = () => {
   const [hasActiveSession, setHasActiveSession] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [showStartPrompt, setShowStartPrompt] = useState(false);
-  const [showLogoutPrompt, setShowLogoutPrompt] = useState(false); // New state for logout confirmation
+  const [showLogoutPrompt, setShowLogoutPrompt] = useState(false);
+  const [workoutToDelete, setWorkoutToDelete] = useState(null); // New state for delete confirmation
 
   // --- FETCH DATA FROM BACKEND ---
   const fetchWorkouts = async () => {
@@ -51,14 +52,14 @@ const Home = () => {
     }
   }, [user?.id]);
 
-  const deleteWorkout = async (e, id) => {
-    e.stopPropagation();
-    if (!window.confirm("Delete this workout?")) return;
+  const confirmDelete = async () => {
+    if (!workoutToDelete) return;
     
     try {
-      await axios.delete(`${process.env.REACT_APP_API_URL}/api/workouts/${id}`, {
+      await axios.delete(`${process.env.REACT_APP_API_URL}/api/workouts/${workoutToDelete}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      setWorkoutToDelete(null);
       fetchWorkouts();
     } catch (err) {
       console.error("Delete failed:", err);
@@ -92,7 +93,6 @@ const Home = () => {
           <h1 className="text-2xl font-black text-slate-800 tracking-tight">GainsTracker</h1>
           <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Welcome, {user?.name || 'Champ'}</p>
         </div>
-        {/* Trigger Logout Prompt instead of immediate logout */}
         <button onClick={() => setShowLogoutPrompt(true)} className="text-red-500 hover:text-red-700 transition-colors p-2">
           <LogOut size={22}/>
         </button>
@@ -113,7 +113,7 @@ const Home = () => {
           <p className="opacity-80 text-sm mb-6">
             {hasActiveSession 
               ? `Session is currently ${isPaused ? 'on hold' : 'active'}.` 
-              : 'Last session: ' + (history[0] ? new Date(history[0].date).toLocaleDateString('en-GB', {day: '2-digit', month: 'short'}) : 'Today')}
+              : (history[0] ? `Last session: ${new Date(history[0].date).toLocaleDateString('en-GB', {day: '2-digit', month: 'short'})}` : 'You are yet to start your first workout!')}
           </p>
           <button 
             onClick={handleMainButtonClick} 
@@ -156,7 +156,35 @@ const Home = () => {
             </div>
           </div>
         </div>
-      
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {workoutToDelete && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6 text-center">
+          <div className="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="bg-orange-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-orange-600">
+              <Trash2 size={32} />
+            </div>
+            <h2 className="text-2xl font-black text-slate-800 mb-2">Delete Workout?</h2>
+            <p className="text-slate-500 text-sm mb-8 leading-relaxed">
+              This action cannot be undone. This workout will be permanently removed from your history.
+            </p>
+            <div className="flex flex-col gap-2">
+              <button 
+                onClick={confirmDelete} 
+                className="w-full py-4 bg-orange-600 text-white font-black rounded-2xl shadow-lg active:scale-95 transition-all"
+              >
+                Delete Permanently
+              </button>
+              <button 
+                onClick={() => setWorkoutToDelete(null)} 
+                className="w-full py-4 text-slate-400 font-bold hover:bg-slate-50 rounded-2xl transition-colors"
+              >
+                Keep Workout
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Confirmation Start Prompt Modal */}
@@ -211,7 +239,10 @@ const Home = () => {
               </div>
               <div className="flex items-center gap-2">
                 <button 
-                  onClick={(e) => deleteWorkout(e, workout._id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setWorkoutToDelete(workout._id);
+                  }}
                   className="p-2 text-slate-200 hover:text-red-500 transition-colors"
                 >
                   <Trash2 size={18} />
@@ -251,8 +282,8 @@ const Home = () => {
                   <div className="space-y-2">
                     {ex.sets.map((set, sIdx) => (
                       <div key={sIdx} className="flex justify-between text-sm bg-white px-4 py-2 rounded-xl border border-slate-50">
-                        <span className="font-black text-slate-200 text-[10px] uppercase tracking-widest">Set {sIdx+1}</span>
-                        <span className="font-bold text-slate-600">{ex.type === 'Strength' ? `${set.weight}kg × ${set.reps}` : formatTime(set.time)}</span>
+                        <span className="font-black text-slate-400 text-[10px] uppercase tracking-widest">Set {sIdx+1}</span>
+                        <span className="font-bold text-slate-600">{ex.type === 'Strength' ? `${set.weight}kg x ${set.reps}` : formatTime(set.time)}</span>
                       </div>
                     ))}
                   </div>

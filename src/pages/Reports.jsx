@@ -3,13 +3,20 @@ import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { BarChart, Bar, XAxis, ResponsiveContainer, Cell } from 'recharts';
-import { Activity, ChevronLeft, ChevronRight, Clock, Trophy, Target, TrendingUp, AlertTriangle, Trash2 } from 'lucide-react';
+import { 
+  Activity, ChevronLeft, ChevronRight, Clock, Trophy, 
+  Target, TrendingUp, AlertTriangle, Trash2 
+} from 'lucide-react';
 
 const Reports = () => {
   const { user, token, logout } = useContext(AuthContext); 
   const navigate = useNavigate();
   const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
-  const [stats, setStats] = useState({ totalWorkouts: 0, totalMinutes: 0 });
+  const [stats, setStats] = useState({ 
+    totalWorkouts: 0, 
+    totalMinutes: 0, 
+    monthlyWorkouts: 0 
+  });
   const [weeklyHistogram, setWeeklyHistogram] = useState([]);
   const [muscleDistribution, setMuscleDistribution] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,11 +31,24 @@ const Reports = () => {
         });
         const history = res.data;
 
+        // --- 1. OVERALL STATS & MONTHLY VOLUME ---
         const totalMins = history.reduce((acc, curr) => acc + (curr.duration || 0), 0);
-        setStats({ totalWorkouts: history.length, totalMinutes: totalMins });
+        
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const monthlyWorkoutsCount = history.filter(w => new Date(w.date) >= thirtyDaysAgo).length;
 
+        setStats({ 
+          totalWorkouts: history.length, 
+          totalMinutes: totalMins,
+          monthlyWorkouts: monthlyWorkoutsCount
+        });
+
+        // --- 2. SUNDAY START WEEK LOGIC ---
         const now = new Date();
-        const startOfThisWeek = new Date(now.setDate(now.getDate() - now.getDay() + 1));
+        const dayOfWeek = now.getDay(); // 0 is Sunday
+        const startOfThisWeek = new Date(now);
+        startOfThisWeek.setDate(now.getDate() - dayOfWeek);
         startOfThisWeek.setHours(0, 0, 0, 0);
         
         const startOfViewWeek = new Date(startOfThisWeek);
@@ -43,19 +63,17 @@ const Reports = () => {
           return wDate >= startOfViewWeek && wDate <= endOfViewWeek;
         });
 
-        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        // --- 3. WEEKLY HISTOGRAM (SUN - SAT) ---
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         const histogram = days.map((day, idx) => {
           const dayTotal = weekWorkouts
-            .filter(w => {
-              const d = new Date(w.date).getDay();
-              const dayIdx = d === 0 ? 6 : d - 1;
-              return dayIdx === idx;
-            })
+            .filter(w => new Date(w.date).getDay() === idx)
             .reduce((sum, w) => sum + (w.duration || 0), 0);
           return { day, minutes: dayTotal };
         });
         setWeeklyHistogram(histogram);
 
+        // --- 4. MUSCLE DISTRIBUTION ---
         const muscleCounts = {};
         weekWorkouts.forEach(w => {
           w.details?.forEach(ex => {
@@ -87,12 +105,23 @@ const Reports = () => {
     if (user?.id && token) fetchData();
   }, [user?.id, token, currentWeekOffset]);
 
+  // --- HELPER TO GET RANK TIER ---
+  const getUserTier = () => {
+    const count = stats.monthlyWorkouts;
+    if (count < 5) return { label: 'Amateur', color: 'bg-slate-400', icon: <Activity size={14}/> };
+    if (count < 12) return { label: 'Beginner', color: 'bg-blue-500', icon: <Target size={14}/> };
+    if (count <= 21) return { label: 'Advanced', color: 'bg-purple-600', icon: <TrendingUp size={14}/> };
+    return { label: 'Pro Athlete', color: 'bg-emerald-500', icon: <Trophy size={14}/> };
+  };
+
+  const tier = getUserTier();
+
   const handleDeleteProfile = async () => {
     try {
       await axios.delete(`${process.env.REACT_APP_API_URL}/api/auth/delete-profile/${user.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      logout(); // Clear context and redirect to login
+      logout();
       navigate('/login');
     } catch (err) {
       alert("Error deleting profile. Please try again later.");
@@ -105,37 +134,47 @@ const Reports = () => {
     return `${Math.abs(currentWeekOffset)} Weeks Ago`;
   };
 
+  const formatMins = (mins) => {
+    if (mins >= 60) {
+      return `${Math.floor(mins / 60)}h ${mins % 60}m`;
+    }
+    return `${mins}m`;
+  };
+
   if (loading) return <div className="min-h-screen flex items-center justify-center font-bold text-slate-400">Loading Analytics...</div>;
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 pb-40">
+      {/* Header with Dynamic Tier */}
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-2xl font-black text-slate-800 tracking-tight">Analytics</h1>
           <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Growth Tracking</p>
         </div>
-        <div className="bg-emerald-500 text-white px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-100 flex items-center gap-2">
-           <Trophy size={14}/> Pro Athlete
+        <div className={`${tier.color} text-white px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center gap-2 transition-all duration-500`}>
+           {tier.icon} {tier.label}
         </div>
       </div>
 
+      {/* Stats Cards */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-white p-5 rounded-[32px] shadow-sm border border-slate-100">
           <div className="bg-emerald-100 w-10 h-10 rounded-2xl flex items-center justify-center text-emerald-600 mb-3">
             <Activity size={20} />
           </div>
-          <p className="text-[10px] text-slate-400 font-black uppercase tracking-wider">Total Workouts</p>
-          <p className="text-3xl font-black text-slate-800">{stats.totalWorkouts}</p>
+          <p className="text-[10px] text-slate-400 font-black uppercase tracking-wider">Total Sessions</p>
+          <p className="text-xl font-black text-slate-800">{stats.totalWorkouts}</p>
         </div>
         <div className="bg-white p-5 rounded-[32px] shadow-sm border border-slate-100">
           <div className="bg-blue-100 w-10 h-10 rounded-2xl flex items-center justify-center text-blue-600 mb-3">
             <Clock size={20} />
           </div>
-          <p className="text-[10px] text-slate-400 font-black uppercase tracking-wider">Total Minutes</p>
-          <p className="text-3xl font-black text-slate-800">{stats.totalMinutes}</p>
+          <p className="text-[10px] text-slate-400 font-black uppercase tracking-wider">Time Invested</p>
+          <p className="text-xl font-black text-slate-800">{formatMins(stats.totalMinutes)}</p>
         </div>
       </div>
 
+      {/* Intensity Chart */}
       <div className="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100 mb-6">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
@@ -155,17 +194,18 @@ const Reports = () => {
                 <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 800, fill: '#cbd5e1'}} />
                 <Bar dataKey="minutes" radius={[6, 6, 6, 6]} barSize={22}>
                   {weeklyHistogram.map((entry, index) => (
-                    <Cell key={index} fill={entry.minutes > 25 ? '#10b981' : entry.minutes > 0 ? '#6ee7b7' : '#f1f5f9'} />
+                    <Cell key={index} fill={entry.minutes > 45 ? '#10b981' : entry.minutes > 0 ? '#6ee7b7' : '#f1f5f9'} />
                   ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-full flex items-center justify-center text-slate-300 text-xs italic">No activity this week</div>
+            <div className="h-full flex items-center justify-center text-slate-300 text-xs italic">No activity recorded for this period</div>
           )}
         </div>
       </div>
 
+      {/* Muscle Focus */}
       <div className="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100 mb-6">
         <div className="flex items-center gap-2 mb-6">
           <Target size={18} className="text-emerald-500" />
@@ -189,22 +229,26 @@ const Reports = () => {
                 ></div>
               </div>
             </div>
-          )) : <div className="text-center text-slate-300 text-xs italic py-4">No specific focus recorded this week</div>}
+          )) : <div className="text-center text-slate-300 text-xs italic py-4">Logs required to calculate distribution</div>}
         </div>
       </div>
 
+      {/* Efficiency Banner */}
       <div className="bg-slate-900 rounded-[32px] p-6 text-white relative overflow-hidden mb-12">
         <div className="relative z-10">
             <h3 className="font-bold text-lg mb-1">Session Efficiency</h3>
-            <p className="text-slate-400 text-xs mb-4">You are training {stats.totalWorkouts > 0 ? Math.round(stats.totalMinutes / stats.totalWorkouts) : 0} minutes per session on average.</p>
+            <p className="text-slate-400 text-xs mb-4">
+              Averaging {stats.totalWorkouts > 0 ? Math.round(stats.totalMinutes / stats.totalWorkouts) : 0} mins per session. 
+              Ranking: <span className="text-emerald-400 font-bold">{tier.label}</span>
+            </p>
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-lg text-[10px] font-black uppercase tracking-widest">
-                <TrendingUp size={12}/> Activity analyzed from DB
+                <TrendingUp size={12}/> {stats.monthlyWorkouts} sessions this month
             </div>
         </div>
         <Activity className="absolute -right-8 -bottom-8 w-32 h-32 text-white/5 rotate-12" />
       </div>
 
-      {/* DELETE PROFILE OPTION */}
+      {/* Danger Zone */}
       <div className="border-t border-slate-200 pt-8 mt-4">
         <button 
           onClick={() => setShowDeletePrompt(true)}
@@ -214,7 +258,7 @@ const Reports = () => {
         </button>
       </div>
 
-      {/* DELETE PROFILE CONFIRMATION MODAL */}
+      {/* Modal Overlay */}
       {showDeletePrompt && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6 text-center">
           <div className="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
@@ -223,8 +267,9 @@ const Reports = () => {
             </div>
             <h2 className="text-2xl font-black text-slate-800 mb-2">Delete Profile?</h2>
             <p className="text-slate-500 text-sm mb-8 leading-relaxed">
-              This will permanently delete your account, your workout history, and your custom library. <br/> 
-              <span className="font-bold text-red-400 text-xs uppercase tracking-tighter">This action cannot be undone.</span>
+              This will permanently delete your account, your workout history, and your custom library. 
+              <br/> 
+              <span className="font-bold text-red-400 text-xs uppercase tracking-tighter">This action is irreversible.</span>
             </p>
             <div className="flex flex-col gap-2">
               <button 
