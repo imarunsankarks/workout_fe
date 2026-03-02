@@ -221,7 +221,7 @@ const Home = () => {
         <h3 className="font-black text-slate-800 text-lg flex items-center gap-2">
           <Activity size={20} className="text-emerald-500" /> Recent Workouts
         </h3>
-        {history.length > 0 && <span className="text-[10px] font-black text-slate-400 bg-slate-200 px-2 py-1 rounded-md uppercase">Last 8</span>}
+        {history.length > 0 && <span className="text-[10px] font-black text-slate-400 bg-slate-200 px-2 py-1 rounded-md uppercase">All Workouts</span>}
       </div>
 
       <div className="space-y-4">
