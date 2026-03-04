@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Play, Plus, Trash2, X, Search, 
   CheckCircle2, Dumbbell, Timer, 
-  Flame, Move, Pause, AlertTriangle, Edit3,
+  Flame, Move, Pause, AlertTriangle, Edit3, Trophy
 } from 'lucide-react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
@@ -40,6 +40,7 @@ const ActiveWorkout = () => {
   const [showDiscardPrompt, setShowDiscardPrompt] = useState(false);
   const [workoutName, setWorkoutName] = useState('');
   const [library, setLibrary] = useState([]);
+  const [loadingSave, setLoadingSave] = useState(false);
 
   // --- NEW STATES FOR EDIT/DELETE ---
   const [editingExercise, setEditingExercise] = useState(null); 
@@ -154,6 +155,8 @@ const ActiveWorkout = () => {
       }))
     };
     try {
+      setLoadingSave(true);
+      setShowFinishPrompt(false);
       await axios.post(`${process.env.REACT_APP_API_URL}/api/workouts`, workoutData, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -162,6 +165,7 @@ const ActiveWorkout = () => {
     } catch (err) {
       console.error(err);
       alert("Could not save to database.");
+      setLoadingSave(false);
     }
   };
 
@@ -310,6 +314,36 @@ const ActiveWorkout = () => {
               <button onClick={() => setShowFinishPrompt(false)} className="flex-1 py-4 text-slate-400 font-bold">Cancel</button>
               <button onClick={saveWorkout} className="flex-1 py-4 bg-emerald-600 text-white font-black rounded-2xl">Save</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {loadingSave && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[500] flex flex-col items-center justify-center p-6 text-center">
+          <div className="relative mb-8">
+            {/* Expanding Ripple Rings */}
+            <div className="absolute inset-0 rounded-full bg-emerald-500/30 animate-ping duration-1000"></div>
+            <div className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping delay-500 duration-1000"></div>
+            
+            {/* Main Icon Circle */}
+            <div className="relative bg-emerald-500 p-8 rounded-full shadow-2xl shadow-emerald-500/50 animate-bounce-slow">
+              <Trophy size={48} className="text-white" />
+            </div>
+          </div>
+
+          {/* Dynamic Loading Text */}
+          <div className="space-y-2">
+            <h2 className="text-white text-2xl font-black uppercase tracking-tight">
+              Finalizing Gains
+            </h2>
+            <div className="flex items-center justify-center gap-1.5">
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce"></span>
+            </div>
+            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em] mt-4">
+              Syncing in progress
+            </p>
           </div>
         </div>
       )}

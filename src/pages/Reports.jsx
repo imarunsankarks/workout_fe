@@ -164,7 +164,36 @@ const Reports = () => {
     return `${mins}m`;
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center font-bold text-slate-400">Loading Analytics...</div>;
+  if (loading) return (
+    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
+      {/* Animated Icon Container */}
+      <div className="relative mb-8">
+        {/* Outer Pulsing Ring */}
+        <div className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping duration-[2000ms]"></div>
+        
+        {/* Inner Static Circle with Icon */}
+        <div className="relative bg-white p-8 rounded-full shadow-xl border border-emerald-100">
+          <Activity size={48} className="text-emerald-500 animate-pulse" />
+        </div>
+      </div>
+
+      {/* Loading Text & Progress Bar */}
+      <div className="w-full max-w-[200px] text-center">
+        <h2 className="text-slate-800 font-black text-sm uppercase tracking-[0.3em] mb-4">
+          Analyzing Gains
+        </h2>
+        
+        {/* Skeleton Progress Bar */}
+        <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+          <div className="h-full bg-emerald-500 rounded-full animate-progress-loading"></div>
+        </div>
+        
+        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-4 animate-bounce">
+          Generating Report...
+        </p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 pb-40">

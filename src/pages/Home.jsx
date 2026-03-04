@@ -11,15 +11,18 @@ const Home = () => {
   const { user, token, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedWorkout, setSelectedWorkout] = useState(null);
   const [hasActiveSession, setHasActiveSession] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [showStartPrompt, setShowStartPrompt] = useState(false);
   const [showLogoutPrompt, setShowLogoutPrompt] = useState(false);
-  const [workoutToDelete, setWorkoutToDelete] = useState(null); // New state for delete confirmation
+  const [workoutToDelete, setWorkoutToDelete] = useState(null);
+  const [visibleLimit, setVisibleLimit] = useState(8);
 
   // --- FETCH DATA FROM BACKEND ---
   const fetchWorkouts = async () => {
+    setLoading(true);
     try {
       const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/workouts/${user.id}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -27,6 +30,8 @@ const Home = () => {
       setHistory(res.data);
     } catch (err) {
       console.error("Error fetching workouts:", err);
+    } finally {
+        setLoading(false);
     }
   };
 
@@ -221,43 +226,89 @@ const Home = () => {
         <h3 className="font-black text-slate-800 text-lg flex items-center gap-2">
           <Activity size={20} className="text-emerald-500" /> Recent Workouts
         </h3>
-        {history.length > 0 && <span className="text-[10px] font-black text-slate-400 bg-slate-200 px-2 py-1 rounded-md uppercase">All Workouts</span>}
+        {history.length > 0 && <span className="text-[10px] font-black text-slate-400 bg-slate-200 px-2 py-1 rounded-md uppercase">Last {Math.min(history.length, visibleLimit)} Workouts</span>}
       </div>
 
-      <div className="space-y-4">
-        {history.length > 0 ? (
-          history.map((workout) => (
-            <div key={workout._id} onClick={() => setSelectedWorkout(workout)} className="group bg-white p-5 rounded-[24px] flex justify-between items-center border border-slate-100 shadow-sm active:scale-[0.98] transition-all cursor-pointer relative">
-              <div className="flex items-center gap-4">
-                <div className="bg-slate-50 p-3 rounded-2xl text-slate-400"><Calendar size={20} /></div>
-                <div>
-                  <h4 className="font-bold text-slate-800">{workout.name}</h4>
-                  <p className="text-xs text-slate-400 font-bold uppercase tracking-tighter">
-                    {new Date(workout.date).toLocaleDateString('en-GB', {day:'2-digit', month:'short'})} • {workout.duration} mins
-                  </p>
+      {loading ? (
+        <div className="space-y-4">
+          {[1, 2, 3].map((item) => (
+            <div 
+              key={item} 
+              className="bg-white p-5 rounded-[24px] flex justify-between items-center border border-slate-100 shadow-sm relative overflow-hidden"
+            >
+              {/* Shimmer Effect Layer */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-50/60 to-transparent -translate-x-full animate-shimmer"></div>
+
+              <div className="flex items-center gap-4 w-full">
+                {/* Skeleton Icon */}
+                <div className="bg-slate-100 p-3 rounded-2xl w-11 h-11 animate-pulse"></div>
+                
+                <div className="flex-1 space-y-2">
+                  {/* Skeleton Title */}
+                  <div className="h-4 bg-slate-100 rounded-md w-1/2 animate-pulse"></div>
+                  {/* Skeleton Subtitle */}
+                  <div className="h-2 bg-slate-100 rounded-md w-1/4 animate-pulse"></div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setWorkoutToDelete(workout._id);
-                  }}
-                  className="p-2 text-slate-200 hover:text-red-500 transition-colors"
-                >
-                  <Trash2 size={18} />
-                </button>
-                <ChevronRight size={18} className="text-slate-200" />
-              </div>
+
+              {/* Skeleton Chevron/Action area */}
+              <div className="bg-slate-50 w-6 h-6 rounded-full animate-pulse"></div>
             </div>
-          ))
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {history.length > 0 ? (
+          <>
+            {history.slice(0, visibleLimit).map((workout) => (
+              <div 
+                key={workout._id} 
+                onClick={() => setSelectedWorkout(workout)} 
+                className="group bg-white p-5 rounded-[24px] flex justify-between items-center border border-slate-100 shadow-sm active:scale-[0.98] transition-all cursor-pointer relative"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="bg-slate-50 p-3 rounded-2xl text-slate-400">
+                    <Calendar size={20} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800">{workout.name}</h4>
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-tighter">
+                      {new Date(workout.date).toLocaleDateString('en-GB', {day:'2-digit', month:'short'})} • {workout.duration} mins
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setWorkoutToDelete(workout._id);
+                    }}
+                    className="p-2 text-slate-200 hover:text-red-500 transition-colors"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                  <ChevronRight size={18} className="text-slate-200" />
+                </div>
+              </div>
+            ))}
+
+            {visibleLimit < history.length && (
+              <button
+                onClick={() => setVisibleLimit(prev => prev + 8)}
+                className="w-full py-4 mt-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] bg-white rounded-2xl border border-slate-100 shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2"
+              >
+                <Activity size={14} className="text-emerald-500" />
+                Load Older Workouts
+              </button>
+            )}
+          </>
         ) : (
           <div className="bg-white p-12 rounded-[32px] border-2 border-dashed border-slate-200 text-center">
             <Dumbbell size={24} className="mx-auto mb-3 text-slate-300" />
             <p className="text-slate-400 text-sm italic">No workouts recorded yet.</p>
           </div>
         )}
-      </div>
+      </div>)}
 
       {/* Detail Modal */}
       {selectedWorkout && (
