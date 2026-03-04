@@ -3,8 +3,8 @@ import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { 
-  LogOut, Play, Calendar, ChevronRight, X, Trash2,
-  Clock, Dumbbell, Flame, Move, Activity, PauseCircle, AlertTriangle
+  LogOut, Play, ChevronRight, X, Trash2,
+  Clock, Dumbbell, Flame, Move, Activity, PauseCircle,TrendingUp, TrendingDown, MoveHorizontal,
 } from 'lucide-react';
 
 const Home = () => {
@@ -20,7 +20,41 @@ const Home = () => {
   const [workoutToDelete, setWorkoutToDelete] = useState(null);
   const [visibleLimit, setVisibleLimit] = useState(8);
 
-  // --- FETCH DATA FROM BACKEND ---
+  const calculateIntensity = (workout) => {
+    if (!workout.duration || workout.duration === 0) return 0;
+    let totalVolume = 0;
+    workout.details?.forEach(ex => {
+      if (ex.type === 'Strength') {
+        ex.sets.forEach(set => {
+          totalVolume += (Number(set.weight) || 0) * (Number(set.reps) || 0);
+        });
+      }
+    });
+    return (totalVolume / workout.duration).toFixed(1);
+  };
+
+  // --- PROGRESS CALCULATION ---
+  const getProgress = (currentWorkout, index) => {
+    const currentName = currentWorkout.name.toLowerCase().trim();
+    const currentScore = parseFloat(calculateIntensity(currentWorkout));
+
+    // Look at workouts older than the current one in the list
+    const previousSameWorkout = history.slice(index + 1).find(
+      w => w.name.toLowerCase().trim() === currentName
+    );
+
+    if (!previousSameWorkout) return { type: 'up', value: 100 };
+
+    const previousScore = parseFloat(calculateIntensity(previousSameWorkout));
+    if (previousScore === 0) return { type: 'neutral', value: 0 };
+
+    const percentChange = ((currentScore - previousScore) / previousScore) * 100;
+    
+    if (percentChange > 0.5) return { type: 'up', value: Math.round(percentChange) };
+    if (percentChange < -0.5) return { type: 'down', value: Math.abs(Math.round(percentChange)) };
+    return { type: 'neutral', value: 0 };
+  };
+
   const fetchWorkouts = async () => {
     setLoading(true);
     try {
@@ -31,7 +65,7 @@ const Home = () => {
     } catch (err) {
       console.error("Error fetching workouts:", err);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -236,22 +270,14 @@ const Home = () => {
               key={item} 
               className="bg-white p-5 rounded-[24px] flex justify-between items-center border border-slate-100 shadow-sm relative overflow-hidden"
             >
-              {/* Shimmer Effect Layer */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-50/60 to-transparent -translate-x-full animate-shimmer"></div>
-
               <div className="flex items-center gap-4 w-full">
-                {/* Skeleton Icon */}
                 <div className="bg-slate-100 p-3 rounded-2xl w-11 h-11 animate-pulse"></div>
-                
                 <div className="flex-1 space-y-2">
-                  {/* Skeleton Title */}
                   <div className="h-4 bg-slate-100 rounded-md w-1/2 animate-pulse"></div>
-                  {/* Skeleton Subtitle */}
                   <div className="h-2 bg-slate-100 rounded-md w-1/4 animate-pulse"></div>
                 </div>
               </div>
-
-              {/* Skeleton Chevron/Action area */}
               <div className="bg-slate-50 w-6 h-6 rounded-full animate-pulse"></div>
             </div>
           ))}
@@ -259,62 +285,81 @@ const Home = () => {
       ) : (
         <div className="space-y-4">
           {history.length > 0 ? (
-          <>
-            {history.slice(0, visibleLimit).map((workout) => (
-              <div 
-                key={workout._id} 
-                onClick={() => setSelectedWorkout(workout)} 
-                className="group bg-white p-5 rounded-[24px] flex justify-between items-center border border-slate-100 shadow-sm active:scale-[0.98] transition-all cursor-pointer relative"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="bg-slate-50 p-3 rounded-2xl text-slate-400">
-                    <Calendar size={20} />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-slate-800">{workout.name}</h4>
-                    <p className="text-xs text-slate-400 font-bold uppercase tracking-tighter">
-                      {new Date(workout.date).toLocaleDateString('en-GB', {day:'2-digit', month:'short'})} • {workout.duration} mins
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setWorkoutToDelete(workout._id);
-                    }}
-                    className="p-2 text-slate-200 hover:text-red-500 transition-colors"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                  <ChevronRight size={18} className="text-slate-200" />
-                </div>
-              </div>
-            ))}
+            <>
+              {history.slice(0, visibleLimit).map((workout, index) => {
+                const progress = getProgress(workout, index);
+                const intensity = calculateIntensity(workout);
 
-            {visibleLimit < history.length && (
-              <button
-                onClick={() => setVisibleLimit(prev => prev + 8)}
-                className="w-full py-4 mt-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] bg-white rounded-2xl border border-slate-100 shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2"
-              >
-                <Activity size={14} className="text-emerald-500" />
-                Load Older Workouts
-              </button>
-            )}
-          </>
-        ) : (
-          <div className="bg-white p-12 rounded-[32px] border-2 border-dashed border-slate-200 text-center">
-            <Dumbbell size={24} className="mx-auto mb-3 text-slate-300" />
-            <p className="text-slate-400 text-sm italic">No workouts recorded yet.</p>
-          </div>
-        )}
+                return (
+                  <div 
+                    key={workout._id} 
+                    onClick={() => setSelectedWorkout(workout)} 
+                    className="group bg-white p-5 rounded-[24px] flex justify-between items-center border border-slate-100 shadow-sm active:scale-[0.98] transition-all cursor-pointer relative"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`p-3 rounded-2xl flex flex-col items-center justify-center min-w-[52px] ${
+                        progress.type === 'up' ? 'bg-emerald-50 text-emerald-600' : 
+                        progress.type === 'down' ? 'bg-red-50 text-red-600' :
+                        progress.type === 'neutral' ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-400'
+                      }`}>
+                        {progress.type === 'up' && <TrendingUp size={20} />}
+                        {progress.type === 'down' && <TrendingDown size={20} />}
+                        {progress.type === 'neutral' && <MoveHorizontal size={20} />}
+                        {progress.value !== null && (
+                          <span className="text-[8px] font-black mt-1">{progress.value}%</span>
+                        )}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-800 leading-tight capitalize">{workout.name}</h4>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-bold">
+                            Score: {intensity}
+                          </span>
+                          <span className="text-[10px] text-slate-300 font-bold uppercase tracking-tighter">
+                            {new Date(workout.date).toLocaleDateString('en-GB', {day:'2-digit', month:'short'})}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setWorkoutToDelete(workout._id);
+                        }}
+                        className="p-2 text-slate-200 hover:text-red-500 transition-colors"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                      <ChevronRight size={18} className="text-slate-200" />
+                    </div>
+                  </div>
+                );
+              })}
+
+              {visibleLimit < history.length && (
+                <button
+                  onClick={() => setVisibleLimit(prev => prev + 8)}
+                  className="w-full py-4 mt-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] bg-white rounded-2xl border border-slate-100 shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2"
+                >
+                  <Activity size={14} className="text-emerald-500" />
+                  Load Older Workouts
+                </button>
+              )}
+            </>
+          ) : (
+            <div className="bg-white p-12 rounded-[32px] border-2 border-dashed border-slate-200 text-center">
+              <Dumbbell size={24} className="mx-auto mb-3 text-slate-300" />
+              <p className="text-slate-400 text-sm italic">No workouts recorded yet.</p>
+            </div>
+          )}
       </div>)}
 
       {/* Detail Modal */}
       {selectedWorkout && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[200] flex items-end justify-center">
           <div className="bg-white w-full max-w-lg rounded-t-[40px] p-8 max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
-            <div className="flex justify-between items-start mb-6">
+             <div className="flex justify-between items-start mb-6">
               <div>
                 <h2 className="text-2xl font-black text-slate-800">{selectedWorkout.name}</h2>
                 <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">

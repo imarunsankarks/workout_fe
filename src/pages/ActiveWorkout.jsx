@@ -45,6 +45,8 @@ const ActiveWorkout = () => {
   // --- NEW STATES FOR EDIT/DELETE ---
   const [editingExercise, setEditingExercise] = useState(null); 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+  const [activeTab, setActiveTab] = useState(""); 
+  const presetNames = ["Arms", "Legs", "Push", "Pull", "Other"];
 
   // --- 2. STORAGE SYNC ---
   useEffect(() => {
@@ -306,13 +308,66 @@ const ActiveWorkout = () => {
       {/* FINISH PROMPT */}
       {showFinishPrompt && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-6 text-center">
-          <div className="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl">
+          <div className="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
             <CheckCircle2 size={48} className="mx-auto mb-4 text-emerald-500" />
             <h2 className="text-2xl font-black text-slate-800 mb-6">Great Session!</h2>
-            <input autoFocus type="text" placeholder="Workout Name" className="w-full p-5 bg-slate-50 rounded-2xl font-bold mb-6 outline-none focus:ring-2 focus:ring-emerald-500" value={workoutName} onChange={(e) => setWorkoutName(e.target.value)} />
-            <div className="flex gap-3">
-              <button onClick={() => setShowFinishPrompt(false)} className="flex-1 py-4 text-slate-400 font-bold">Cancel</button>
-              <button onClick={saveWorkout} className="flex-1 py-4 bg-emerald-600 text-white font-black rounded-2xl">Save</button>
+            
+            {/* Tab/Pill Selection */}
+            <div className="flex flex-wrap justify-center gap-2 mb-6">
+              {presetNames.map((name) => (
+                <button
+                  key={name}
+                  onClick={() => {
+                    setActiveTab(name);
+                    if (name !== "Other") setWorkoutName(name);
+                    else setWorkoutName(""); // Clear if switching to manual input
+                  }}
+                  className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                    activeTab === name 
+                      ? 'bg-slate-900 text-white shadow-lg' 
+                      : 'bg-slate-50 text-slate-400 border border-slate-100'
+                  }`}
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
+
+            {/* Conditional Input Field (Only shows if 'Other' is selected) */}
+            {activeTab === "Other" && (
+              <div className="animate-in slide-in-from-top-2 duration-300">
+                <input 
+                  autoFocus 
+                  type="text" 
+                  placeholder="Custom Name (e.g. Chest & Back)" 
+                  className="w-full p-5 bg-slate-50 rounded-2xl font-bold mb-6 outline-none border-2 border-emerald-500/20 focus:border-emerald-500 transition-all" 
+                  value={workoutName} 
+                  onChange={(e) => setWorkoutName(e.target.value)} 
+                />
+              </div>
+            )}
+
+            <div className="flex gap-3 mt-2">
+              <button 
+                onClick={() => {
+                  setShowFinishPrompt(false);
+                  setActiveTab(""); // Reset for next time
+                }} 
+                className="flex-1 py-4 text-slate-400 font-bold hover:bg-slate-50 rounded-2xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={saveWorkout} 
+                disabled={!workoutName} // Prevent saving without a name
+                className={`flex-1 py-4 font-black rounded-2xl shadow-lg transition-all ${
+                  !workoutName 
+                    ? 'bg-slate-100 text-slate-300 cursor-not-allowed' 
+                    : 'bg-emerald-600 text-white active:scale-95'
+                }`}
+              >
+                Save
+              </button>
             </div>
           </div>
         </div>
@@ -368,7 +423,7 @@ const ActiveWorkout = () => {
               />
             </div>
 
-            <div className="flex gap-2 overflow-x-auto pb-4 mb-4 scrollbar-hide">
+            <div className="flex gap-2 overflow-x-auto pb-4 mb-4 no-scrollbar scroll-smooth" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
               {['All', 'Warmup', 'Strength', 'Stretching'].map(cat => (
                 <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${activeCategory === cat ? 'bg-slate-900 text-white shadow-lg' : 'bg-slate-100 text-slate-400'}`}>{cat}</button>
               ))}
