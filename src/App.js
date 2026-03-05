@@ -8,9 +8,10 @@ import WorkoutReports from './pages/Reports';
 import CreateExercise from './pages/CreateExercise';
 import Navbar from './components/Navbar';
 import InstallPrompt from './components/InstallPrompt';
-
+import useKeepAlive from './hooks/KeepAlive';
 const RootApp = () => {
   const { user } = useContext(AuthContext);
+  useKeepAlive();
 
   return (
     <BrowserRouter>

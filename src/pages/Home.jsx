@@ -316,6 +316,9 @@ const Home = () => {
                             Score: {intensity}
                           </span>
                           <span className="text-[10px] text-slate-300 font-bold uppercase tracking-tighter">
+                            {workout.duration ? `${workout.duration} MINS` : ''}
+                          </span>
+                          <span className="text-[10px] text-slate-300 font-bold uppercase tracking-tighter">
                             {new Date(workout.date).toLocaleDateString('en-GB', {day:'2-digit', month:'short'})}
                           </span>
                         </div>
