@@ -5,7 +5,7 @@ import axios from 'axios';
 import { BarChart, Bar, XAxis, ResponsiveContainer, Cell } from 'recharts';
 import { 
   Activity, ChevronLeft, ChevronRight, Clock, Trophy, 
-  Target, TrendingUp, AlertTriangle, Trash2, Dumbbell, Calendar, ChevronDown, ChevronUp
+  Target, TrendingUp, AlertTriangle, Trash2, Dumbbell, Calendar, ChevronDown, ChevronUp, Key
 } from 'lucide-react';
 
 const Reports = () => {
@@ -24,6 +24,17 @@ const Reports = () => {
   const [showAllPrs, setShowAllPrs] = useState(false); // New state for "Show More"
   const [loading, setLoading] = useState(true);
   const [showDeletePrompt, setShowDeletePrompt] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    email: '',
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordStep, setPasswordStep] = useState(1); 
+  const [passwordError, setPasswordError] = useState("");
+  const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
+  const [countdown, setCountdown] = useState(3);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -162,6 +173,53 @@ const Reports = () => {
   const formatMins = (mins) => {
     if (mins >= 60) return `${Math.floor(mins / 60)}h ${mins % 60}m`;
     return `${mins}m`;
+  };
+
+  const handleChangePassword = async () => {
+    setPasswordError(""); // Clear previous errors
+
+    if (passwordStep === 1) {
+      try {
+        await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/verify-credentials`, {
+          email: passwordData.email,
+          password: passwordData.currentPassword
+        }, { headers: { Authorization: `Bearer ${token}` } });
+        
+        setPasswordStep(2);
+      } catch (err) {
+        setPasswordError("Invalid email or current password.");
+      }
+    } else {
+      if (passwordData.newPassword !== passwordData.confirmPassword) {
+        return setPasswordError("New passwords do not match!");
+      }
+      if (passwordData.newPassword.length < 6) {
+        return setPasswordError("Password must be at least 6 characters.");
+      }
+
+      try {
+        await axios.put(`${process.env.REACT_APP_API_URL}/api/auth/update-password`, {
+          userId: user.id,
+          newPassword: passwordData.newPassword
+        }, { headers: { Authorization: `Bearer ${token}` } });
+        
+        setShowPasswordModal(false);
+        setShowSuccessOverlay(true);
+        
+        let timer = 3;
+        const interval = setInterval(() => {
+          timer -= 1;
+          setCountdown(timer);
+          if (timer === 0) {
+            clearInterval(interval);
+            logout();
+          }
+        }, 1000);
+
+      } catch (err) {
+        setPasswordError("Failed to update password. Try again.");
+      }
+    }
   };
 
   if (loading) return (
@@ -367,6 +425,16 @@ const Reports = () => {
         <Activity className="absolute -right-8 -bottom-8 w-32 h-32 text-white/5 rotate-12" />
       </div>
 
+      <div className="mt-8">
+        <button 
+          onClick={() => setShowPasswordModal(true)}
+          className="w-full py-4 flex items-center justify-center gap-2 text-slate-500 font-black text-[10px] uppercase tracking-[0.2em] bg-white rounded-2xl border border-slate-100 shadow-sm hover:bg-slate-50 transition-all mb-4"
+        >
+          <Key size={16} className="text-emerald-500" /> Change Password
+        </button>
+      </div>
+      <hr className="mb-3" />
+
       {/* Delete Profile */}
       <button 
         onClick={() => setShowDeletePrompt(true)}
@@ -391,6 +459,136 @@ const Reports = () => {
               <button onClick={handleDeleteProfile} className="w-full py-4 bg-red-500 text-white font-black rounded-2xl active:scale-95 transition-all">Yes, Delete Everything</button>
               <button onClick={() => setShowDeletePrompt(false)} className="w-full py-4 text-slate-400 font-bold hover:bg-slate-50 rounded-2xl transition-colors">Cancel</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showPasswordModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[400] flex items-center justify-center p-6">
+          <div className="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <h2 className="text-2xl font-black text-slate-800 mb-2">
+              {passwordStep === 1 ? 'Verify Identity' : 'Set New Password'}
+            </h2>
+            <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-6">
+              {passwordStep === 1 ? 'Enter current credentials' : 'Enter your new strong password'}
+            </p>
+
+            <div className="space-y-4 mb-6 text-left">
+              {passwordStep === 1 ? (
+                <>
+                  <input 
+                    type="email" placeholder="Email Address"
+                    className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none border border-slate-100 focus:border-emerald-500"
+                    value={passwordData.email}
+                    onChange={(e) => setPasswordData({...passwordData, email: e.target.value})}
+                  />
+                  <input 
+                    type="password" placeholder="Current Password"
+                    className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none border border-slate-100 focus:border-emerald-500"
+                    value={passwordData.currentPassword}
+                    onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
+                  />
+                </>
+              ) : (
+                <>
+                  <input 
+                    type="password" placeholder="New Password"
+                    className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none border border-slate-100 focus:border-emerald-500"
+                    value={passwordData.newPassword}
+                    onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                  />
+                  <input 
+                    type="password" placeholder="Repeat New Password"
+                    className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none border border-slate-100 focus:border-emerald-500"
+                    value={passwordData.confirmPassword}
+                    onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
+                  />
+                </>
+              )}
+            </div>
+
+            {/* ERROR MESSAGE BLOCK */}
+            {passwordError && (
+              <div className="mb-4 p-3 bg-red-50 rounded-xl border border-red-100 animate-in fade-in slide-in-from-top-1 duration-200">
+                <p className="text-red-500 text-[10px] font-black uppercase tracking-tight flex items-center justify-center gap-2">
+                  <AlertTriangle size={14} /> {passwordError}
+                </p>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-2">
+              <button 
+                onClick={handleChangePassword}
+                className="w-full py-4 bg-slate-900 text-white font-black rounded-2xl shadow-lg active:scale-95 transition-all"
+              >
+                {passwordStep === 1 ? 'Verify & Continue' : 'Update Password'}
+              </button>
+              <button 
+                onClick={() => { 
+                  setShowPasswordModal(false); 
+                  setPasswordStep(1); 
+                  setPasswordError(""); // Clear error on close
+                }}
+                className="w-full py-4 text-slate-400 font-bold hover:bg-slate-50 rounded-2xl transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSuccessOverlay && (
+        <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[600] flex flex-col items-center justify-center p-6 text-center">
+          <div className="bg-white rounded-[40px] p-10 w-full max-w-sm shadow-2xl relative overflow-hidden animate-in zoom-in duration-300">
+            
+            {/* Circular Timer Animation */}
+            <div className="relative w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+              <svg className="w-full h-full transform -rotate-90">
+                <circle
+                  cx="48"
+                  cy="48"
+                  r="40"
+                  stroke="currentColor"
+                  strokeWidth="8"
+                  fill="transparent"
+                  className="text-slate-100"
+                />
+                <circle
+                  cx="48"
+                  cy="48"
+                  r="40"
+                  stroke="currentColor"
+                  strokeWidth="8"
+                  fill="transparent"
+                  strokeDasharray="251.2"
+                  strokeDashoffset={251.2 - (251.2 * countdown) / 3}
+                  className="text-emerald-500 transition-all duration-1000 ease-linear"
+                />
+              </svg>
+              <span className="absolute text-2xl font-black text-slate-800">{countdown}</span>
+            </div>
+
+            <div className="bg-emerald-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-600">
+              <Activity size={32} />
+            </div>
+            
+            <h2 className="text-2xl font-black text-slate-800 mb-2">Security Updated</h2>
+            <p className="text-slate-500 text-sm mb-6 leading-relaxed">
+              Password changed successfully. <br/>
+              For your safety, please log in again with your new credentials.
+            </p>
+
+            <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-emerald-500 transition-all duration-1000 ease-linear" 
+                style={{ width: `${(countdown / 3) * 100}%` }}
+              ></div>
+            </div>
+            
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-4">
+              Logging out...
+            </p>
           </div>
         </div>
       )}
