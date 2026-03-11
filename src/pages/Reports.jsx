@@ -12,6 +12,7 @@ const Reports = () => {
   const { user, token, logout } = useContext(AuthContext); 
   const navigate = useNavigate();
   const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
+  const [clickedIntensity, setClickedIntensity] = useState(false);
   const [stats, setStats] = useState({ 
     totalWorkouts: 0, 
     totalMinutes: 0, 
@@ -39,7 +40,7 @@ const Reports = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
+        setLoading(!clickedIntensity ? true : false);
         const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/workouts/${user.id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -364,9 +365,9 @@ const Reports = () => {
             <h3 className="font-black text-slate-700 uppercase text-[10px] tracking-widest">Intensity trend</h3>
           </div>
           <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-100 gap-1">
-            <button onClick={() => setCurrentWeekOffset(prev => prev - 1)} className="p-1.5 hover:bg-white hover:shadow-sm rounded-lg transition-all text-slate-400 hover:text-emerald-600"><ChevronLeft size={16}/></button>
+            <button onClick={() => {setCurrentWeekOffset(prev => prev - 1); setClickedIntensity(true)}} className="p-1.5 hover:bg-white hover:shadow-sm rounded-lg transition-all text-slate-400 hover:text-emerald-600"><ChevronLeft size={16}/></button>
             <span className="text-[9px] font-black text-slate-400 px-2 uppercase">{currentWeekOffset === 0 ? "This Week" : currentWeekOffset === -1 ? "Last Week" : `${Math.abs(currentWeekOffset)}w ago`}</span>
-            <button onClick={() => setCurrentWeekOffset(prev => prev + 1)} className="p-1.5 hover:bg-white hover:shadow-sm rounded-lg transition-all text-slate-400 hover:text-emerald-600"><ChevronRight size={16}/></button>
+            <button onClick={() => {setCurrentWeekOffset(prev => prev + 1); setClickedIntensity(true)}} className="p-1.5 hover:bg-white hover:shadow-sm rounded-lg transition-all text-slate-400 hover:text-emerald-600"><ChevronRight size={16}/></button>
           </div>
         </div>
         <div className="h-44 w-full">

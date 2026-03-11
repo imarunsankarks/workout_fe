@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { 
   Play, Plus, Trash2, X, Search, 
   CheckCircle2, Dumbbell, Timer, 
@@ -41,6 +41,7 @@ const ActiveWorkout = () => {
   const [workoutName, setWorkoutName] = useState('');
   const [library, setLibrary] = useState([]);
   const [loadingSave, setLoadingSave] = useState(false);
+  const [activeMuscle, setActiveMuscle] = useState('Legs');
 
   // --- NEW STATES FOR EDIT/DELETE ---
   const [editingExercise, setEditingExercise] = useState(null); 
@@ -407,52 +408,113 @@ const ActiveWorkout = () => {
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[110] flex items-end">
           <div className="bg-white w-full rounded-t-[44px] p-8 max-h-[85vh] overflow-y-auto shadow-2xl animate-in slide-in-from-bottom duration-300">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-black text-slate-800 tracking-tight">Library</h2>
-              <button onClick={() => setIsModalOpen(false)} className="bg-slate-100 p-2 rounded-full text-slate-400"><X size={20}/></button>
+            
+            {/* Header */}
+            <div className="flex justify-between items-center mb-8">
+              <div>
+                <h2 className="text-2xl font-black text-slate-800 tracking-tight">Library</h2>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Link 
+                  to="/add-exercise" 
+                  className="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-4 py-2 rounded-2xl hover:bg-emerald-100 transition-all active:scale-95 border border-emerald-100/50"
+                >
+                  <Plus size={16} strokeWidth={3} />
+                  <span className="text-[10px] font-black uppercase tracking-widest">
+                    Add New
+                  </span>
+                </Link>
+
+                <button 
+                  onClick={() => setIsModalOpen(false)} 
+                  className="bg-slate-50 p-2.5 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all border border-slate-100"
+                >
+                  <X size={20}/>
+                </button>
+              </div>
             </div>
 
+            {/* Search Bar */}
             <div className="relative mb-6">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
               <input 
                 type="text" 
-                placeholder="Search exercise or muscle..." 
+                placeholder="Search exercise..." 
                 className="w-full pl-12 pr-4 py-4 bg-slate-50 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
 
-            <div className="flex gap-2 overflow-x-auto pb-4 mb-4 no-scrollbar scroll-smooth" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            {/* Type Tabs (Warmup, Strength, etc.) */}
+            <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar scroll-smooth" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
               {['All', 'Warmup', 'Strength', 'Stretching'].map(cat => (
-                <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${activeCategory === cat ? 'bg-slate-900 text-white shadow-lg' : 'bg-slate-100 text-slate-400'}`}>{cat}</button>
+                <button 
+                  key={cat} 
+                  onClick={() => setActiveCategory(cat)} 
+                  className={`px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeCategory === cat ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400'}`}
+                >
+                  {cat}
+                </button>
               ))}
             </div>
 
+            {/* NEW: Muscle Group Tabs */}
+            <div className="flex gap-2 overflow-x-auto py-4 mb-4 no-scrollbar scroll-smooth border-b border-slate-50" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              {['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Legs', 'Abs', 'Full Body'].map(muscle => (
+                <button 
+                  key={muscle} 
+                  onClick={() => setActiveMuscle(muscle)} 
+                  className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeMuscle === muscle ? 'bg-emerald-500 text-white shadow-md' : 'bg-slate-50 text-slate-400 border border-slate-100'}`}
+                >
+                  {muscle}
+                </button>
+              ))}
+            </div>
+
+            {/* Exercise List */}
             <div className="space-y-3">
               {library
                 .filter(ex => (activeCategory === 'All' || ex.type === activeCategory))
-                .filter(ex => 
-                   ex.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                   ex.muscle.toLowerCase().includes(searchTerm.toLowerCase())
-                )
+                // Filter by Muscle Group
+                .filter(ex => ex.muscle.toLowerCase() === activeMuscle.toLowerCase())
+                // Filter by Search Term
+                .filter(ex => ex.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                .sort((a, b) => a.name.localeCompare(b.name)) // Alphabetical Sort
                 .map(ex => (
-                <div key={ex._id} className="w-full flex gap-2 items-center animate-in fade-in duration-300">
-                  <button onClick={() => addExercise(ex)} className="flex-1 flex justify-between items-center p-5 bg-slate-50 rounded-2xl active:bg-emerald-50 transition-colors">
-                    <div className="flex items-center gap-4 text-left">
-                      <div className={`p-2 rounded-xl ${ex.type === 'Warmup' ? 'text-amber-500 bg-amber-50' : ex.type === 'Stretching' ? 'text-blue-500 bg-blue-50' : 'text-emerald-500 bg-emerald-50'}`}>
-                        {ex.type === 'Warmup' ? <Flame size={18}/> : ex.type === 'Stretching' ? <Move size={18}/> : <Dumbbell size={18}/>}
+                  <div key={ex._id} className="w-full flex gap-2 items-center animate-in fade-in duration-300">
+                    <button onClick={() => addExercise(ex)} className="flex-1 flex justify-between items-center p-5 bg-slate-50 rounded-2xl active:bg-emerald-50 transition-colors">
+                      <div className="flex items-center gap-4 text-left">
+                        <div className={`p-2 rounded-xl ${ex.type === 'Warmup' ? 'text-amber-500 bg-amber-50' : ex.type === 'Stretching' ? 'text-blue-500 bg-blue-50' : 'text-emerald-500 bg-emerald-50'}`}>
+                          {ex.type === 'Warmup' ? <Flame size={18}/> : ex.type === 'Stretching' ? <Move size={18}/> : <Dumbbell size={18}/>}
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-700 text-sm">{ex.name}</p>
+                          <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">{ex.muscle}</p>
+                        </div>
                       </div>
-                      <div><p className="font-bold text-slate-700 text-sm">{ex.name}</p><p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">{ex.muscle}</p></div>
+                      <Plus size={18} className="text-slate-300" />
+                    </button>
+                    
+                    <div className="flex flex-col gap-2">
+                      <button onClick={() => setEditingExercise(ex)} className="p-3 bg-slate-50 rounded-xl text-slate-400 hover:text-emerald-500 transition-colors">
+                        <Edit3 size={16}/>
+                      </button>
+                      <button onClick={() => setShowDeleteConfirm(ex._id)} className="p-3 bg-slate-50 rounded-xl text-slate-400 hover:text-red-500 transition-colors">
+                        <Trash2 size={16}/>
+                      </button>
                     </div>
-                    <Plus size={18} className="text-slate-300" />
-                  </button>
-                  <div className="flex flex-col gap-2">
-                    <button onClick={() => setEditingExercise(ex)} className="p-3 bg-slate-50 rounded-xl text-slate-400 hover:text-emerald-500 transition-colors"><Edit3 size={16}/></button>
-                    <button onClick={() => setShowDeleteConfirm(ex._id)} className="p-3 bg-slate-50 rounded-xl text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={16}/></button>
                   </div>
+                ))}
+
+              {/* Empty State for specific filter */}
+              {library.filter(ex => ex.muscle.toLowerCase() === activeMuscle.toLowerCase()).length === 0 && (
+                <div className="py-12 text-center">
+                  <Dumbbell size={32} className="mx-auto text-slate-200 mb-2" />
+                  <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">No {activeMuscle} exercises found</p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>
