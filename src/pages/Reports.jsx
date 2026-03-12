@@ -5,7 +5,7 @@ import axios from 'axios';
 import { BarChart, Bar, XAxis, ResponsiveContainer, Cell } from 'recharts';
 import { 
   Activity, ChevronLeft, ChevronRight, Clock, Trophy, 
-  Target, TrendingUp, AlertTriangle, Trash2, Dumbbell, Calendar, ChevronDown, ChevronUp, Key
+  Target, TrendingUp, AlertTriangle, Trash2, Dumbbell, Calendar, ChevronDown, ChevronUp, Key, X
 } from 'lucide-react';
 
 const Reports = () => {
@@ -36,6 +36,9 @@ const Reports = () => {
   const [passwordError, setPasswordError] = useState("");
   const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
   const [countdown, setCountdown] = useState(3);
+  const [selectedPrHistory, setSelectedPrHistory] = useState(null);
+  const [allWorkouts, setAllWorkouts] = useState([]); 
+  const [historyLimit, setHistoryLimit] = useState(5);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,7 +48,7 @@ const Reports = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         const history = res.data;
-
+        setAllWorkouts(history); 
         // --- 1. OVERALL STATS & MONTHLY VOLUME ---
         const totalMins = history.reduce((acc, curr) => acc + (curr.duration || 0), 0);
         const thirtyDaysAgo = new Date();
@@ -223,6 +226,26 @@ const Reports = () => {
     }
   };
 
+  const handlePrClick = (exerciseName) => {
+    setHistoryLimit(5);
+    const exerciseHistory = allWorkouts 
+      .filter(workout => 
+        workout.details?.some(ex => ex.name.toLowerCase() === exerciseName.toLowerCase())
+      )
+      .map(workout => {
+        const detail = workout.details.find(ex => ex.name.toLowerCase() === exerciseName.toLowerCase());
+        return {
+          workoutName: workout.name,
+          date: workout.date,
+          sets: detail.sets,
+          type: detail.type
+        };
+      })
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    setSelectedPrHistory({ name: exerciseName, history: exerciseHistory });
+  };
+
   if (loading) return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
       {/* Animated Icon Container */}
@@ -317,9 +340,9 @@ const Reports = () => {
                 .sort(([, a], [, b]) => b.weight - a.weight) // Sort by heaviest first
                 .slice(0, showAllPrs ? undefined : 5) // Show only 5 unless showAllPrs is true
                 .map(([name, data]) => (
-                <div key={name} className="bg-white p-5 rounded-[28px] shadow-sm border border-slate-100 flex justify-between items-center animate-in fade-in slide-in-from-right-4 duration-300">
+                <div key={name} onClick={() => handlePrClick(name)} className="group bg-white p-5 rounded-[28px] shadow-sm border border-slate-100 flex justify-between items-center active:scale-[0.98] transition-all cursor-pointer relative overflow-hidden">
                   <div>
-                    <h4 className="font-black text-slate-800 text-sm mb-1">{name}</h4>
+                    <h4 className="font-black text-slate-800 text-sm mb-1 capitalize">{name}</h4>
                     <div className="flex items-center gap-3">
                       <p className="text-[9px] text-slate-400 font-bold flex items-center gap-1 uppercase tracking-tighter">
                         <Calendar size={10} /> {new Date(data.date).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'2-digit'})}
@@ -590,6 +613,72 @@ const Reports = () => {
             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-4">
               Logging out...
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* PR HISTORY BOTTOM SHEET */}
+      {selectedPrHistory && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[500] flex items-end justify-center">
+          <div className="bg-white w-full max-w-lg rounded-t-[40px] p-8 max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
+            
+            {/* Modal Header */}
+            <div className="flex justify-between items-start mb-8">
+              <div>
+                <h2 className="text-2xl font-black text-slate-800 tracking-tight capitalize">{selectedPrHistory.name}</h2>
+                <p className="text-emerald-500 font-bold text-[10px] uppercase tracking-[0.2em]">Full History</p>
+              </div>
+              <button onClick={() => setSelectedPrHistory(null)} className="bg-slate-100 p-2 rounded-full text-slate-400">
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* History List */}
+            <div className="space-y-6">
+              {selectedPrHistory.history.slice(0, historyLimit).map((entry, idx) => (
+                <div key={idx} className="relative pl-6 border-l-2 border-slate-100 pb-2">
+                  <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-white border-4 border-emerald-500" />
+                  
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                        {new Date(entry.date).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'})}
+                      </p>
+                      <h4 className="font-bold text-slate-800 text-sm capitalize">{entry.workoutName || 'Routine'}</h4>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    {entry.sets.map((set, sIdx) => (
+                      <div key={sIdx} className="bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 flex justify-between items-center">
+                        <span className="text-[9px] font-black text-slate-400">SET {sIdx + 1}</span>
+                        <span className="text-xs font-bold text-slate-700">
+                          {entry.type === 'Strength' ? `${set.weight}kg x ${set.reps}` : `${set.time}s`}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+
+              {/* LOAD MORE IN POPUP */}
+              {historyLimit < selectedPrHistory.history.length && (
+                <button
+                  onClick={() => setHistoryLimit(prev => prev + 5)}
+                  className="w-full py-4 mt-4 text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] bg-white rounded-2xl border border-emerald-100 active:scale-95 transition-all flex items-center justify-center gap-2"
+                >
+                  {/* <Activity size={14} /> */}
+                  Show 5 More Sessions
+                </button>
+              )}
+            </div>
+
+            <button 
+              onClick={() => setSelectedPrHistory(null)} 
+              className="w-full mt-8 bg-slate-900 text-white font-black py-4 rounded-2xl"
+            >
+              CLOSE
+            </button>
           </div>
         </div>
       )}

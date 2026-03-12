@@ -364,7 +364,7 @@ const Home = () => {
           <div className="bg-white w-full max-w-lg rounded-t-[40px] p-8 max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
              <div className="flex justify-between items-start mb-6">
               <div>
-                <h2 className="text-2xl font-black text-slate-800">{selectedWorkout.name}</h2>
+                <h2 className="text-2xl font-black text-slate-800 capitalize">{selectedWorkout.name}</h2>
                 <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">
                    {new Date(selectedWorkout.date).toLocaleDateString('en-GB', {day:'2-digit', month:'long'})}
                 </p>
