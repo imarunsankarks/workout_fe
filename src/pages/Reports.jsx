@@ -5,7 +5,7 @@ import axios from 'axios';
 import { BarChart, Bar, XAxis, ResponsiveContainer, Cell } from 'recharts';
 import { 
   Activity, ChevronLeft, ChevronRight, Clock, Trophy, 
-  Target, TrendingUp, AlertTriangle, Trash2, Dumbbell, Calendar, ChevronDown, ChevronUp, Key, X
+  Target, TrendingUp, AlertTriangle, Trash2, Dumbbell, Calendar, ChevronDown, ChevronUp, Key, X, PauseCircle, Play
 } from 'lucide-react';
 
 const Reports = () => {
@@ -39,6 +39,8 @@ const Reports = () => {
   const [selectedPrHistory, setSelectedPrHistory] = useState(null);
   const [allWorkouts, setAllWorkouts] = useState([]); 
   const [historyLimit, setHistoryLimit] = useState(5);
+  const [hasActiveSession, setHasActiveSession] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -151,6 +153,23 @@ const Reports = () => {
   useEffect(() => {
     setShowAllPrs(false);
   }, [activePrTab]);
+
+  useEffect(() => {
+    const activeData = localStorage.getItem('active_session_exercises');
+    const activeSeconds = localStorage.getItem('active_session_seconds');
+    const pausedStatus = localStorage.getItem('active_session_is_active');
+    const hasExercises = activeData && JSON.parse(activeData).length > 0;
+    const hasTimeElapsed = activeSeconds && parseInt(activeSeconds) > 0;
+
+    if (hasExercises || hasTimeElapsed) {
+      setHasActiveSession(true);
+      if (pausedStatus !== null && JSON.parse(pausedStatus) === false) {
+        setIsPaused(true);
+      } else {
+        setIsPaused(false);
+      }
+    }
+  }, []);
 
   const getUserTier = () => {
     const count = stats.monthlyWorkouts;
@@ -307,6 +326,48 @@ const Reports = () => {
           <p className="text-xl font-black text-slate-800">{formatMins(stats.totalMinutes)}</p>
         </div>
       </div>
+
+      {hasActiveSession && (
+        <div className="mb-8 animate-in slide-in-from-top duration-500">
+          <div 
+            onClick={() => navigate('/workout')}
+            className={`group relative overflow-hidden p-0.5 rounded-[26px] cursor-pointer transition-all duration-500 active:scale-[0.97] ${
+              isPaused ? 'bg-slate-200' : 'bg-gradient-to-r from-amber-400 via-orange-500 to-amber-400 bg-[length:200%_auto] animate-gradient-x'
+            }`}
+          >
+            <div className="bg-white rounded-[24px] px-5 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                {/* Animated Icon Ring */}
+                <div className="relative">
+                  {!isPaused && (
+                    <div className="absolute inset-0 bg-amber-500/20 rounded-xl animate-ping"></div>
+                  )}
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
+                    isPaused ? 'bg-slate-100 text-slate-400' : 'bg-amber-50 text-amber-600'
+                  }`}>
+                    {isPaused ? <PauseCircle size={24} /> : <Activity size={24} className="animate-bounce" />}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${isPaused ? 'text-slate-400' : 'text-orange-600'}`}>
+                      {isPaused ? 'Paused' : 'Live Session'}
+                    </span>
+                  </div>
+                  <h5 className="text-sm font-black text-slate-800 uppercase tracking-tight">
+                    {isPaused ? 'Pick up where you left' : 'Crushing the workout'}
+                  </h5>
+                </div>
+              </div>
+
+              <div className={`p-2 rounded-full transition-all ${isPaused ? 'bg-slate-100 text-slate-400' : 'bg-amber-500 text-white shadow-lg shadow-amber-200'}`}>
+                <ChevronRight size={20} strokeWidth={3} />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* PERSONAL RECORDS (PR) SECTION WITH TABS AND SHOW MORE */}
       <div className="mb-10">

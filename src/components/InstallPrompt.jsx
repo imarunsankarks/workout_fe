@@ -55,7 +55,7 @@ const InstallPrompt = () => {
             <Smartphone size={24} />
           </div>
           <div>
-            <h4 className="font-black text-sm uppercase tracking-tight">Install GainsAI</h4>
+            <h4 className="font-black text-sm uppercase tracking-tight">Install GainsTracker</h4>
             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Add to your apps for better tracking</p>
           </div>
         </div>
