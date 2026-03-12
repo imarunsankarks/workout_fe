@@ -475,7 +475,14 @@ const ActiveWorkout = () => {
 
             {/* Exercise List */}
             <div className="space-y-3">
-              {library
+              {library.filter(ex => ex.muscle.toLowerCase() === activeMuscle.toLowerCase() && (activeCategory.toLowerCase() !== 'all' ? ex.type.toLowerCase() === activeCategory.toLowerCase() : true)).length === 0 ? (
+                <div className="py-12 text-center">
+                  <Dumbbell size={32} className="mx-auto text-slate-200 mb-2" />
+                  <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">No {activeMuscle} exercises found</p>
+                </div>
+              ):
+              (
+                library
                 .filter(ex => (activeCategory === 'All' || ex.type === activeCategory))
                 // Filter by Muscle Group
                 .filter(ex => ex.muscle.toLowerCase() === activeMuscle.toLowerCase())
@@ -506,14 +513,7 @@ const ActiveWorkout = () => {
                       </button>
                     </div>
                   </div>
-                ))}
-
-              {/* Empty State for specific filter */}
-              {library.filter(ex => ex.muscle.toLowerCase() === activeMuscle.toLowerCase()).length === 0 && (
-                <div className="py-12 text-center">
-                  <Dumbbell size={32} className="mx-auto text-slate-200 mb-2" />
-                  <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">No {activeMuscle} exercises found</p>
-                </div>
+                ))
               )}
             </div>
           </div>
