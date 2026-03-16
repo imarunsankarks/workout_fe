@@ -42,6 +42,7 @@ const ActiveWorkout = () => {
   const [library, setLibrary] = useState([]);
   const [loadingSave, setLoadingSave] = useState(false);
   const [activeMuscle, setActiveMuscle] = useState('Legs');
+  const [nullData, setNullData] = useState(false);
 
   // --- NEW STATES FOR EDIT/DELETE ---
   const [editingExercise, setEditingExercise] = useState(null); 
@@ -145,18 +146,41 @@ const ActiveWorkout = () => {
 
   const saveWorkout = async () => {
     const finalName = workoutName.trim() || "Daily Session";
+    
+    const formattedDetails = exercises
+      .map(ex => {
+        const validSets = ex.sets.filter(set => {
+          if (ex.type === 'Strength') {
+            return set.weight !== '' && set.reps !== '' && Number(set.reps) > 0;
+          } else {
+            return set.time && Number(set.time) > 0;
+          }
+        });
+
+        return {
+          name: ex.name,
+          type: ex.type,
+          muscle: ex.muscle,
+          sets: validSets
+        };
+      })
+      .filter(ex => ex.sets.length > 0);
+
+    if (formattedDetails.length === 0) {
+      setNullData(true);
+      // setShowFinishPrompt(false);
+      // alert("Cannot save an empty workout. Please complete at least one set.");
+      return;
+    }
+
     const workoutData = {
       userId: user.id,
       name: finalName,
       duration: Math.floor(seconds / 60),
-      muscles: [...new Set(exercises.map(ex => ex.muscle))],
-      details: exercises.map(ex => ({
-        name: ex.name,
-        type: ex.type,
-        muscle: ex.muscle,
-        sets: ex.sets
-      }))
+      muscles: [...new Set(formattedDetails.map(ex => ex.muscle))],
+      details: formattedDetails
     };
+
     try {
       setLoadingSave(true);
       setShowFinishPrompt(false);
@@ -166,9 +190,11 @@ const ActiveWorkout = () => {
       handleDiscard(); 
       navigate('/'); 
     } catch (err) {
-      console.error(err);
+      console.error("Save Error:", err);
       alert("Could not save to database.");
       setLoadingSave(false);
+      // Optionally reopen prompt if save fails
+      setShowFinishPrompt(true);
     }
   };
 
@@ -229,49 +255,101 @@ const ActiveWorkout = () => {
             {ex.type === 'Strength' ? (
               <div className="space-y-2">
                 {ex.sets.map((set, sIdx) => (
-                  <div key={sIdx} className="grid grid-cols-3 gap-3">
+                  <div key={sIdx} className="grid grid-cols-[50px_1fr_1fr_25px] gap-3">
                     <div className="bg-slate-50 rounded-xl py-3 text-center text-xs font-black text-slate-300 uppercase">{sIdx + 1}</div>
                     <input type="number" placeholder="kg" value={set.weight} onChange={(e) => {
                       const newExs = [...exercises];
                       newExs.find(i => i.instanceId === ex.instanceId).sets[sIdx].weight = e.target.value;
                       setExercises(newExs);
-                    }} className="bg-white border border-slate-200 rounded-xl text-center font-bold outline-none focus:border-emerald-500" />
+                    }} className="w-full bg-white border border-slate-200 rounded-xl text-center font-bold outline-none focus:border-emerald-500" />
                     <input type="number" placeholder="reps" value={set.reps} onChange={(e) => {
                       const newExs = [...exercises];
                       newExs.find(i => i.instanceId === ex.instanceId).sets[sIdx].reps = e.target.value;
                       setExercises(newExs);
-                    }} className="bg-white border border-slate-200 rounded-xl text-center font-bold outline-none focus:border-emerald-500" />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {ex.sets.map((set, sIdx) => (
-                  <div key={sIdx} className="flex items-center justify-between gap-3 bg-slate-50 p-2 px-4 rounded-2xl">
-                    <span className="text-[10px] font-black text-slate-300 uppercase">Set {sIdx+1}</span>
-                    <span className="font-mono font-bold text-slate-700">{formatTime(set.time || 0)}</span>
+                    }} className="w-full bg-white border border-slate-200 rounded-xl text-center font-bold outline-none focus:border-emerald-500" />
+
+                    {/* DELETE SET BUTTON */}
                     <button 
-                      disabled={!isActive}
                       onClick={() => {
                         const newExs = [...exercises];
                         const target = newExs.find(i => i.instanceId === ex.instanceId);
-                        target.isRunning = !target.isRunning;
-                        target.activeSetIdx = sIdx;
+                        target.sets.splice(sIdx, 1);
                         setExercises(newExs);
-                      }} 
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${!isActive ? 'opacity-30' : ''} ${ex.isRunning && ex.activeSetIdx === sIdx ? 'bg-red-500 text-white' : 'bg-white border text-slate-600 shadow-sm'}`}
+                      }}
+                      className="text-slate-200 hover:text-red-400 transition-colors flex justify-center items-center"
                     >
-                      {ex.isRunning && ex.activeSetIdx === sIdx ? 'Stop' : 'Start'}
+                      <X size={16} />
                     </button>
                   </div>
                 ))}
               </div>
+            ) : (
+              /* --- Timed Section (Warmup/Stretching) --- */
+              <div className="space-y-2">
+                {ex.sets.map((set, sIdx) => (
+                  <div key={sIdx} className="flex items-center gap-3 bg-slate-50 p-2 pl-4 rounded-2xl">
+                    <span className="text-[10px] font-black text-slate-300 uppercase min-w-[40px]">Set {sIdx+1}</span>
+                    <span className="flex-1 font-mono font-bold text-slate-700 text-center">{formatTime(set.time || 0)}</span>
+                    
+                    <div className="flex items-center gap-2">
+                      <button 
+                        disabled={!isActive}
+                        onClick={() => {
+                          const newExs = [...exercises];
+                          const target = newExs.find(i => i.instanceId === ex.instanceId);
+                          target.isRunning = !target.isRunning;
+                          target.activeSetIdx = sIdx;
+                          setExercises(newExs);
+                        }} 
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${ex.isRunning && ex.activeSetIdx === sIdx ? 'bg-red-500 text-white' : 'bg-white border text-slate-600 shadow-sm'}`}
+                      >
+                        {ex.isRunning && ex.activeSetIdx === sIdx ? 'Stop' : 'Start'}
+                      </button>
+
+                      {/* DELETE TIMED SET */}
+                      <button 
+                        onClick={() => {
+                          const newExs = [...exercises];
+                          const target = newExs.find(i => i.instanceId === ex.instanceId);
+                          target.sets.splice(sIdx, 1);
+                          setExercises(newExs);
+                        }}
+                        className="p-2 text-slate-200 hover:text-red-400"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
-            <button onClick={() => {
-              const newExs = [...exercises];
-              newExs.find(i => i.instanceId === ex.instanceId).sets.push(ex.type === 'Strength' ? {weight:'', reps:''} : {time:0});
-              setExercises(newExs);
-            }} className="w-full mt-4 py-2 text-[10px] font-black text-slate-300 border-2 border-dashed border-slate-100 rounded-xl hover:bg-slate-50 transition-all">+ ADD SET</button>
+            <button 
+              onClick={() => {
+                const newExs = [...exercises];
+                newExs.find(i => i.instanceId === ex.instanceId).sets.push(
+                  ex.type === 'Strength' ? { weight: '', reps: '' } : { time: 0 }
+                );
+                setExercises(newExs);
+              }} 
+              disabled={
+                ex.sets.length > 0 && (
+                  ex.type === 'Strength' 
+                    ? (!ex.sets[ex.sets.length - 1].weight || !ex.sets[ex.sets.length - 1].reps)
+                    : (ex.sets[ex.sets.length - 1].time === 0)
+                )
+              }
+              className={`w-full mt-4 py-2 text-[10px] font-black uppercase tracking-widest border-2 border-dashed rounded-xl transition-all ${
+                ex.sets.length > 0 && (
+                  ex.type === 'Strength' 
+                    ? (!ex.sets[ex.sets.length - 1].weight || !ex.sets[ex.sets.length - 1].reps)
+                    : (ex.sets[ex.sets.length - 1].time === 0)
+                )
+                ? 'border-slate-50 text-slate-200 cursor-not-allowed opacity-50' 
+                : 'border-slate-100 text-slate-300 hover:bg-slate-50 hover:text-emerald-500 hover:border-emerald-100'
+              }`}
+            >
+              + ADD SET
+            </button>
           </div>
         ))}
 
@@ -347,12 +425,15 @@ const ActiveWorkout = () => {
                 />
               </div>
             )}
+            {nullData && 
+              <p className="text-red-500 text-sm mb-4">Please complete at least one set!</p>}
 
             <div className="flex gap-3 mt-2">
               <button 
                 onClick={() => {
                   setShowFinishPrompt(false);
-                  setActiveTab(""); // Reset for next time
+                  setActiveTab(""); 
+                  setNullData(false);
                 }} 
                 className="flex-1 py-4 text-slate-400 font-bold hover:bg-slate-50 rounded-2xl transition-colors"
               >
