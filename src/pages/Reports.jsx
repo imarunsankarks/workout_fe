@@ -75,7 +75,7 @@ const Reports = () => {
                 (prev.weight > current.weight) ? prev : current
               , { weight: 0, reps: 0 });
 
-              if (maxSet.weight > 0) {
+              if (maxSet.weight >= 0) {
                 if (!prMap[muscleGroup]) prMap[muscleGroup] = {};
                 if (!prMap[muscleGroup][exerciseName] || maxSet.weight > prMap[muscleGroup][exerciseName].weight) {
                   prMap[muscleGroup][exerciseName] = {
