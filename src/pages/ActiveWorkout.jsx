@@ -8,6 +8,72 @@ import {
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 
+// --- NEW DND IMPORTS ---
+import { 
+  DndContext, 
+  closestCenter, 
+  TouchSensor, 
+  MouseSensor, 
+  useSensor, 
+  useSensors 
+} from '@dnd-kit/core';
+import { 
+  arrayMove, 
+  SortableContext, 
+  verticalListSortingStrategy, 
+  useSortable 
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+// --- SORTABLE ROW SUB-COMPONENT ---
+const SortableSetRow = ({ id, sIdx, set, ex, onUpdate, onDelete }) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 100 : 1,
+    opacity: isDragging ? 0.6 : 1,
+  };
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      className={`grid grid-cols-[50px_1fr_1fr_25px] gap-3 items-center ${isDragging ? 'shadow-2xl rounded-2xl bg-white' : ''}`}
+    >
+      {/* DRAG HANDLE (The Set Number) */}
+      <div 
+        {...attributes} 
+        {...listeners} 
+        className="bg-slate-50 rounded-xl py-3 text-center text-xs font-black text-slate-400 uppercase cursor-grab active:cursor-grabbing hover:bg-slate-100 transition-colors"
+      >
+        {sIdx + 1}
+      </div>
+
+      <input 
+        type="number" 
+        placeholder="kg" 
+        value={set.weight} 
+        onChange={(e) => onUpdate(sIdx, 'weight', e.target.value)}
+        className="w-full bg-white border border-slate-200 py-3 rounded-xl text-center font-bold outline-none focus:border-emerald-500" 
+      />
+
+      <input 
+        type="number" 
+        placeholder="reps" 
+        value={set.reps} 
+        onChange={(e) => onUpdate(sIdx, 'reps', e.target.value)}
+        className="w-full bg-white border border-slate-200 py-3 rounded-xl text-center font-bold outline-none focus:border-emerald-500" 
+      />
+
+      <button onClick={() => onDelete(sIdx)} className="text-slate-200 hover:text-red-400 transition-colors flex justify-center items-center">
+        <X size={16} />
+      </button>
+    </div>
+  );
+};
+
 const ActiveWorkout = () => {
   const navigate = useNavigate();
   const { user, token } = useContext(AuthContext);
@@ -49,6 +115,25 @@ const ActiveWorkout = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [activeTab, setActiveTab] = useState(""); 
   const presetNames = ["Arms", "Legs", "Push", "Pull", "Other"];
+
+  // --- DND SENSORS ---
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } })
+  );
+
+  const handleDragEnd = (event, exerciseInstanceId) => {
+    const { active, over } = event;
+    if (active.id !== over.id) {
+        let newExs = [...exercises];
+        let targetEx = newExs.find(ex => ex.instanceId === exerciseInstanceId);
+        const oldIndex = targetEx.sets.findIndex((_, i) => `set-${exerciseInstanceId}-${i}` === active.id);
+        const newIndex = targetEx.sets.findIndex((_, i) => `set-${exerciseInstanceId}-${i}` === over.id);
+        targetEx.sets = arrayMove(targetEx.sets, oldIndex, newIndex);
+        setExercises(newExs);
+      
+    }
+  };
 
   // --- 2. STORAGE SYNC ---
   useEffect(() => {
@@ -168,8 +253,6 @@ const ActiveWorkout = () => {
 
     if (formattedDetails.length === 0) {
       setNullData(true);
-      // setShowFinishPrompt(false);
-      // alert("Cannot save an empty workout. Please complete at least one set.");
       return;
     }
 
@@ -193,7 +276,6 @@ const ActiveWorkout = () => {
       console.error("Save Error:", err);
       alert("Could not save to database.");
       setLoadingSave(false);
-      // Optionally reopen prompt if save fails
       setShowFinishPrompt(true);
     }
   };
@@ -253,36 +335,38 @@ const ActiveWorkout = () => {
             </div>
 
             {ex.type === 'Strength' ? (
-              <div className="space-y-2">
-                {ex.sets.map((set, sIdx) => (
-                  <div key={sIdx} className="grid grid-cols-[50px_1fr_1fr_25px] gap-3">
-                    <div className="bg-slate-50 rounded-xl py-3 text-center text-xs font-black text-slate-300 uppercase">{sIdx + 1}</div>
-                    <input type="number" placeholder="kg" value={set.weight} onChange={(e) => {
-                      const newExs = [...exercises];
-                      newExs.find(i => i.instanceId === ex.instanceId).sets[sIdx].weight = e.target.value;
-                      setExercises(newExs);
-                    }} className="w-full bg-white border border-slate-200 rounded-xl text-center font-bold outline-none focus:border-emerald-500" />
-                    <input type="number" placeholder="reps" value={set.reps} onChange={(e) => {
-                      const newExs = [...exercises];
-                      newExs.find(i => i.instanceId === ex.instanceId).sets[sIdx].reps = e.target.value;
-                      setExercises(newExs);
-                    }} className="w-full bg-white border border-slate-200 rounded-xl text-center font-bold outline-none focus:border-emerald-500" />
-
-                    {/* DELETE SET BUTTON */}
-                    <button 
-                      onClick={() => {
-                        const newExs = [...exercises];
-                        const target = newExs.find(i => i.instanceId === ex.instanceId);
-                        target.sets.splice(sIdx, 1);
-                        setExercises(newExs);
-                      }}
-                      className="text-slate-200 hover:text-red-400 transition-colors flex justify-center items-center"
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                ))}
-              </div>
+              <DndContext 
+                sensors={sensors} 
+                collisionDetection={closestCenter} 
+                onDragEnd={(e) => handleDragEnd(e, ex.instanceId)}
+              >
+                <div className="space-y-2">
+                  <SortableContext 
+                    items={ex.sets.map((_, i) => `set-${ex.instanceId}-${i}`)} 
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {ex.sets.map((set, sIdx) => (
+                      <SortableSetRow 
+                        key={`set-${ex.instanceId}-${sIdx}`}
+                        id={`set-${ex.instanceId}-${sIdx}`}
+                        sIdx={sIdx}
+                        set={set}
+                        ex={ex}
+                        onUpdate={(idx, field, val) => {
+                          const newExs = [...exercises];
+                          newExs.find(i => i.instanceId === ex.instanceId).sets[idx][field] = val;
+                          setExercises(newExs);
+                        }}
+                        onDelete={(idx) => {
+                          const newExs = [...exercises];
+                          newExs.find(i => i.instanceId === ex.instanceId).sets.splice(idx, 1);
+                          setExercises(newExs);
+                        }}
+                      />
+                    ))}
+                  </SortableContext>
+                </div>
+              </DndContext>
             ) : (
               /* --- Timed Section (Warmup/Stretching) --- */
               <div className="space-y-2">
@@ -306,7 +390,6 @@ const ActiveWorkout = () => {
                         {ex.isRunning && ex.activeSetIdx === sIdx ? 'Stop' : 'Start'}
                       </button>
 
-                      {/* DELETE TIMED SET */}
                       <button 
                         onClick={() => {
                           const newExs = [...exercises];
@@ -334,14 +417,14 @@ const ActiveWorkout = () => {
               disabled={
                 ex.sets.length > 0 && (
                   ex.type === 'Strength' 
-                    ? (!ex.sets[ex.sets.length - 1].weight || !ex.sets[ex.sets.length - 1].reps)
+                    ? (ex.sets?.find((s) => !s.weight) || ex.sets?.find((s) => !s.reps || Number(s.reps) === 0))
                     : (ex.sets[ex.sets.length - 1].time === 0)
                 )
               }
               className={`w-full mt-4 py-2 text-[10px] font-black uppercase tracking-widest border-2 border-dashed rounded-xl transition-all ${
                 ex.sets.length > 0 && (
                   ex.type === 'Strength' 
-                    ? (!ex.sets[ex.sets.length - 1].weight || !ex.sets[ex.sets.length - 1].reps)
+                    ? (ex.sets?.find((s) => !s.weight) || ex.sets?.find((s) => !s.reps || Number(s.reps) === 0))
                     : (ex.sets[ex.sets.length - 1].time === 0)
                 )
                 ? 'border-slate-50 text-slate-200 cursor-not-allowed opacity-50' 
@@ -390,8 +473,6 @@ const ActiveWorkout = () => {
           <div className="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
             <CheckCircle2 size={48} className="mx-auto mb-4 text-emerald-500" />
             <h2 className="text-2xl font-black text-slate-800 mb-6">Great Session!</h2>
-            
-            {/* Tab/Pill Selection */}
             <div className="flex flex-wrap justify-center gap-2 mb-6">
               {presetNames.map((name) => (
                 <button
@@ -399,7 +480,7 @@ const ActiveWorkout = () => {
                   onClick={() => {
                     setActiveTab(name);
                     if (name !== "Other") setWorkoutName(name);
-                    else setWorkoutName(""); // Clear if switching to manual input
+                    else setWorkoutName("");
                   }}
                   className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                     activeTab === name 
@@ -411,8 +492,6 @@ const ActiveWorkout = () => {
                 </button>
               ))}
             </div>
-
-            {/* Conditional Input Field (Only shows if 'Other' is selected) */}
             {activeTab === "Other" && (
               <div className="animate-in slide-in-from-top-2 duration-300">
                 <input 
@@ -425,9 +504,7 @@ const ActiveWorkout = () => {
                 />
               </div>
             )}
-            {nullData && 
-              <p className="text-red-500 text-sm mb-4">Please complete at least one set!</p>}
-
+            {nullData && <p className="text-red-500 text-sm mb-4">Please complete at least one set!</p>}
             <div className="flex gap-3 mt-2">
               <button 
                 onClick={() => {
@@ -441,11 +518,9 @@ const ActiveWorkout = () => {
               </button>
               <button 
                 onClick={saveWorkout} 
-                disabled={!workoutName} // Prevent saving without a name
+                disabled={!workoutName}
                 className={`flex-1 py-4 font-black rounded-2xl shadow-lg transition-all ${
-                  !workoutName 
-                    ? 'bg-slate-100 text-slate-300 cursor-not-allowed' 
-                    : 'bg-emerald-600 text-white active:scale-95'
+                  !workoutName ? 'bg-slate-100 text-slate-300 cursor-not-allowed' : 'bg-emerald-600 text-white active:scale-95'
                 }`}
               >
                 Save
@@ -458,29 +533,18 @@ const ActiveWorkout = () => {
       {loadingSave && (
         <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[500] flex flex-col items-center justify-center p-6 text-center">
           <div className="relative mb-8">
-            {/* Expanding Ripple Rings */}
             <div className="absolute inset-0 rounded-full bg-emerald-500/30 animate-ping duration-1000"></div>
-            <div className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping delay-500 duration-1000"></div>
-            
-            {/* Main Icon Circle */}
-            <div className="relative bg-emerald-500 p-8 rounded-full shadow-2xl shadow-emerald-500/50 animate-bounce-slow">
+            <div className="relative bg-emerald-500 p-8 rounded-full shadow-2xl shadow-emerald-500/50">
               <Trophy size={48} className="text-white" />
             </div>
           </div>
-
-          {/* Dynamic Loading Text */}
           <div className="space-y-2">
-            <h2 className="text-white text-2xl font-black uppercase tracking-tight">
-              Finalizing Gains
-            </h2>
+            <h2 className="text-white text-2xl font-black uppercase tracking-tight">Finalizing Gains</h2>
             <div className="flex items-center justify-center gap-1.5">
               <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
               <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
               <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-bounce"></span>
             </div>
-            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em] mt-4">
-              Syncing in progress
-            </p>
           </div>
         </div>
       )}
@@ -489,109 +553,43 @@ const ActiveWorkout = () => {
       {isModalOpen && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[110] flex items-end">
           <div className="bg-white w-full rounded-t-[44px] p-8 max-h-[85vh] overflow-y-auto shadow-2xl animate-in slide-in-from-bottom duration-300">
-            
-            {/* Header */}
             <div className="flex justify-between items-center mb-8">
-              <div>
-                <h2 className="text-2xl font-black text-slate-800 tracking-tight">Library</h2>
-              </div>
-
+              <h2 className="text-2xl font-black text-slate-800 tracking-tight">Library</h2>
               <div className="flex items-center gap-3">
-                <Link 
-                  to="/add-exercise" 
-                  className="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-4 py-2 rounded-2xl hover:bg-emerald-100 transition-all active:scale-95 border border-emerald-100/50"
-                >
-                  <Plus size={16} strokeWidth={3} />
-                  <span className="text-[10px] font-black uppercase tracking-widest">
-                    Add New
-                  </span>
-                </Link>
-
-                <button 
-                  onClick={() => setIsModalOpen(false)} 
-                  className="bg-slate-50 p-2.5 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all border border-slate-100"
-                >
-                  <X size={20}/>
-                </button>
+                <Link to="/add-exercise" className="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-4 py-2 rounded-2xl hover:bg-emerald-100 border border-emerald-100/50"><Plus size={16} strokeWidth={3} /><span className="text-[10px] font-black uppercase tracking-widest">Add New</span></Link>
+                <button onClick={() => setIsModalOpen(false)} className="bg-slate-50 p-2.5 rounded-full text-slate-400 hover:bg-slate-100 transition-all border border-slate-100"><X size={20}/></button>
               </div>
             </div>
-
-            {/* Search Bar */}
             <div className="relative mb-6">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-              <input 
-                type="text" 
-                placeholder="Search exercise..." 
-                className="w-full pl-12 pr-4 py-4 bg-slate-50 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+              <input type="text" placeholder="Search exercise..." className="w-full pl-12 pr-4 py-4 bg-slate-50 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
-
-            {/* Type Tabs (Warmup, Strength, etc.) */}
             <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar scroll-smooth" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
               {['All', 'Warmup', 'Strength', 'Stretching'].map(cat => (
-                <button 
-                  key={cat} 
-                  onClick={() => setActiveCategory(cat)} 
-                  className={`px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeCategory === cat ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400'}`}
-                >
-                  {cat}
-                </button>
+                <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeCategory === cat ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400'}`}>{cat}</button>
               ))}
             </div>
-
-            {/* NEW: Muscle Group Tabs */}
             <div className="flex gap-2 overflow-x-auto py-4 mb-4 no-scrollbar scroll-smooth border-b border-slate-50" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
               {['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Legs', 'Abs', 'Full Body'].map(muscle => (
-                <button 
-                  key={muscle} 
-                  onClick={() => setActiveMuscle(muscle)} 
-                  className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeMuscle === muscle ? 'bg-emerald-500 text-white shadow-md' : 'bg-slate-50 text-slate-400 border border-slate-100'}`}
-                >
-                  {muscle}
-                </button>
+                <button key={muscle} onClick={() => setActiveMuscle(muscle)} className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeMuscle === muscle ? 'bg-emerald-500 text-white shadow-md' : 'bg-slate-50 text-slate-400 border border-slate-100'}`}>{muscle}</button>
               ))}
             </div>
-
-            {/* Exercise List */}
             <div className="space-y-3">
               {library.filter(ex => ex.muscle.toLowerCase() === activeMuscle.toLowerCase() && (activeCategory.toLowerCase() !== 'all' ? ex.type.toLowerCase() === activeCategory.toLowerCase() : true)).length === 0 ? (
-                <div className="py-12 text-center">
-                  <Dumbbell size={32} className="mx-auto text-slate-200 mb-2" />
-                  <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">No {activeMuscle} exercises found</p>
-                </div>
-              ):
-              (
-                library
-                .filter(ex => (activeCategory === 'All' || ex.type === activeCategory))
-                // Filter by Muscle Group
-                .filter(ex => ex.muscle.toLowerCase() === activeMuscle.toLowerCase())
-                // Filter by Search Term
-                .filter(ex => ex.name.toLowerCase().includes(searchTerm.toLowerCase()))
-                .sort((a, b) => a.name.localeCompare(b.name)) // Alphabetical Sort
-                .map(ex => (
+                <div className="py-12 text-center"><Dumbbell size={32} className="mx-auto text-slate-200 mb-2" /><p className="text-slate-400 text-xs font-bold uppercase tracking-widest">No {activeMuscle} exercises found</p></div>
+              ) : (
+                library.filter(ex => (activeCategory === 'All' || ex.type === activeCategory)).filter(ex => ex.muscle.toLowerCase() === activeMuscle.toLowerCase()).filter(ex => ex.name.toLowerCase().includes(searchTerm.toLowerCase())).sort((a, b) => a.name.localeCompare(b.name)).map(ex => (
                   <div key={ex._id} className="w-full flex gap-2 items-center animate-in fade-in duration-300">
                     <button onClick={() => addExercise(ex)} className="flex-1 flex justify-between items-center p-5 bg-slate-50 rounded-2xl active:bg-emerald-50 transition-colors">
                       <div className="flex items-center gap-4 text-left">
-                        <div className={`p-2 rounded-xl ${ex.type === 'Warmup' ? 'text-amber-500 bg-amber-50' : ex.type === 'Stretching' ? 'text-blue-500 bg-blue-50' : 'text-emerald-500 bg-emerald-50'}`}>
-                          {ex.type === 'Warmup' ? <Flame size={18}/> : ex.type === 'Stretching' ? <Move size={18}/> : <Dumbbell size={18}/>}
-                        </div>
-                        <div>
-                          <p className="font-bold text-slate-700 text-sm">{ex.name}</p>
-                          <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">{ex.muscle}</p>
-                        </div>
+                        <div className={`p-2 rounded-xl ${ex.type === 'Warmup' ? 'text-amber-500 bg-amber-50' : ex.type === 'Stretching' ? 'text-blue-500 bg-blue-50' : 'text-emerald-500 bg-emerald-50'}`}>{ex.type === 'Warmup' ? <Flame size={18}/> : ex.type === 'Stretching' ? <Move size={18}/> : <Dumbbell size={18}/>}</div>
+                        <div><p className="font-bold text-slate-700 text-sm">{ex.name}</p><p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">{ex.muscle}</p></div>
                       </div>
                       <Plus size={18} className="text-slate-300" />
                     </button>
-                    
                     <div className="flex flex-col gap-2">
-                      <button onClick={() => setEditingExercise(ex)} className="p-3 bg-slate-50 rounded-xl text-slate-400 hover:text-emerald-500 transition-colors">
-                        <Edit3 size={16}/>
-                      </button>
-                      <button onClick={() => setShowDeleteConfirm(ex._id)} className="p-3 bg-slate-50 rounded-xl text-slate-400 hover:text-red-500 transition-colors">
-                        <Trash2 size={16}/>
-                      </button>
+                      <button onClick={() => setEditingExercise(ex)} className="p-3 bg-slate-50 rounded-xl text-slate-400 hover:text-emerald-500 transition-colors"><Edit3 size={16}/></button>
+                      <button onClick={() => setShowDeleteConfirm(ex._id)} className="p-3 bg-slate-50 rounded-xl text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={16}/></button>
                     </div>
                   </div>
                 ))
@@ -602,83 +600,35 @@ const ActiveWorkout = () => {
       )}
 
       {/* EDIT LIBRARY ITEM MODAL */}
-      {/* EDIT LIBRARY ITEM MODAL */}
       {editingExercise && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6">
           <div className="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in zoom-in duration-200">
             <h2 className="text-xl font-black text-slate-800 mb-6">Edit Exercise</h2>
             <div className="space-y-6">
-              
-              {/* Exercise Name Input */}
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Exercise Name</label>
-                <input 
-                  type="text" 
-                  value={editingExercise.name} 
-                  onChange={(e) => setEditingExercise({...editingExercise, name: e.target.value})} 
-                  className="w-full p-4 bg-slate-50 rounded-xl font-bold border-none outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
-                />
+                <input type="text" value={editingExercise.name} onChange={(e) => setEditingExercise({...editingExercise, name: e.target.value})} className="w-full p-4 bg-slate-50 rounded-xl font-bold outline-none focus:ring-2 focus:ring-emerald-500" />
               </div>
-              
-              {/* TARGET MUSCLE PICKER */}
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Target Muscle</label>
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
                   {['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Legs', 'Abs', 'Full Body'].map((muscle) => (
-                    <button
-                      key={muscle}
-                      onClick={() => setEditingExercise({...editingExercise, muscle})}
-                      className={`whitespace-nowrap px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider border transition-all duration-200 ${
-                        editingExercise.muscle === muscle 
-                          ? 'bg-emerald-600 border-emerald-600 text-white shadow-md shadow-emerald-100' 
-                          : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200'
-                      }`}
-                    >
-                      {muscle}
-                    </button>
+                    <button key={muscle} onClick={() => setEditingExercise({...editingExercise, muscle})} className={`whitespace-nowrap px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider border transition-all ${editingExercise.muscle === muscle ? 'bg-emerald-600 border-emerald-600 text-white shadow-md' : 'bg-white border-slate-100 text-slate-400'}`}>{muscle}</button>
                   ))}
                 </div>
               </div>
-
-              {/* WORKOUT TYPE PICKER */}
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Workout Type</label>
                 <div className="flex gap-2 p-1.5 bg-slate-50 rounded-2xl border border-slate-100">
-                  {[
-                    { id: 'Strength', icon: <Dumbbell size={14}/> },
-                    { id: 'Warmup', icon: <Flame size={14}/> },
-                    { id: 'Stretching', icon: <Move size={14}/> }
-                  ].map((type) => (
-                    <button
-                      key={type.id}
-                      onClick={() => setEditingExercise({...editingExercise, type: type.id})}
-                      className={`flex-1 py-3 px-1 rounded-xl flex flex-col items-center gap-1 transition-all duration-300 ${
-                        editingExercise.type === type.id 
-                          ? 'bg-slate-900 text-white shadow-lg' 
-                          : 'text-slate-400 hover:bg-slate-100'
-                      }`}
-                    >
-                      {type.icon}
-                      <span className="text-[9px] font-black uppercase tracking-wider">{type.id}</span>
-                    </button>
+                  {[{ id: 'Strength', icon: <Dumbbell size={14}/> }, { id: 'Warmup', icon: <Flame size={14}/> }, { id: 'Stretching', icon: <Move size={14}/> }].map((type) => (
+                    <button key={type.id} onClick={() => setEditingExercise({...editingExercise, type: type.id})} className={`flex-1 py-3 px-1 rounded-xl flex flex-col items-center gap-1 transition-all ${editingExercise.type === type.id ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-400 hover:bg-slate-100'}`}>{type.icon}<span className="text-[9px] font-black uppercase tracking-wider">{type.id}</span></button>
                   ))}
                 </div>
               </div>
             </div>
-
             <div className="flex gap-2 mt-8">
-              <button 
-                onClick={() => setEditingExercise(null)} 
-                className="flex-1 py-4 text-slate-400 font-bold hover:bg-slate-50 rounded-2xl transition-colors"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={updateLibraryItem} 
-                className="flex-1 py-4 bg-emerald-600 text-white font-black rounded-2xl shadow-lg shadow-emerald-100 active:scale-95 transition-all"
-              >
-                Save Changes
-              </button>
+              <button onClick={() => setEditingExercise(null)} className="flex-1 py-4 text-slate-400 font-bold hover:bg-slate-50 rounded-2xl transition-colors">Cancel</button>
+              <button onClick={updateLibraryItem} className="flex-1 py-4 bg-emerald-600 text-white font-black rounded-2xl shadow-lg active:scale-95 transition-all">Save Changes</button>
             </div>
           </div>
         </div>
@@ -688,9 +638,7 @@ const ActiveWorkout = () => {
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6 text-center">
           <div className="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl">
-            <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
-              <AlertTriangle size={32} />
-            </div>
+            <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500"><AlertTriangle size={32} /></div>
             <h2 className="text-xl font-black text-slate-800 mb-2">Delete Exercise?</h2>
             <p className="text-slate-500 text-sm mb-8 leading-relaxed">This will remove it from your library forever. <br/>Existing sessions won't be affected.</p>
             <div className="flex gap-2">
