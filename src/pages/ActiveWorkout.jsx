@@ -624,12 +624,11 @@ const ActiveWorkout = () => {
                         <div className={`p-2 rounded-xl ${ex.type === 'Warmup' ? 'text-amber-500 bg-amber-50' : ex.type === 'Stretching' ? 'text-blue-500 bg-blue-50' : 'text-emerald-500 bg-emerald-50'}`}>{ex.type === 'Warmup' ? <Flame size={18}/> : ex.type === 'Stretching' ? <Move size={18}/> : <Dumbbell size={18}/>}</div>
                         <div><p className="font-bold text-slate-700 text-sm">{ex.name}</p><p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">{ex.muscle}</p></div>
                       </div>
-                      <Plus size={18} className="text-slate-300" />
-                    </button>
-                    <div className="flex flex-col gap-2">
-                      <button onClick={() => setEditingExercise(ex)} className="p-3 bg-slate-50 rounded-xl text-slate-400 hover:text-emerald-500 transition-colors"><Edit3 size={16}/></button>
-                      <button onClick={() => setShowDeleteConfirm(ex._id)} className="p-3 bg-slate-50 rounded-xl text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={16}/></button>
+                    <div className="flex gap-2">
+                      <button onClick={() => setEditingExercise(ex)} className="p-2 bg-slate-50 rounded-xl text-slate-400 hover:text-emerald-500 transition-colors"><Edit3 size={16}/></button>
+                      <button onClick={() => setShowDeleteConfirm(ex._id)} className="p-2 bg-slate-50 rounded-xl text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={16}/></button>
                     </div>
+                    </button>
                   </div>
                 ))
               )}
@@ -650,7 +649,7 @@ const ActiveWorkout = () => {
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Target Muscle</label>
-                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1" style={{scrollbarWidth: 'none'}}>
                   {['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Legs', 'Abs', 'Full Body'].map((muscle) => (
                     <button key={muscle} onClick={() => setEditingExercise({...editingExercise, muscle})} className={`whitespace-nowrap px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider border transition-all ${editingExercise.muscle === muscle ? 'bg-emerald-600 border-emerald-600 text-white shadow-md' : 'bg-white border-slate-100 text-slate-400'}`}>{muscle}</button>
                   ))}

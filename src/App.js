@@ -10,6 +10,7 @@ import Navbar from './components/Navbar';
 import InstallPrompt from './components/InstallPrompt';
 import useKeepAlive from './hooks/KeepAlive';
 import ScrollToTop from './components/ScrollToTop';
+import Library from './pages/Library';
 const RootApp = () => {
   const { user } = useContext(AuthContext);
   useKeepAlive();
@@ -25,6 +26,7 @@ const RootApp = () => {
           <Route path="/workout" element={user ? <ActiveWorkout /> : <Navigate to="/login" />} />
           <Route path="/reports" element={user ? <WorkoutReports /> : <Navigate to="/login" />} />
           <Route path="/add-exercise" element={user ? <CreateExercise /> : <Navigate to="/login" />} />
+          <Route path="/library" element={user ? <Library /> : <Navigate to="/login" />} />
         </Routes>
         {user && <Navbar />}
       </div>
