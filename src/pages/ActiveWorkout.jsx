@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { 
   Play, Plus, Trash2, X, Search, 
   CheckCircle2, Dumbbell, Timer, 
-  Flame, Move, Pause, AlertTriangle, Edit3, Trophy
+  Flame, Move, Pause, AlertTriangle, Edit3, Trophy, History, Clock as ClockIcon
 } from 'lucide-react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
@@ -42,7 +42,6 @@ const SortableSetRow = ({ id, sIdx, set, ex, onUpdate, onDelete }) => {
       style={style} 
       className={`grid grid-cols-[50px_1fr_1fr_25px] gap-3 items-center ${isDragging ? 'shadow-2xl rounded-2xl bg-white' : ''}`}
     >
-      {/* DRAG HANDLE (The Set Number) */}
       <div 
         {...attributes} 
         {...listeners} 
@@ -78,7 +77,6 @@ const ActiveWorkout = () => {
   const navigate = useNavigate();
   const { user, token } = useContext(AuthContext);
 
-  // --- 1. PERSISTENCE INITIALIZATION ---
   const [exercises, setExercises] = useState(() => {
     const saved = localStorage.getItem('active_session_exercises');
     return saved ? JSON.parse(saved) : [];
@@ -110,13 +108,16 @@ const ActiveWorkout = () => {
   const [activeMuscle, setActiveMuscle] = useState('Legs');
   const [nullData, setNullData] = useState(false);
 
-  // --- NEW STATES FOR EDIT/DELETE ---
   const [editingExercise, setEditingExercise] = useState(null); 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [activeTab, setActiveTab] = useState(""); 
   const presetNames = ["Arms", "Legs", "Push", "Pull", "Other"];
 
-  // --- DND SENSORS ---
+  // --- HISTORY STATES ---
+  const [allWorkouts, setAllWorkouts] = useState([]);
+  const [selectedPrHistory, setSelectedPrHistory] = useState(null);
+  const [historyLimit, setHistoryLimit] = useState(5);
+
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } })
@@ -135,7 +136,6 @@ const ActiveWorkout = () => {
     }
   };
 
-  // --- 2. STORAGE SYNC ---
   useEffect(() => {
     localStorage.setItem('active_session_exercises', JSON.stringify(exercises));
     localStorage.setItem('active_session_seconds', seconds.toString());
@@ -156,11 +156,23 @@ const ActiveWorkout = () => {
     } catch (err) { console.error(err); }
   };
 
+  // --- FETCH HISTORY ---
+  const fetchHistory = async () => {
+    try {
+      const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/workouts/${user.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAllWorkouts(res.data);
+    } catch (err) { console.error(err); }
+  };
+
   useEffect(() => {
-    if (user?.id) fetchLibrary();
+    if (user?.id) {
+      fetchLibrary();
+      fetchHistory();
+    }
   }, [user.id]);
 
-  // --- 3. BULLETPROOF TIMER LOGIC ---
   useEffect(() => {
     let interval = null;
     if (isActive && lastUnpausedAt) {
@@ -218,6 +230,26 @@ const ActiveWorkout = () => {
     setExercises([...exercises, newEx]);
     setIsModalOpen(false);
     setSearchTerm('');
+  };
+
+  const handlePrClick = (exerciseName) => {
+    setHistoryLimit(5);
+    const exerciseHistory = allWorkouts 
+      .filter(workout => 
+        workout.details?.some(ex => ex.name.toLowerCase() === exerciseName.toLowerCase())
+      )
+      .map(workout => {
+        const detail = workout.details.find(ex => ex.name.toLowerCase() === exerciseName.toLowerCase());
+        return {
+          workoutName: workout.name,
+          date: workout.date,
+          sets: detail.sets,
+          type: detail.type
+        };
+      })
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    setSelectedPrHistory({ name: exerciseName, history: exerciseHistory });
   };
 
   const handleDiscard = () => {
@@ -331,7 +363,17 @@ const ActiveWorkout = () => {
                   <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">{ex.muscle}</p>
                 </div>
               </div>
-              <button onClick={() => setExercises(exercises.filter(e => e.instanceId !== ex.instanceId))} className="text-slate-200 hover:text-red-500 transition-colors"><Trash2 size={18} /></button>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => handlePrClick(ex.name)}
+                  className="p-2 text-slate-300 hover:text-emerald-500 transition-colors"
+                >
+                  <History size={18} />
+                </button>
+                <button onClick={() => setExercises(exercises.filter(e => e.instanceId !== ex.instanceId))} className="text-slate-200 hover:text-red-500 transition-colors">
+                  <Trash2 size={18} />
+                </button>
+              </div>
             </div>
 
             {ex.type === 'Strength' ? (
@@ -368,13 +410,11 @@ const ActiveWorkout = () => {
                 </div>
               </DndContext>
             ) : (
-              /* --- Timed Section (Warmup/Stretching) --- */
               <div className="space-y-2">
                 {ex.sets.map((set, sIdx) => (
                   <div key={sIdx} className="flex items-center gap-3 bg-slate-50 p-2 pl-4 rounded-2xl">
                     <span className="text-[10px] font-black text-slate-300 uppercase min-w-[40px]">Set {sIdx+1}</span>
                     <span className="flex-1 font-mono font-bold text-slate-700 text-center">{formatTime(set.time || 0)}</span>
-                    
                     <div className="flex items-center gap-2">
                       <button 
                         disabled={!isActive}
@@ -389,7 +429,6 @@ const ActiveWorkout = () => {
                       >
                         {ex.isRunning && ex.activeSetIdx === sIdx ? 'Stop' : 'Start'}
                       </button>
-
                       <button 
                         onClick={() => {
                           const newExs = [...exercises];
@@ -645,6 +684,70 @@ const ActiveWorkout = () => {
               <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 py-4 text-slate-400 font-bold">Cancel</button>
               <button onClick={() => deleteLibraryItem(showDeleteConfirm)} className="flex-1 py-4 bg-red-500 text-white font-black rounded-2xl">Delete</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* PR HISTORY BOTTOM SHEET */}
+      {selectedPrHistory && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[500] flex items-end justify-center">
+          <div className="bg-white w-full max-w-lg rounded-t-[40px] p-8 max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
+            
+            <div className="flex justify-between items-start mb-8">
+              <div>
+                <h2 className="text-2xl font-black text-slate-800 tracking-tight capitalize">{selectedPrHistory.name}</h2>
+                <p className="text-emerald-500 font-bold text-[10px] uppercase tracking-[0.2em]">Full History</p>
+              </div>
+              <button onClick={() => setSelectedPrHistory(null)} className="bg-slate-100 p-2 rounded-full text-slate-400">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {selectedPrHistory.history.length > 0 ? (
+                selectedPrHistory.history.slice(0, historyLimit).map((entry, idx) => (
+                  <div key={idx} className="relative pl-6 border-l-2 border-slate-100 pb-2">
+                    <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-white border-4 border-emerald-500" />
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                          {new Date(entry.date).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'})}
+                        </p>
+                        <h4 className="font-bold text-slate-800 text-sm capitalize">{entry.workoutName || 'Routine'}</h4>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {entry.sets.map((set, sIdx) => (
+                        <div key={sIdx} className="bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 flex justify-between items-center">
+                          <span className="text-[9px] font-black text-slate-400">SET {sIdx + 1}</span>
+                          <span className="text-xs font-bold text-slate-700">
+                            {entry.type === 'Strength' ? `${set.weight}kg x ${set.reps}` : `${set.time}s`}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-center text-slate-400 text-xs italic">No history found for this exercise.</p>
+              )}
+
+              {historyLimit < selectedPrHistory.history.length && (
+                <button
+                  onClick={() => setHistoryLimit(prev => prev + 5)}
+                  className="w-full py-4 mt-4 text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] bg-white rounded-2xl border border-emerald-100 active:scale-95 transition-all flex items-center justify-center gap-2"
+                >
+                  Show 5 More Sessions
+                </button>
+              )}
+            </div>
+
+            <button 
+              onClick={() => setSelectedPrHistory(null)} 
+              className="w-full mt-8 bg-slate-900 text-white font-black py-4 rounded-2xl"
+            >
+              CLOSE
+            </button>
           </div>
         </div>
       )}
