@@ -9,6 +9,7 @@ import CreateExercise from './pages/CreateExercise';
 import Navbar from './components/Navbar';
 import InstallPrompt from './components/InstallPrompt';
 import useKeepAlive from './hooks/KeepAlive';
+import ScrollToTop from './components/ScrollToTop';
 const RootApp = () => {
   const { user } = useContext(AuthContext);
   useKeepAlive();
@@ -17,6 +18,7 @@ const RootApp = () => {
     <BrowserRouter>
       <div className="pb-20"> 
         <InstallPrompt />
+        <ScrollToTop />
         <Routes>
           <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
           <Route path="/" element={user ? <Home /> : <Navigate to="/login" />} />
