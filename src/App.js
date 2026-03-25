@@ -17,7 +17,7 @@ const RootApp = () => {
 
   return (
     <BrowserRouter>
-      <div className="pb-20"> 
+      <div className="pb-20 select-none"> 
         <InstallPrompt />
         <ScrollToTop />
         <Routes>
