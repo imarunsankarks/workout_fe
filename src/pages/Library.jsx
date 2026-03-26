@@ -136,7 +136,7 @@ const Library = () => {
                   {ex.type === 'Warmup' ? <Flame size={20}/> : ex.type === 'Stretching' ? <Move size={20}/> : <Dumbbell size={20}/>}
                 </div>
                 <div>
-                  <p className="font-black text-slate-800 text-base">{ex.name}</p>
+                  <p className="font-bold text-slate-800 text-base capitalize">{ex.name}</p>
                   <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">{ex.muscle}</p>
                 </div>
               </div>

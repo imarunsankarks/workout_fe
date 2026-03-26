@@ -403,7 +403,7 @@ const Reports = () => {
                 .map(([name, data]) => (
                 <div key={name} onClick={() => handlePrClick(name)} className="group bg-white p-5 rounded-[28px] shadow-sm border border-slate-100 flex justify-between items-center active:scale-[0.98] transition-all cursor-pointer relative overflow-hidden">
                   <div>
-                    <h4 className="font-black text-slate-800 text-sm mb-1 capitalize">{name}</h4>
+                    <h4 className="font-bold text-slate-800 text-sm mb-1 capitalize">{name}</h4>
                     <div className="flex items-center gap-3">
                       <p className="text-[9px] text-slate-400 font-bold flex items-center gap-1 uppercase tracking-tighter">
                         <Calendar size={10} /> {new Date(data.date).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'2-digit'})}
