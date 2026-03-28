@@ -353,7 +353,7 @@ const ActiveWorkout = () => {
       {/* Active Exercise List */}
       <div className="space-y-4">
         {exercises.map((ex) => (
-          <div key={ex.instanceId} className="bg-white rounded-[32px] p-6 shadow-sm border border-slate-100 transition-all duration-300">
+          <div key={ex.instanceId} className="bg-white rounded-[32px] px-5 py-6 shadow-sm border border-slate-100 transition-all duration-300">
             {/* HEADER SECTION */}
             <div className="flex justify-between items-start">
               <div 
@@ -364,17 +364,20 @@ const ActiveWorkout = () => {
                   ));
                 }}
               >
-                <div className="p-2 rounded-xl bg-slate-100/50 text-slate-400">
-                    {ex.isCollapsed ? <ChevronDown size={18} className="text-slate-300" /> : <ChevronUp size={18} className="text-slate-300" />}
-                </div>
+                
                 <div className={`p-2 rounded-xl ${ex.type === 'Warmup' ? 'text-amber-500 bg-amber-50' : ex.type === 'Stretching' ? 'text-blue-500 bg-blue-50' : 'text-emerald-500 bg-emerald-50'}`}>
                   {ex.type === 'Warmup' ? <Flame size={18}/> : ex.type === 'Stretching' ? <Move size={18}/> : <Dumbbell size={18}/>}
                 </div>
                 <div>
-                  <h3 className="font-black text-slate-800 text-lg leading-tight flex items-center gap-2 capitalize">
+                  <h4 className="font-bold text-slate-800 text-md leading-tight flex items-center gap-2 capitalize max-w-[ch] truncate">
                     {ex.name}
-                  </h3>
-                  <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">{ex.muscle}</p>
+                  </h4>
+                  <div className="flex items-center gap-2">
+                    <p className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">{ex.muscle}</p>
+                    <div className="p-1 rounded-xl bg-slate-100/50 text-slate-400">
+                      {ex.isCollapsed ? <ChevronDown size={12} className="text-slate-400" /> : <ChevronUp size={12} className="text-slate-400" />}
+                  </div>
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
