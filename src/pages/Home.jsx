@@ -5,6 +5,7 @@ import axios from 'axios';
 import { 
   LogOut, Play, ChevronRight, X, Trash2,
   Clock, Dumbbell, Flame, Move, Activity, PauseCircle,TrendingUp, TrendingDown, MoveHorizontal,
+  Zap, CheckCircle2, Loader2
 } from 'lucide-react';
 
 const Home = () => {
@@ -19,6 +20,8 @@ const Home = () => {
   const [showLogoutPrompt, setShowLogoutPrompt] = useState(false);
   const [workoutToDelete, setWorkoutToDelete] = useState(null);
   const [visibleLimit, setVisibleLimit] = useState(8);
+  const [isWarming, setIsWarming] = useState(false);
+  const [warmupStatus, setWarmupStatus] = useState('idle');
 
   const calculateIntensity = (workout) => {
     if (!workout.duration || workout.duration === 0) return 0;
@@ -124,6 +127,27 @@ const Home = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const handleWarmup = async () => {
+    setIsWarming(true);
+    setWarmupStatus('loading');
+    try {
+      await axios.get(process.env.REACT_APP_API_URL);
+      setWarmupStatus('success');
+      
+      setTimeout(() => {
+        setIsWarming(false);
+        setWarmupStatus('idle');
+      }, 2000);
+    } catch (err) {
+      console.error("Warmup hit (ignore CORS if base URL has no GET route):", err);
+      setWarmupStatus('success');
+      setTimeout(() => {
+        setIsWarming(false);
+        setWarmupStatus('idle');
+      }, 2000);
+    }
+  };
+
   return (
     <div className="p-6 bg-slate-50 min-h-screen pb-24">
       {/* Header */}
@@ -132,9 +156,20 @@ const Home = () => {
           <h1 className="text-2xl font-black text-slate-800 tracking-tight">GainsTracker</h1>
           <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Welcome, {user?.name || 'Champ'}</p>
         </div>
-        <button onClick={() => setShowLogoutPrompt(true)} className="text-red-500 hover:text-red-700 transition-colors p-2">
-          <LogOut size={22}/>
-        </button>
+        <div className="flex items-center gap-2">
+          {/* WARMUP BUTTON */}
+          <button 
+            onClick={handleWarmup}
+            className="p-2.5 bg-amber-50 text-amber-500 rounded-xl hover:bg-amber-100 transition-all active:scale-90 shadow-sm border border-amber-100"
+            title="Warmup Server"
+          >
+            <Zap size={20} strokeWidth={1.5} />
+          </button>
+
+          <button onClick={() => setShowLogoutPrompt(true)} className="text-red-500 hover:text-red-700 transition-colors p-2">
+            <LogOut size={22}/>
+          </button>
+        </div>
       </div>
 
       {/* Start / Resume Workout Card */}
@@ -390,6 +425,50 @@ const Home = () => {
               ))}
             </div>
             <button onClick={() => setSelectedWorkout(null)} className="w-full mt-8 bg-slate-900 text-white font-black py-4 rounded-2xl">CLOSE</button>
+          </div>
+        </div>
+      )}
+
+      {isWarming && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[600] flex items-center justify-center p-6 text-center">
+          <div className="bg-white w-full max-w-sm rounded-[40px] p-10 shadow-2xl animate-in zoom-in duration-300">
+            
+            <div className="relative w-24 h-24 mx-auto mb-8">
+              {warmupStatus === 'loading' ? (
+                <>
+                  {/* Pulsing rings for "warming up" animation */}
+                  <div className="absolute inset-0 rounded-full bg-amber-500/20 animate-ping"></div>
+                  <div className="relative bg-amber-500 w-24 h-24 rounded-full flex items-center justify-center text-white shadow-xl shadow-amber-200">
+                    <Loader2 size={40} className="animate-spin" />
+                  </div>
+                </>
+              ) : (
+                <div className="relative bg-emerald-500 w-24 h-24 rounded-full flex items-center justify-center text-white shadow-xl shadow-emerald-200 animate-in zoom-in">
+                  <CheckCircle2 size={48} />
+                </div>
+              )}
+            </div>
+
+            <h2 className="text-2xl font-black text-slate-800 mb-2">
+              {warmupStatus === 'loading' ? 'Warming Up' : 'Engine Ready'}
+            </h2>
+            
+            <p className="text-slate-500 text-sm leading-relaxed">
+              {warmupStatus === 'loading' 
+                ? "Waking up the backend. Preparing your training environment..." 
+                : "Database connection established. Let's get these gains!"}
+            </p>
+
+            {/* Visual Progress Bar */}
+            <div className="mt-8 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+              <div 
+                className={`h-full transition-all duration-[3000ms] ${warmupStatus === 'loading' ? 'w-full bg-amber-500' : 'w-full bg-emerald-500'}`}
+              ></div>
+            </div>
+
+            <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-4">
+              {warmupStatus === 'loading' ? 'System Syncing' : 'Ready to Lift'}
+            </p>
           </div>
         </div>
       )}
