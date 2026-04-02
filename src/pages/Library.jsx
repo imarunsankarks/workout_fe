@@ -182,23 +182,23 @@ const Library = () => {
           filteredLibrary.map((ex) => (
             <div
               key={ex._id}
-              className="bg-white p-5 rounded-[28px] shadow-sm border border-slate-100 flex justify-between items-center group"
+              className="bg-white p-4 rounded-[28px] shadow-sm border border-slate-100 flex justify-between items-center group"
             >
               <div className="flex items-center gap-4">
                 <div
                   className={`p-3 rounded-2xl ${ex.type === "Warmup" ? "text-amber-500 bg-amber-50" : ex.type === "Stretching" ? "text-blue-500 bg-blue-50" : "text-emerald-500 bg-emerald-50"}`}
                 >
                   {ex.type === "Warmup" ? (
-                    <Flame size={20} />
+                    <Flame size={18} />
                   ) : ex.type === "Stretching" ? (
-                    <Move size={20} />
+                    <Move size={18} />
                   ) : (
-                    <Dumbbell size={20} />
+                    <Dumbbell size={18} />
                   )}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="font-bold text-slate-800 text-base capitalize">
+                    <p className="font-bold text-[15px] text-slate-800 text-base capitalize">
                       {ex.name}
                     </p>
                     {ex.resistance > 0 && (
@@ -217,15 +217,15 @@ const Library = () => {
               <div className="flex gap-2">
                 <button
                   onClick={() => setEditingExercise(ex)}
-                  className="p-3 bg-slate-50 rounded-xl text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 transition-all"
+                  className="p-2 bg-slate-50 rounded-xl text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 transition-all"
                 >
-                  <Edit3 size={18} />
+                  <Edit3 size={15} />
                 </button>
                 <button
                   onClick={() => setShowDeleteConfirm(ex._id)}
-                  className="p-3 bg-slate-50 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
+                  className="p-2 bg-slate-50 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
                 >
-                  <Trash2 size={18} />
+                  <Trash2 size={15} />
                 </button>
               </div>
             </div>

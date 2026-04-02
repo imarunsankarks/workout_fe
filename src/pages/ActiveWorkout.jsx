@@ -505,39 +505,43 @@ const ActiveWorkout = () => {
                 >
                   <Info size={18} />
                 </button>
-                <button
-                  onClick={() => handlePrClick(ex.name)}
-                  className="p-2 text-slate-300 hover:text-emerald-500 transition-colors"
-                >
-                  <History size={18} />
-                </button>
-                <button
-                  onClick={() => setExerciseToDelete(ex.instanceId)}
-                  className="p-2 text-slate-200 hover:text-red-500 transition-colors"
-                >
-                  <Trash2 size={18} />
-                </button>
               </div>
             </div>
 
-            {/* INFO PANEL (RESISTANCE & EXECUTION) */}
             {showInfo[ex.instanceId] && (
-              <div className="mt-3 p-3 bg-slate-50 rounded-2xl flex flex-wrap gap-2 animate-in fade-in slide-in-from-top-1">
-                <div className="px-3 py-1 bg-white rounded-lg border border-slate-100 flex items-center gap-2">
-                  <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">
-                    Resistance
-                  </span>
-                  <span className="text-[10px] font-bold text-slate-700">
-                    +{ex.resistance || 0}kg
-                  </span>
-                </div>
-                <div className="px-3 py-1 bg-white rounded-lg border border-slate-100 flex items-center gap-2">
-                  <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">
-                    Execution
-                  </span>
-                  <span className="text-[10px] font-bold text-slate-700">
-                    {ex.execution === "Single" ? "Unilateral" : "Bilateral"}
-                  </span>
+              <div className="mt-4 animate-in fade-in slide-in-from-top-1 duration-300">
+                <div className="flex items-center bg-slate-50 border border-slate-100 rounded-2xl p-1.5 justify-between gap-1">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1.5 px-3 py-2 bg-white rounded-xl border border-slate-100">
+                      <div className="w-1 h-1 rounded-full bg-emerald-500"></div>
+                      <span className="text-[11px] font-bold text-slate-700">
+                        +{ex.resistance || 0}kg
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 px-3 py-2 bg-white rounded-xl border border-slate-100">
+                      <div className="w-1 h-1 rounded-full bg-blue-500"></div>
+                      <span className="text-[11px] font-bold text-slate-700">
+                        {ex.execution === "Single" ? "Unilateral" : "Bilateral"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => handlePrClick(ex.name)}
+                      className="p-2 bg-amber-50 text-amber-500 rounded-xl active:scale-90 transition-all"
+                    >
+                      <History size={16} strokeWidth={1.5} />
+                    </button>
+
+                    <button
+                      onClick={() => setExerciseToDelete(ex.instanceId)}
+                      className="p-2 bg-red-50 text-red-500 rounded-xl active:scale-90 transition-all"
+                    >
+                      <Trash2 size={16} strokeWidth={1.5} />
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -921,11 +925,11 @@ const ActiveWorkout = () => {
                   .map((ex) => (
                     <div
                       key={ex._id}
-                      className="w-full flex gap-2 items-center animate-in fade-in duration-300"
+                      className="w-full flex gap-2 items-center animate-in fade-in duration-300 bg-slate-50 rounded-2xl border border-slate-100 transition-colors"
                     >
                       <button
                         onClick={() => addExercise(ex)}
-                        className="flex-1 flex justify-between items-center p-5 bg-slate-50 rounded-2xl active:bg-emerald-50 transition-colors"
+                        className="flex-1 flex justify-between items-center p-4 rounded-2xl active:bg-emerald-50 transition-colors"
                       >
                         <div className="flex items-center gap-4 text-left">
                           <div
@@ -940,7 +944,7 @@ const ActiveWorkout = () => {
                             )}
                           </div>
                           <div>
-                            <p className="font-bold text-slate-700 text-sm">
+                            <p className="font-bold text-slate-700 text-sm capitalize">
                               {ex.name}
                             </p>
                             <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">
@@ -948,9 +952,9 @@ const ActiveWorkout = () => {
                             </p>
                           </div>
                         </div>
-                        <Plus size={18} className="text-slate-300" />
+                        {/* <Plus size={18} className="text-slate-300" /> */}
                       </button>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 p-4">
                         <button
                           onClick={() => setEditingExercise(ex)}
                           className="p-2 bg-slate-50 rounded-xl text-slate-400 hover:text-emerald-500 transition-colors"
