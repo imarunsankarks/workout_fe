@@ -55,7 +55,7 @@ const InstallPrompt = () => {
             <Smartphone size={24} />
           </div>
           <div>
-            <h4 className="font-black text-sm uppercase tracking-tight">Install GainsTracker</h4>
+            <h4 className="font-bold text-sm uppercase tracking-tight">Install GainsTracker</h4>
             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Add to your apps for better tracking</p>
           </div>
         </div>
@@ -63,7 +63,7 @@ const InstallPrompt = () => {
         <div className="flex items-center gap-2">
           <button 
             onClick={handleInstallClick}
-            className="bg-emerald-500 text-white px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-500/20 active:scale-95 transition-all"
+            className="bg-emerald-500 text-white px-5 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-emerald-500/20 active:scale-95 transition-all"
           >
             Install
           </button>

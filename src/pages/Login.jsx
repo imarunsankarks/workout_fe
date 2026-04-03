@@ -87,7 +87,7 @@ const Login = () => {
           <div className="bg-emerald-600 w-16 h-16 rounded-[22px] flex items-center justify-center mx-auto mb-4 shadow-xl shadow-emerald-100">
             <Activity size={32} className="text-white" />
           </div>
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight">
+          <h1 className="text-3xl font-bold text-slate-800 tracking-tight">
             GainsTracker
           </h1>
           <p className="text-slate-400 font-bold text-xs uppercase tracking-[0.3em]">
@@ -110,7 +110,7 @@ const Login = () => {
               onSubmit={handleCheckEmail}
               className="animate-in fade-in slide-in-from-right duration-500"
             >
-              <h2 className="text-xl font-black text-slate-800 mb-2">
+              <h2 className="text-xl font-bold text-slate-800 mb-2">
                 Let's get started
               </h2>
               <p className="text-slate-400 text-sm mb-6 font-medium">
@@ -138,7 +138,7 @@ const Login = () => {
 
               <button
                 disabled={loading}
-                className="w-full py-4 bg-slate-900 text-white font-black rounded-2xl flex items-center justify-center gap-2 hover:bg-slate-800 transition-all active:scale-95"
+                className="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:bg-slate-800 transition-all active:scale-95"
               >
                 {loading ? (
                   <Loader2 className="animate-spin" />
@@ -162,7 +162,7 @@ const Login = () => {
                 <ArrowLeft size={14} /> Back
               </button>
 
-              <h2 className="text-xl font-black text-slate-800 mb-1">
+              <h2 className="text-xl font-bold text-slate-800 mb-1">
                 {/* {isNewUser ? "Create Account" : "Welcome Back"} */}
                 Welcome Back
               </h2>
@@ -201,7 +201,7 @@ const Login = () => {
 
               <button
                 disabled={loading}
-                className="w-full py-4 bg-emerald-600 text-white font-black rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-100 active:scale-95 transition-all"
+                className="w-full py-4 bg-emerald-600 text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-100 active:scale-95 transition-all"
               >
                 {loading ? <Loader2 className="animate-spin" /> : "Sign In"}
                 {/* {loading ? <Loader2 className="animate-spin" /> : (isNewUser ? "Create Account" : "Sign In")} */}

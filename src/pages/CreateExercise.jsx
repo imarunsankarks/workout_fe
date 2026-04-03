@@ -71,13 +71,13 @@ const CreateExercise = () => {
         <button onClick={() => navigate(-1)} className="p-3 bg-white rounded-2xl shadow-sm text-slate-400">
           <ChevronLeft size={20} />
         </button>
-        <h1 className="text-2xl font-black text-slate-800 tracking-tight">Add Movement</h1>
+        <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Add Movement</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Exercise Name */}
         <div className="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100">
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block px-1">Movement Name</label>
+          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 block px-1">Movement Name</label>
           <input 
             autoFocus
             type="text" 
@@ -90,7 +90,7 @@ const CreateExercise = () => {
 
         {/* Type Selection */}
         <div className="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100">
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 block px-1">Category</label>
+          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 block px-1">Category</label>
           <div className="grid grid-cols-3 gap-3">
             {types.map((t) => (
               <button
@@ -104,7 +104,7 @@ const CreateExercise = () => {
                 }`}
               >
                 {t.icon}
-                <span className="text-[10px] font-black uppercase tracking-tighter">{t.id}</span>
+                <span className="text-[10px] font-bold uppercase tracking-tighter">{t.id}</span>
               </button>
             ))}
           </div>
@@ -112,7 +112,7 @@ const CreateExercise = () => {
 
         {/* Muscle Group */}
         <div className="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100">
-          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 block px-1">Target Muscle</label>
+          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 block px-1">Target Muscle</label>
           <div className="flex flex-wrap gap-2">
             {muscleGroups.map((m) => (
               <button
@@ -133,14 +133,14 @@ const CreateExercise = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 block px-1">Execution Style</label>
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 block px-1">Execution Style</label>
             <div className="flex gap-2 p-1 bg-slate-50 rounded-2xl">
               {['Both', 'Single'].map((opt) => (
                 <button
                   key={opt}
                   type="button"
                   onClick={() => setFormData({ ...formData, execution: opt })}
-                  className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                  className={`flex-1 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${
                     formData.execution === opt 
                       ? 'bg-white text-slate-900 shadow-sm' 
                       : 'text-slate-400 hover:text-slate-600'
@@ -153,7 +153,7 @@ const CreateExercise = () => {
           </div>
 
           <div className="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block px-1">Base Resistance (kg)</label>
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 block px-1">Base Resistance (kg)</label>
             <div className="relative">
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500 font-bold">+</div>
               <input 
@@ -173,7 +173,7 @@ const CreateExercise = () => {
         {/* Submit Button */}
         <button 
           disabled={loading || !formData.name}
-          className={`w-full py-5 rounded-[24px] font-black text-white shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3 ${
+          className={`w-full py-5 rounded-[24px] font-bold text-white shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3 ${
             !formData.name ? 'bg-slate-200 cursor-not-allowed' : 'bg-emerald-600 shadow-emerald-100'
           }`}
         >
@@ -189,7 +189,7 @@ const CreateExercise = () => {
       {showSuccess && (
         <div className="fixed inset-0 bg-emerald-600/95 backdrop-blur-sm z-[300] flex flex-col items-center justify-center text-white animate-in fade-in duration-300">
           <CheckCircle2 size={80} className="mb-4 animate-bounce" />
-          <h2 className="text-3xl font-black italic">EXERCISE ADDED!</h2>
+          <h2 className="text-3xl font-bold italic">EXERCISE ADDED!</h2>
           <p className="font-medium opacity-80">Updating your library...</p>
         </div>
       )}

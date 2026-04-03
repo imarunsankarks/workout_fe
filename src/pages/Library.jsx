@@ -93,11 +93,11 @@ const Library = () => {
         <div>
           <Link
             to="/"
-            className="text-slate-400 flex items-center gap-1 text-[10px] font-black uppercase tracking-widest mb-1"
+            className="text-slate-400 flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest mb-1"
           >
             <ChevronLeft size={12} /> Back to Home
           </Link>
-          <h1 className="text-2xl font-black text-slate-800 tracking-tight">
+          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
             Exercise Library
           </h1>
         </div>
@@ -133,7 +133,7 @@ const Library = () => {
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
-            className={`px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeCategory === cat ? "bg-slate-900 text-white shadow-lg" : "bg-white text-slate-400 border border-slate-100"}`}
+            className={`px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${activeCategory === cat ? "bg-slate-900 text-white shadow-lg" : "bg-white text-slate-400 border border-slate-100"}`}
           >
             {cat}
           </button>
@@ -158,7 +158,7 @@ const Library = () => {
           <button
             key={muscle}
             onClick={() => setActiveMuscle(muscle)}
-            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeMuscle === muscle ? "bg-emerald-500 text-white shadow-md" : "bg-white text-slate-400 border border-slate-100"}`}
+            className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${activeMuscle === muscle ? "bg-emerald-500 text-white shadow-md" : "bg-white text-slate-400 border border-slate-100"}`}
           >
             {muscle}
           </button>
@@ -198,16 +198,16 @@ const Library = () => {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <p className="font-bold text-[15px] text-slate-800 text-base capitalize">
+                    <p className="font-bold text-sm text-slate-800 text-base capitalize">
                       {ex.name}
                     </p>
                     {ex.resistance > 0 && (
-                      <span className="px-1.5 py-0.5 bg-amber-50 text-amber-600 text-[8px] font-black rounded-md border border-amber-100">
+                      <span className="px-1.5 py-0.5 bg-amber-50 text-amber-600 text-[8px] font-cold rounded-md border border-amber-100">
                         +{ex.resistance}kg
                       </span>
                     )}
                   </div>
-                  <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">
+                  <p className="text-[10px] font-bold text-slate-300 uppercase tracking-[0.2em]">
                     {ex.muscle} •{" "}
                     {ex.execution === "Single" ? "Unilateral" : "Bilateral"}
                   </p>
@@ -237,12 +237,12 @@ const Library = () => {
       {editingExercise && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6">
           <div className="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-black text-slate-800 mb-6">
+            <h2 className="text-xl font-bold text-slate-800 mb-6">
               Edit Exercise
             </h2>
             <div className="space-y-6 text-left">
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">
                   Exercise Name
                 </label>
                 <input
@@ -260,7 +260,7 @@ const Library = () => {
 
               {/* NEW: Category (Type) Selection */}
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">
                   Category
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -282,7 +282,7 @@ const Library = () => {
                       }`}
                     >
                       {t.icon}
-                      <span className="text-[9px] font-black uppercase tracking-tighter">
+                      <span className="text-[9px] font-bold uppercase tracking-tighter">
                         {t.id}
                       </span>
                     </button>
@@ -292,7 +292,7 @@ const Library = () => {
 
               {/* Execution Style */}
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">
                   Execution Style
                 </label>
                 <div className="flex gap-2 p-1 bg-slate-50 rounded-2xl">
@@ -305,7 +305,7 @@ const Library = () => {
                           execution: opt,
                         })
                       }
-                      className={`flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all ${
+                      className={`flex-1 py-2.5 rounded-xl text-[10px] font-bold uppercase transition-all ${
                         editingExercise.execution === opt
                           ? "bg-white text-slate-900 shadow-sm"
                           : "text-slate-400"
@@ -319,7 +319,7 @@ const Library = () => {
 
               {/* Base Resistance */}
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">
                   Base Resistance (kg)
                 </label>
                 <div className="relative">
@@ -342,7 +342,7 @@ const Library = () => {
 
               {/* Target Muscle */}
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">
                   Target Muscle
                 </label>
                 <div
@@ -364,7 +364,7 @@ const Library = () => {
                       onClick={() =>
                         setEditingExercise({ ...editingExercise, muscle: m })
                       }
-                      className={`whitespace-nowrap px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider border transition-all ${
+                      className={`whitespace-nowrap px-4 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider border transition-all ${
                         editingExercise.muscle === m
                           ? "bg-emerald-600 border-emerald-600 text-white"
                           : "bg-white border-slate-100 text-slate-400"
@@ -387,7 +387,7 @@ const Library = () => {
               </button>
               <button
                 onClick={updateLibraryItem}
-                className="flex-1 py-4 bg-emerald-600 text-white font-black rounded-2xl shadow-lg active:scale-95 transition-all"
+                className="flex-1 py-4 bg-emerald-600 text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all"
               >
                 Save
               </button>
@@ -403,7 +403,7 @@ const Library = () => {
             <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
               <AlertTriangle size={32} />
             </div>
-            <h2 className="text-xl font-black text-slate-800 mb-2">Delete?</h2>
+            <h2 className="text-xl font-bold text-slate-800 mb-2">Delete?</h2>
             <p className="text-slate-500 text-sm mb-8 leading-relaxed">
               This will remove it from your library forever.
             </p>
@@ -416,7 +416,7 @@ const Library = () => {
               </button>
               <button
                 onClick={() => deleteLibraryItem(showDeleteConfirm)}
-                className="flex-1 py-4 bg-red-500 text-white font-black rounded-2xl"
+                className="flex-1 py-4 bg-red-500 text-white font-bold rounded-2xl"
               >
                 Delete
               </button>

@@ -41,7 +41,7 @@ const Navbar = () => {
           >
             <Home size={22} strokeWidth={isActive("/") ? 2.5 : 2} />
           </div>
-          <span className="text-[9px] mt-1 font-black uppercase tracking-tighter">
+          <span className="text-[9px] mt-1 font-bold uppercase tracking-tighter">
             Home
           </span>
         </Link>
@@ -71,7 +71,7 @@ const Navbar = () => {
             </div>
 
             <span
-              className={`absolute -bottom-6 left-1/2 -translate-x-1/2 text-[9px] font-black uppercase tracking-widest transition-all duration-400 ${
+              className={`absolute -bottom-6 left-1/2 -translate-x-1/2 text-[9px] font-bold uppercase tracking-widest transition-all duration-400 ${
                 isMenuOpen
                   ? "text-slate-800 opacity-100"
                   : "text-emerald-600 opacity-100"
@@ -97,7 +97,7 @@ const Navbar = () => {
           >
             <User size={22} strokeWidth={isActive("/reports") ? 2.5 : 2} />
           </div>
-          <span className="text-[9px] mt-1 font-black uppercase tracking-tighter">
+          <span className="text-[9px] mt-1 font-bold uppercase tracking-tighter">
             {user?.name?.split(" ")[0] || "Profile"}
           </span>
         </Link>
@@ -121,7 +121,7 @@ const Navbar = () => {
                 <Plus size={24} strokeWidth={3} />
               </div>
               <div className="text-left">
-                <p className="font-black text-slate-800 text-base leading-tight">
+                <p className="font-bold text-slate-800 text-base leading-tight">
                   Add Exercise
                 </p>
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mt-1">
@@ -139,7 +139,7 @@ const Navbar = () => {
                 <Dumbbell size={24} />
               </div>
               <div className="text-left">
-                <p className="font-black text-slate-800 text-base leading-tight">
+                <p className="font-bold text-slate-800 text-base leading-tight">
                   My Library
                 </p>
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mt-1">

@@ -67,7 +67,7 @@ const SortableSetRow = ({ id, sIdx, set, ex, onUpdate, onDelete }) => {
       <div
         {...attributes}
         {...listeners}
-        className="bg-slate-50 rounded-xl py-3 text-center text-xs font-black text-slate-400 uppercase cursor-grab active:cursor-grabbing hover:bg-slate-100 transition-colors"
+        className="bg-slate-50 rounded-xl py-3 text-center text-xs font-bold text-slate-400 uppercase cursor-grab active:cursor-grabbing hover:bg-slate-100 transition-colors"
       >
         {sIdx + 1}
       </div>
@@ -425,10 +425,10 @@ const ActiveWorkout = () => {
             <Timer size={24} />
           </div>
           <div>
-            <h1 className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">
+            <h1 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">
               Session Duration
             </h1>
-            <p className="text-3xl font-mono font-black text-slate-800 leading-none">
+            <p className="text-3xl font-mono font-bold text-slate-800 leading-none">
               {formatTime(seconds)}
             </p>
           </div>
@@ -474,7 +474,7 @@ const ActiveWorkout = () => {
                   )}
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-800 text-md leading-tight flex items-center gap-2 capitalize truncate max-w-[15ch]">
+                  <h4 className="font-bold text-slate-800 text-md leading-tight flex items-center gap-2 capitalize">
                     {ex.name}
                   </h4>
                   <div className="flex items-center gap-2">
@@ -595,7 +595,7 @@ const ActiveWorkout = () => {
                         key={sIdx}
                         className="flex items-center gap-3 bg-slate-50 p-2 pl-4 rounded-2xl"
                       >
-                        <span className="text-[10px] font-black text-slate-300 uppercase min-w-[40px]">
+                        <span className="text-[10px] font-bold text-slate-300 uppercase min-w-[40px]">
                           Set {sIdx + 1}
                         </span>
                         <span className="flex-1 font-mono font-bold text-slate-700 text-center">
@@ -656,7 +656,7 @@ const ActiveWorkout = () => {
                         ex.sets?.find((s) => !s.reps || Number(s.reps) === 0)
                       : ex.sets[ex.sets.length - 1].time === 0)
                   }
-                  className={`w-full mt-4 py-2 text-[10px] font-black uppercase tracking-widest border-2 border-dashed rounded-xl transition-all ${
+                  className={`w-full mt-4 py-2 text-[10px] font-bold uppercase tracking-widest border-2 border-dashed rounded-xl transition-all ${
                     ex.sets.length > 0 &&
                     (ex.type === "Strength"
                       ? ex.sets?.find((s) => !s.weight) ||
@@ -692,7 +692,7 @@ const ActiveWorkout = () => {
         </button>
         <button
           onClick={() => exercises.length > 0 && setShowFinishPrompt(true)}
-          className={`flex-1 font-black py-5 rounded-2xl shadow-2xl transition-all active:scale-95 ${exercises.length > 0 ? "bg-emerald-600 text-white" : "bg-slate-200 text-slate-400"}`}
+          className={`flex-1 font-bold py-5 rounded-2xl shadow-2xl transition-all active:scale-95 ${exercises.length > 0 ? "bg-emerald-600 text-white" : "bg-slate-200 text-slate-400"}`}
         >
           <CheckCircle2 size={20} className="inline mr-2" /> FINISH WORKOUT
         </button>
@@ -705,13 +705,13 @@ const ActiveWorkout = () => {
             <div className="bg-amber-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-600">
               <AlertTriangle size={32} />
             </div>
-            <h2 className="text-2xl font-black text-slate-800 mb-2">
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">
               Discard Session?
             </h2>
             <div className="flex flex-col gap-2">
               <button
                 onClick={handleDiscard}
-                className="w-full py-4 bg-red-500 text-white font-black rounded-2xl shadow-lg active:scale-95 transition-all"
+                className="w-full py-4 bg-red-500 text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all"
               >
                 Yes, Discard it
               </button>
@@ -731,7 +731,7 @@ const ActiveWorkout = () => {
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-6 text-center">
           <div className="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
             <CheckCircle2 size={48} className="mx-auto mb-4 text-emerald-500" />
-            <h2 className="text-2xl font-black text-slate-800 mb-6">
+            <h2 className="text-2xl font-bold text-slate-800 mb-6">
               Great Session!
             </h2>
             <div className="flex flex-wrap justify-center gap-2 mb-6">
@@ -743,7 +743,7 @@ const ActiveWorkout = () => {
                     if (name !== "Other") setWorkoutName(name);
                     else setWorkoutName("");
                   }}
-                  className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                  className={`px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${
                     activeTab === name
                       ? "bg-slate-900 text-white shadow-lg"
                       : "bg-slate-50 text-slate-400 border border-slate-100"
@@ -784,7 +784,7 @@ const ActiveWorkout = () => {
               <button
                 onClick={saveWorkout}
                 disabled={!workoutName}
-                className={`flex-1 py-4 font-black rounded-2xl shadow-lg transition-all ${
+                className={`flex-1 py-4 font-bold rounded-2xl shadow-lg transition-all ${
                   !workoutName
                     ? "bg-slate-100 text-slate-300 cursor-not-allowed"
                     : "bg-emerald-600 text-white active:scale-95"
@@ -806,7 +806,7 @@ const ActiveWorkout = () => {
             </div>
           </div>
           <div className="space-y-2">
-            <h2 className="text-white text-2xl font-black uppercase tracking-tight">
+            <h2 className="text-white text-2xl font-bold uppercase tracking-tight">
               Finalizing Gains
             </h2>
             <div className="flex items-center justify-center gap-1.5">
@@ -823,7 +823,7 @@ const ActiveWorkout = () => {
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[110] flex items-end">
           <div className="bg-white w-full rounded-t-[44px] p-8 max-h-[85vh] overflow-y-auto shadow-2xl animate-in slide-in-from-bottom duration-300">
             <div className="flex justify-between items-center mb-8">
-              <h2 className="text-2xl font-black text-slate-800 tracking-tight">
+              <h2 className="text-2xl font-bold text-slate-800 tracking-tight">
                 Library
               </h2>
               <div className="flex items-center gap-3">
@@ -832,7 +832,7 @@ const ActiveWorkout = () => {
                   className="flex items-center gap-2 bg-emerald-50 text-emerald-600 px-4 py-2 rounded-2xl hover:bg-emerald-100 border border-emerald-100/50"
                 >
                   <Plus size={16} strokeWidth={3} />
-                  <span className="text-[10px] font-black uppercase tracking-widest">
+                  <span className="text-[10px] font-bold uppercase tracking-widest">
                     Add New
                   </span>
                 </Link>
@@ -865,7 +865,7 @@ const ActiveWorkout = () => {
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeCategory === cat ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-400"}`}
+                  className={`px-5 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${activeCategory === cat ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-400"}`}
                 >
                   {cat}
                 </button>
@@ -888,7 +888,7 @@ const ActiveWorkout = () => {
                 <button
                   key={muscle}
                   onClick={() => setActiveMuscle(muscle)}
-                  className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeMuscle === muscle ? "bg-emerald-500 text-white shadow-md" : "bg-slate-50 text-slate-400 border border-slate-100"}`}
+                  className={`px-4 py-2 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${activeMuscle === muscle ? "bg-emerald-500 text-white shadow-md" : "bg-slate-50 text-slate-400 border border-slate-100"}`}
                 >
                   {muscle}
                 </button>
@@ -947,7 +947,7 @@ const ActiveWorkout = () => {
                             <p className="font-bold text-slate-700 text-sm capitalize">
                               {ex.name}
                             </p>
-                            <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">
+                            <p className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">
                               {ex.muscle}
                             </p>
                           </div>
@@ -980,12 +980,12 @@ const ActiveWorkout = () => {
       {editingExercise && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6">
           <div className="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in zoom-in duration-200">
-            <h2 className="text-xl font-black text-slate-800 mb-6">
+            <h2 className="text-xl font-bold text-slate-800 mb-6">
               Edit Exercise
             </h2>
             <div className="space-y-6">
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">
                   Exercise Name
                 </label>
                 <input
@@ -1004,7 +1004,7 @@ const ActiveWorkout = () => {
               {/* EDIT EXECUTION & RESISTANCE */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">
                     Style
                   </label>
                   <button
@@ -1018,7 +1018,7 @@ const ActiveWorkout = () => {
                             : "Single",
                       })
                     }
-                    className="w-full py-3 bg-slate-50 rounded-xl text-[10px] font-black uppercase text-slate-600 border border-slate-100"
+                    className="w-full py-3 bg-slate-50 rounded-xl text-[10px] font-bold uppercase text-slate-600 border border-slate-100"
                   >
                     {editingExercise.execution === "Single"
                       ? "Unilateral"
@@ -1026,7 +1026,7 @@ const ActiveWorkout = () => {
                   </button>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">
                     Base (kg)
                   </label>
                   <input
@@ -1044,7 +1044,7 @@ const ActiveWorkout = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">
                   Target Muscle
                 </label>
                 <div
@@ -1066,7 +1066,7 @@ const ActiveWorkout = () => {
                       onClick={() =>
                         setEditingExercise({ ...editingExercise, muscle })
                       }
-                      className={`whitespace-nowrap px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-wider border transition-all ${editingExercise.muscle === muscle ? "bg-emerald-600 border-emerald-600 text-white shadow-md" : "bg-white border-slate-100 text-slate-400"}`}
+                      className={`whitespace-nowrap px-4 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider border transition-all ${editingExercise.muscle === muscle ? "bg-emerald-600 border-emerald-600 text-white shadow-md" : "bg-white border-slate-100 text-slate-400"}`}
                     >
                       {muscle}
                     </button>
@@ -1074,7 +1074,7 @@ const ActiveWorkout = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">
                   Workout Type
                 </label>
                 <div className="flex gap-2 p-1.5 bg-slate-50 rounded-2xl border border-slate-100">
@@ -1094,7 +1094,7 @@ const ActiveWorkout = () => {
                       className={`flex-1 py-3 px-1 rounded-xl flex flex-col items-center gap-1 transition-all ${editingExercise.type === type.id ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:bg-slate-100"}`}
                     >
                       {type.icon}
-                      <span className="text-[9px] font-black uppercase tracking-wider">
+                      <span className="text-[9px] font-bold uppercase tracking-wider">
                         {type.id}
                       </span>
                     </button>
@@ -1111,7 +1111,7 @@ const ActiveWorkout = () => {
               </button>
               <button
                 onClick={updateLibraryItem}
-                className="flex-1 py-4 bg-emerald-600 text-white font-black rounded-2xl shadow-lg active:scale-95 transition-all"
+                className="flex-1 py-4 bg-emerald-600 text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all"
               >
                 Save Changes
               </button>
@@ -1127,7 +1127,7 @@ const ActiveWorkout = () => {
             <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
               <AlertTriangle size={32} />
             </div>
-            <h2 className="text-xl font-black text-slate-800 mb-2">
+            <h2 className="text-xl font-bold text-slate-800 mb-2">
               Delete Exercise?
             </h2>
             <p className="text-slate-500 text-sm mb-8 leading-relaxed">
@@ -1143,7 +1143,7 @@ const ActiveWorkout = () => {
               </button>
               <button
                 onClick={() => deleteLibraryItem(showDeleteConfirm)}
-                className="flex-1 py-4 bg-red-500 text-white font-black rounded-2xl"
+                className="flex-1 py-4 bg-red-500 text-white font-bold rounded-2xl"
               >
                 Delete
               </button>
@@ -1158,7 +1158,7 @@ const ActiveWorkout = () => {
           <div className="bg-white w-full max-w-lg rounded-t-[40px] p-8 max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
             <div className="flex justify-between items-start mb-8">
               <div>
-                <h2 className="text-2xl font-black text-slate-800 tracking-tight capitalize">
+                <h2 className="text-2xl font-bold text-slate-800 tracking-tight capitalize">
                   {selectedPrHistory.name}
                 </h2>
                 <p className="text-emerald-500 font-bold text-[10px] uppercase tracking-[0.2em]">
@@ -1185,7 +1185,7 @@ const ActiveWorkout = () => {
                       <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-white border-4 border-emerald-500" />
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
                             {new Date(entry.date).toLocaleDateString("en-GB", {
                               day: "2-digit",
                               month: "short",
@@ -1203,7 +1203,7 @@ const ActiveWorkout = () => {
                             key={sIdx}
                             className="bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 flex justify-between items-center"
                           >
-                            <span className="text-[9px] font-black text-slate-400">
+                            <span className="text-[9px] font-bold text-slate-400">
                               SET {sIdx + 1}
                             </span>
                             <span className="text-xs font-bold text-slate-700">
@@ -1225,7 +1225,7 @@ const ActiveWorkout = () => {
               {historyLimit < selectedPrHistory.history.length && (
                 <button
                   onClick={() => setHistoryLimit((prev) => prev + 5)}
-                  className="w-full py-4 mt-4 text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] bg-white rounded-2xl border border-emerald-100 active:scale-95 transition-all flex items-center justify-center gap-2"
+                  className="w-full py-4 mt-4 text-[10px] font-bold text-emerald-600 uppercase tracking-[0.2em] bg-white rounded-2xl border border-emerald-100 active:scale-95 transition-all flex items-center justify-center gap-2"
                 >
                   Show 5 More Sessions
                 </button>
@@ -1234,7 +1234,7 @@ const ActiveWorkout = () => {
 
             <button
               onClick={() => setSelectedPrHistory(null)}
-              className="w-full mt-8 bg-slate-900 text-white font-black py-4 rounded-2xl"
+              className="w-full mt-8 bg-slate-900 text-white font-bold py-4 rounded-2xl"
             >
               CLOSE
             </button>
@@ -1249,7 +1249,7 @@ const ActiveWorkout = () => {
             <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
               <AlertTriangle size={32} />
             </div>
-            <h2 className="text-2xl font-black text-slate-800 mb-2">
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">
               Remove Exercise?
             </h2>
             <p className="text-slate-500 text-sm mb-6">
@@ -1264,7 +1264,7 @@ const ActiveWorkout = () => {
                   );
                   setExerciseToDelete(null);
                 }}
-                className="w-full py-4 bg-red-500 text-white font-black rounded-2xl shadow-lg active:scale-95 transition-all"
+                className="w-full py-4 bg-red-500 text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all"
               >
                 Yes, Remove it
               </button>

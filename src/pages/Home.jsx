@@ -276,7 +276,7 @@ const Home = () => {
             <div className="bg-red-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-red-600">
               <LogOut size={32} />
             </div>
-            <h2 className="text-2xl font-black text-slate-800 mb-2">
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">
               Logging out?
             </h2>
             <p className="text-slate-500 text-sm mb-8 leading-relaxed">
@@ -286,7 +286,7 @@ const Home = () => {
             <div className="flex flex-col gap-2">
               <button
                 onClick={logout}
-                className="w-full py-4 bg-red-500 text-white font-black rounded-2xl shadow-lg active:scale-95 transition-all"
+                className="w-full py-4 bg-red-500 text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all"
               >
                 Yes, Sign Out
               </button>
@@ -308,7 +308,7 @@ const Home = () => {
             <div className="bg-orange-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-orange-600">
               <Trash2 size={32} />
             </div>
-            <h2 className="text-2xl font-black text-slate-800 mb-2">
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">
               Delete Workout?
             </h2>
             <p className="text-slate-500 text-sm mb-8 leading-relaxed">
@@ -318,7 +318,7 @@ const Home = () => {
             <div className="flex flex-col gap-2">
               <button
                 onClick={confirmDelete}
-                className="w-full py-4 bg-orange-600 text-white font-black rounded-2xl shadow-lg active:scale-95 transition-all"
+                className="w-full py-4 bg-orange-600 text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all"
               >
                 Delete Permanently
               </button>
@@ -340,7 +340,7 @@ const Home = () => {
             <div className="bg-emerald-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-emerald-600">
               <Play size={32} fill="currentColor" />
             </div>
-            <h2 className="text-2xl font-black text-slate-800 mb-2">
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">
               Ready to Start?
             </h2>
             <p className="text-slate-500 text-sm mb-8">
@@ -356,7 +356,7 @@ const Home = () => {
               </button>
               <button
                 onClick={confirmStartWorkout}
-                className="flex-1 bg-emerald-600 text-white font-black py-4 rounded-2xl shadow-lg shadow-emerald-100 active:scale-95 transition-all"
+                className="flex-1 bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-emerald-100 active:scale-95 transition-all"
               >
                 Let's Go!
               </button>
@@ -367,11 +367,11 @@ const Home = () => {
 
       {/* History List */}
       <div className="flex justify-between items-center mb-4">
-        <h3 className="font-black text-slate-800 text-lg flex items-center gap-2">
+        <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2">
           <Activity size={20} className="text-emerald-500" /> Recent Workouts
         </h3>
         {history.length > 0 && (
-          <span className="text-[10px] font-black text-slate-400 bg-slate-200 px-2 py-1 rounded-md uppercase">
+          <span className="text-[10px] font-bold text-slate-400 bg-slate-200 px-2 py-1 rounded-md uppercase">
             Last {Math.min(history.length, visibleLimit)} Workouts
           </span>
         )}
@@ -428,7 +428,7 @@ const Home = () => {
                           <MoveHorizontal size={20} />
                         )}
                         {progress.value !== null && (
-                          <span className="text-[8px] font-black mt-1">
+                          <span className="text-[8px] font-bold mt-1">
                             {progress.value}%
                           </span>
                         )}
@@ -472,7 +472,7 @@ const Home = () => {
               {visibleLimit < history.length && (
                 <button
                   onClick={() => setVisibleLimit((prev) => prev + 8)}
-                  className="w-full py-4 mt-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] bg-white rounded-2xl border border-slate-100 shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2"
+                  className="w-full py-4 mt-2 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] bg-white rounded-2xl border border-slate-100 shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2"
                 >
                   <Activity size={14} className="text-emerald-500" />
                   Load Older Workouts
@@ -496,7 +496,7 @@ const Home = () => {
           <div className="bg-white w-full max-w-lg rounded-t-[40px] p-8 max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h2 className="text-2xl font-black text-slate-800 capitalize">
+                <h2 className="text-2xl font-bold text-slate-800 capitalize">
                   {selectedWorkout.name}
                 </h2>
                 <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">
@@ -527,7 +527,7 @@ const Home = () => {
                     ) : (
                       <Dumbbell className="text-emerald-500" size={18} />
                     )}
-                    <h5 className="font-bold text-slate-700">{ex.name}</h5>
+                    <h5 className="font-bold text-slate-700 capitalize">{ex.name}</h5>
                   </div>
                   <div className="space-y-2">
                     {ex.sets.map((set, sIdx) => (
@@ -535,7 +535,7 @@ const Home = () => {
                         key={sIdx}
                         className="flex justify-between text-sm bg-white px-4 py-2 rounded-xl border border-slate-50"
                       >
-                        <span className="font-black text-slate-400 text-[10px] uppercase tracking-widest">
+                        <span className="font-bold text-slate-400 text-[10px] uppercase tracking-widest">
                           Set {sIdx + 1}
                         </span>
                         <span className="font-bold text-slate-600">
@@ -551,7 +551,7 @@ const Home = () => {
             </div>
             <button
               onClick={() => setSelectedWorkout(null)}
-              className="w-full mt-8 bg-slate-900 text-white font-black py-4 rounded-2xl"
+              className="w-full mt-8 bg-slate-900 text-white font-bold py-4 rounded-2xl"
             >
               CLOSE
             </button>
@@ -576,7 +576,7 @@ const Home = () => {
                 </div>
               )}
             </div>
-            <h2 className="text-2xl font-black text-slate-800 mb-2">
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">
               {warmupStatus === "loading" ? "Warming Up" : "Engine Ready"}
             </h2>
             <p className="text-slate-500 text-sm leading-relaxed">
@@ -589,7 +589,7 @@ const Home = () => {
                 className={`h-full transition-all duration-[3000ms] ${warmupStatus === "loading" ? "w-full bg-amber-500" : "w-full bg-emerald-500"}`}
               ></div>
             </div>
-            <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-4">
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-4">
               {warmupStatus === "loading" ? "System Syncing" : "Ready to Lift"}
             </p>
           </div>

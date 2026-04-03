@@ -280,7 +280,7 @@ const Reports = () => {
 
       {/* Loading Text & Progress Bar */}
       <div className="w-full max-w-[200px] text-center">
-        <h2 className="text-slate-800 font-black text-sm uppercase tracking-[0.3em] mb-4">
+        <h2 className="text-slate-800 font-bold text-sm uppercase tracking-[0.3em] mb-4">
           Analyzing Gains
         </h2>
         
@@ -301,10 +301,10 @@ const Reports = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-2xl font-black text-slate-800 tracking-tight">Analytics</h1>
+          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Analytics</h1>
           <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Growth Tracking</p>
         </div>
-        <div className={`${tier.color} text-white px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center gap-2 transition-all duration-500`}>
+        <div className={`${tier.color} text-white px-4 py-2 rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-lg flex items-center gap-2 transition-all duration-500`}>
            {tier.icon} {tier.label}
         </div>
       </div>
@@ -315,15 +315,15 @@ const Reports = () => {
           <div className="bg-emerald-100 w-10 h-10 rounded-2xl flex items-center justify-center text-emerald-600 mb-3">
             <Activity size={20} />
           </div>
-          <p className="text-[10px] text-slate-400 font-black uppercase tracking-wider">Total Sessions</p>
-          <p className="text-xl font-black text-slate-800">{stats.totalWorkouts}</p>
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Sessions</p>
+          <p className="text-xl font-bold text-slate-800">{stats.totalWorkouts}</p>
         </div>
         <div className="bg-white p-5 rounded-[32px] shadow-sm border border-slate-100">
           <div className="bg-blue-100 w-10 h-10 rounded-2xl flex items-center justify-center text-blue-600 mb-3">
             <Clock size={20} />
           </div>
-          <p className="text-[10px] text-slate-400 font-black uppercase tracking-wider">Time Invested</p>
-          <p className="text-xl font-black text-slate-800">{formatMins(stats.totalMinutes)}</p>
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Time Invested</p>
+          <p className="text-xl font-bold text-slate-800">{formatMins(stats.totalMinutes)}</p>
         </div>
       </div>
 
@@ -351,11 +351,11 @@ const Reports = () => {
 
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${isPaused ? 'text-slate-400' : 'text-orange-600'}`}>
+                    <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${isPaused ? 'text-slate-400' : 'text-orange-600'}`}>
                       {isPaused ? 'Paused' : 'Live Session'}
                     </span>
                   </div>
-                  <h5 className="text-sm font-black text-slate-800 uppercase tracking-tight">
+                  <h5 className="text-sm font-bold text-slate-800 uppercase tracking-tight">
                     {isPaused ? 'Pick up where you left' : 'Crushing the workout'}
                   </h5>
                 </div>
@@ -373,7 +373,7 @@ const Reports = () => {
       <div className="mb-10">
         <div className="flex items-center gap-2 mb-4 px-2">
           <Trophy size={18} className="text-amber-500" />
-          <h3 className="font-black text-slate-700 uppercase text-[10px] tracking-widest">Personal Records</h3>
+          <h3 className="font-bold text-slate-700 uppercase text-[10px] tracking-widest">Personal Records</h3>
         </div>
 
         {/* Tab Bar */}
@@ -382,7 +382,7 @@ const Reports = () => {
             <button
               key={muscle}
               onClick={() => setActivePrTab(muscle)}
-              className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+              className={`px-6 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${
                 activePrTab === muscle 
                 ? 'bg-slate-900 text-white shadow-md' 
                 : 'bg-white text-slate-400 border border-slate-100'
@@ -413,7 +413,7 @@ const Reports = () => {
                     </div>
                   </div>
                   <div className="bg-emerald-50 px-4 py-2 rounded-2xl border border-emerald-100 text-right">
-                    <p className="text-xl font-black text-emerald-600 leading-none">{data.weight}<span className="text-[10px] ml-0.5">kg</span></p>
+                    <p className="text-xl font-bold text-emerald-600 leading-none">{data.weight}<span className="text-[10px] ml-0.5">kg</span></p>
                   </div>
                 </div>
               ))}
@@ -422,7 +422,7 @@ const Reports = () => {
               {Object.keys(personalRecords[activePrTab]).length > 5 && (
                 <button
                   onClick={() => setShowAllPrs(!showAllPrs)}
-                  className="mt-2 py-3 w-full flex items-center justify-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest bg-white rounded-2xl border border-slate-100 active:scale-95 transition-all shadow-sm"
+                  className="mt-2 py-3 w-full flex items-center justify-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-white rounded-2xl border border-slate-100 active:scale-95 transition-all shadow-sm"
                 >
                   {showAllPrs ? (
                     <>Show Less <ChevronUp size={14}/></>
@@ -446,11 +446,11 @@ const Reports = () => {
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
             <TrendingUp size={18} className="text-emerald-500" />
-            <h3 className="font-black text-slate-700 uppercase text-[10px] tracking-widest">Intensity trend</h3>
+            <h3 className="font-bold text-slate-700 uppercase text-[10px] tracking-widest">Intensity trend</h3>
           </div>
           <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-100 gap-1">
             <button onClick={() => {setCurrentWeekOffset(prev => prev - 1); setClickedIntensity(true)}} className="p-1.5 hover:bg-white hover:shadow-sm rounded-lg transition-all text-slate-400 hover:text-emerald-600"><ChevronLeft size={16}/></button>
-            <span className="text-[9px] font-black text-slate-400 px-2 uppercase">{currentWeekOffset === 0 ? "This Week" : currentWeekOffset === -1 ? "Last Week" : `${Math.abs(currentWeekOffset)}w ago`}</span>
+            <span className="text-[9px] font-bold text-slate-400 px-2 uppercase">{currentWeekOffset === 0 ? "This Week" : currentWeekOffset === -1 ? "Last Week" : `${Math.abs(currentWeekOffset)}w ago`}</span>
             <button onClick={() => {setCurrentWeekOffset(prev => prev + 1); setClickedIntensity(true)}} className="p-1.5 hover:bg-white hover:shadow-sm rounded-lg transition-all text-slate-400 hover:text-emerald-600"><ChevronRight size={16}/></button>
           </div>
         </div>
@@ -476,14 +476,14 @@ const Reports = () => {
       <div className="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100 mb-10">
         <div className="flex items-center gap-2 mb-6">
           <Target size={18} className="text-emerald-500" />
-          <h3 className="font-black text-slate-700 uppercase text-[10px] tracking-widest">Muscle Volume (%)</h3>
+          <h3 className="font-bold text-slate-700 uppercase text-[10px] tracking-widest">Muscle Volume (%)</h3>
         </div>
         <div className="space-y-5">
           {muscleDistribution.length > 0 ? muscleDistribution.map((muscle) => (
             <div key={muscle.name}>
               <div className="flex justify-between items-end mb-2">
                 <span className="text-sm font-bold text-slate-700">{muscle.name}</span>
-                <span className="text-[10px] font-black text-slate-400">{muscle.percentage}%</span>
+                <span className="text-[10px] font-bold text-slate-400">{muscle.percentage}%</span>
               </div>
               <div className="h-2 w-full bg-slate-50 rounded-full overflow-hidden border border-slate-100">
                 <div 
@@ -503,7 +503,7 @@ const Reports = () => {
             <p className="text-slate-400 text-xs mb-4">
               Averaging {stats.totalWorkouts > 0 ? Math.round(stats.totalMinutes / stats.totalWorkouts) : 0} mins per session. 
             </p>
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-lg text-[10px] font-black uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-lg text-[10px] font-bold uppercase tracking-widest">
                 <TrendingUp size={12}/> {stats.monthlyWorkouts} sessions (Last 30d)
             </div>
         </div>
@@ -513,7 +513,7 @@ const Reports = () => {
       <div className="mt-8">
         <button 
           onClick={() => setShowPasswordModal(true)}
-          className="w-full py-4 flex items-center justify-center gap-2 text-slate-500 font-black text-[10px] uppercase tracking-[0.2em] bg-white rounded-2xl border border-slate-100 shadow-sm hover:bg-slate-50 transition-all mb-4"
+          className="w-full py-4 flex items-center justify-center gap-2 text-slate-500 font-bold text-[10px] uppercase tracking-[0.2em] bg-white rounded-2xl border border-slate-100 shadow-sm hover:bg-slate-50 transition-all mb-4"
         >
           <Key size={16} className="text-emerald-500" /> Change Password
         </button>
@@ -523,7 +523,7 @@ const Reports = () => {
       {/* Delete Profile */}
       <button 
         onClick={() => setShowDeletePrompt(true)}
-        className="w-full py-4 flex items-center justify-center gap-2 text-red-400 font-black text-[10px] uppercase tracking-[0.2em] bg-red-50/50 rounded-2xl hover:bg-red-50 transition-all border border-red-100"
+        className="w-full py-4 flex items-center justify-center gap-2 text-red-400 font-bold text-[10px] uppercase tracking-[0.2em] bg-red-50/50 rounded-2xl hover:bg-red-50 transition-all border border-red-100"
       >
         <Trash2 size={16} /> Delete Account & Data
       </button>
@@ -535,13 +535,13 @@ const Reports = () => {
             <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600">
               <AlertTriangle size={32} />
             </div>
-            <h2 className="text-2xl font-black text-slate-800 mb-2">Delete Profile?</h2>
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">Delete Profile?</h2>
             <p className="text-slate-500 text-sm mb-8 leading-relaxed">
               This will permanently delete your account and history. 
               <span className="font-bold text-red-400 text-xs uppercase tracking-tighter block mt-1">This action is irreversible.</span>
             </p>
             <div className="flex flex-col gap-2">
-              <button onClick={handleDeleteProfile} className="w-full py-4 bg-red-500 text-white font-black rounded-2xl active:scale-95 transition-all">Yes, Delete Everything</button>
+              <button onClick={handleDeleteProfile} className="w-full py-4 bg-red-500 text-white font-bold rounded-2xl active:scale-95 transition-all">Yes, Delete Everything</button>
               <button onClick={() => setShowDeletePrompt(false)} className="w-full py-4 text-slate-400 font-bold hover:bg-slate-50 rounded-2xl transition-colors">Cancel</button>
             </div>
           </div>
@@ -551,10 +551,10 @@ const Reports = () => {
       {showPasswordModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[400] flex items-center justify-center p-6">
           <div className="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
-            <h2 className="text-2xl font-black text-slate-800 mb-2">
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">
               {passwordStep === 1 ? 'Verify Identity' : 'Set New Password'}
             </h2>
-            <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-6">
+            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-6">
               {passwordStep === 1 ? 'Enter current credentials' : 'Enter your new strong password'}
             </p>
 
@@ -595,7 +595,7 @@ const Reports = () => {
             {/* ERROR MESSAGE BLOCK */}
             {passwordError && (
               <div className="mb-4 p-3 bg-red-50 rounded-xl border border-red-100 animate-in fade-in slide-in-from-top-1 duration-200">
-                <p className="text-red-500 text-[10px] font-black uppercase tracking-tight flex items-center justify-center gap-2">
+                <p className="text-red-500 text-[10px] font-bold uppercase tracking-tight flex items-center justify-center gap-2">
                   <AlertTriangle size={14} /> {passwordError}
                 </p>
               </div>
@@ -604,7 +604,7 @@ const Reports = () => {
             <div className="flex flex-col gap-2">
               <button 
                 onClick={handleChangePassword}
-                className="w-full py-4 bg-slate-900 text-white font-black rounded-2xl shadow-lg active:scale-95 transition-all"
+                className="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all"
               >
                 {passwordStep === 1 ? 'Verify & Continue' : 'Update Password'}
               </button>
@@ -651,14 +651,14 @@ const Reports = () => {
                   className="text-emerald-500 transition-all duration-1000 ease-linear"
                 />
               </svg>
-              <span className="absolute text-2xl font-black text-slate-800">{countdown}</span>
+              <span className="absolute text-2xl font-bold text-slate-800">{countdown}</span>
             </div>
 
             <div className="bg-emerald-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-600">
               <Activity size={32} />
             </div>
             
-            <h2 className="text-2xl font-black text-slate-800 mb-2">Security Updated</h2>
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">Security Updated</h2>
             <p className="text-slate-500 text-sm mb-6 leading-relaxed">
               Password changed successfully. <br/>
               For your safety, please log in again with your new credentials.
@@ -686,7 +686,7 @@ const Reports = () => {
             {/* Modal Header */}
             <div className="flex justify-between items-start mb-8">
               <div>
-                <h2 className="text-2xl font-black text-slate-800 tracking-tight capitalize">{selectedPrHistory.name}</h2>
+                <h2 className="text-2xl font-bold text-slate-800 tracking-tight capitalize">{selectedPrHistory.name}</h2>
                 <p className="text-emerald-500 font-bold text-[10px] uppercase tracking-[0.2em]">Full History</p>
               </div>
               <button onClick={() => setSelectedPrHistory(null)} className="bg-slate-100 p-2 rounded-full text-slate-400">
@@ -702,7 +702,7 @@ const Reports = () => {
                   
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
                         {new Date(entry.date).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'})}
                       </p>
                       <h4 className="font-bold text-slate-800 text-sm capitalize">{entry.workoutName || 'Routine'}</h4>
@@ -712,7 +712,7 @@ const Reports = () => {
                   <div className="grid grid-cols-2 gap-2">
                     {entry.sets.map((set, sIdx) => (
                       <div key={sIdx} className="bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 flex justify-between items-center">
-                        <span className="text-[9px] font-black text-slate-400">SET {sIdx + 1}</span>
+                        <span className="text-[9px] font-bold text-slate-400">SET {sIdx + 1}</span>
                         <span className="text-xs font-bold text-slate-700">
                           {entry.type === 'Strength' ? `${set.weight}kg x ${set.reps}` : `${set.time}s`}
                         </span>
@@ -726,7 +726,7 @@ const Reports = () => {
               {historyLimit < selectedPrHistory.history.length && (
                 <button
                   onClick={() => setHistoryLimit(prev => prev + 5)}
-                  className="w-full py-4 mt-4 text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] bg-white rounded-2xl border border-emerald-100 active:scale-95 transition-all flex items-center justify-center gap-2"
+                  className="w-full py-4 mt-4 text-[10px] font-bold text-emerald-600 uppercase tracking-[0.2em] bg-white rounded-2xl border border-emerald-100 active:scale-95 transition-all flex items-center justify-center gap-2"
                 >
                   {/* <Activity size={14} /> */}
                   Show 5 More Sessions
@@ -736,7 +736,7 @@ const Reports = () => {
 
             <button 
               onClick={() => setSelectedPrHistory(null)} 
-              className="w-full mt-8 bg-slate-900 text-white font-black py-4 rounded-2xl"
+              className="w-full mt-8 bg-slate-900 text-white font-bold py-4 rounded-2xl"
             >
               CLOSE
             </button>
