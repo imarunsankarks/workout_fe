@@ -6,30 +6,40 @@ import Home from './pages/Home';
 import ActiveWorkout from './pages/ActiveWorkout';
 import WorkoutReports from './pages/Reports';
 import CreateExercise from './pages/CreateExercise';
+import Library from './pages/Library';
 import Navbar from './components/Navbar';
 import InstallPrompt from './components/InstallPrompt';
-import useKeepAlive from './hooks/KeepAlive';
 import ScrollToTop from './components/ScrollToTop';
-import Library from './pages/Library';
-const RootApp = () => {
+
+import useKeepAlive from './hooks/KeepAlive';
+import useControlledBack from './hooks/useControlledBack';
+
+const AppContent = () => {
   const { user } = useContext(AuthContext);
+  useControlledBack();
   useKeepAlive();
 
   return (
+    <div className="pb-20 select-none">
+      <InstallPrompt />
+      <ScrollToTop />
+      <Routes>
+        <Route path="/login" element={!user ? <Login /> : <Navigate to="/" replace />} />
+        <Route path="/" element={user ? <Home /> : <Navigate to="/login" replace />} />
+        <Route path="/workout" element={user ? <ActiveWorkout /> : <Navigate to="/login" replace />} />
+        <Route path="/reports" element={user ? <WorkoutReports /> : <Navigate to="/login" replace />} />
+        <Route path="/add-exercise" element={user ? <CreateExercise /> : <Navigate to="/login" replace />} />
+        <Route path="/library" element={user ? <Library /> : <Navigate to="/login" replace />} />
+      </Routes>
+      {user && <Navbar />}
+    </div>
+  );
+};
+
+const RootApp = () => {
+  return (
     <BrowserRouter>
-      <div className="pb-20 select-none"> 
-        <InstallPrompt />
-        <ScrollToTop />
-        <Routes>
-          <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
-          <Route path="/" element={user ? <Home /> : <Navigate to="/login" />} />
-          <Route path="/workout" element={user ? <ActiveWorkout /> : <Navigate to="/login" />} />
-          <Route path="/reports" element={user ? <WorkoutReports /> : <Navigate to="/login" />} />
-          <Route path="/add-exercise" element={user ? <CreateExercise /> : <Navigate to="/login" />} />
-          <Route path="/library" element={user ? <Library /> : <Navigate to="/login" />} />
-        </Routes>
-        {user && <Navbar />}
-      </div>
+      <AppContent />
     </BrowserRouter>
   );
 };
