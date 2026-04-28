@@ -201,15 +201,9 @@ const Library = () => {
                     <p className="font-bold text-sm text-slate-800 text-base capitalize">
                       {ex.name}
                     </p>
-                    {ex.resistance > 0 && (
-                      <span className="px-1.5 py-0.5 bg-amber-50 text-amber-600 text-[8px] font-cold rounded-md border border-amber-100">
-                        +{ex.resistance}kg
-                      </span>
-                    )}
                   </div>
                   <p className="text-[10px] font-bold text-slate-300 uppercase tracking-[0.2em]">
-                    {ex.muscle} •{" "}
-                    {ex.execution === "Single" ? "Unilateral" : "Bilateral"}
+                    {ex.muscle}
                   </p>
                 </div>
               </div>
@@ -290,55 +284,6 @@ const Library = () => {
                 </div>
               </div>
 
-              {/* Execution Style */}
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">
-                  Execution Style
-                </label>
-                <div className="flex gap-2 p-1 bg-slate-50 rounded-2xl">
-                  {["Both", "Single"].map((opt) => (
-                    <button
-                      key={opt}
-                      onClick={() =>
-                        setEditingExercise({
-                          ...editingExercise,
-                          execution: opt,
-                        })
-                      }
-                      className={`flex-1 py-2.5 rounded-xl text-[10px] font-bold uppercase transition-all ${
-                        editingExercise.execution === opt
-                          ? "bg-white text-slate-900 shadow-sm"
-                          : "text-slate-400"
-                      }`}
-                    >
-                      {opt === "Both" ? "Bilateral" : "Unilateral"}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Base Resistance */}
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">
-                  Base Resistance (kg)
-                </label>
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500 font-bold">
-                    +
-                  </div>
-                  <input
-                    type="number"
-                    value={editingExercise.resistance}
-                    onChange={(e) =>
-                      setEditingExercise({
-                        ...editingExercise,
-                        resistance: e.target.value,
-                      })
-                    }
-                    className="w-full pl-10 pr-4 py-4 bg-slate-50 rounded-xl font-bold outline-none focus:ring-2 focus:ring-emerald-500"
-                  />
-                </div>
-              </div>
 
               {/* Target Muscle */}
               <div className="space-y-2">

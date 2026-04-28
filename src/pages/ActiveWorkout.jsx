@@ -313,6 +313,8 @@ const ActiveWorkout = () => {
           date: workout.date,
           sets: detail.sets,
           type: detail.type,
+          resistance: detail.resistance,
+          execution: detail.execution,
         };
       })
       .sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -347,6 +349,8 @@ const ActiveWorkout = () => {
           type: ex.type,
           muscle: ex.muscle,
           sets: validSets,
+          execution: ex.execution || "Bilateral",
+          resistance: ex.resistance || 0,
         };
       })
       .filter((ex) => ex.sets.length > 0);
@@ -512,19 +516,26 @@ const ActiveWorkout = () => {
               <div className="mt-4 animate-in fade-in slide-in-from-top-1 duration-300">
                 <div className="flex items-center bg-slate-50 border border-slate-100 rounded-2xl p-1.5 justify-between gap-1">
                   <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1.5 px-3 py-2 bg-white rounded-xl border border-slate-100">
+                    <div className="flex items-center gap-1 px-2 py-1.5 bg-white rounded-xl shadow-sm border border-slate-100">
                       <div className="w-1 h-1 rounded-full bg-emerald-500"></div>
-                      <span className="text-[11px] font-bold text-slate-700">
-                        +{ex.resistance || 0}kg
-                      </span>
+                      <input 
+                        type="number"
+                        className="w-10 text-[11px] font-bold text-slate-700 outline-none"
+                        value={ex.resistance || 0}
+                        onChange={(e) => setExercises(exercises.map(item => item.instanceId === ex.instanceId ? { ...item, resistance: e.target.value } : item))}
+                      />
+                      <span className="text-[9px] font-bold text-slate-400 uppercase">kg</span>
                     </div>
 
-                    <div className="flex items-center gap-1.5 px-3 py-2 bg-white rounded-xl border border-slate-100">
+                    <button 
+                      onClick={() => setExercises(exercises.map(item => item.instanceId === ex.instanceId ? { ...item, execution: ex.execution === "Unilateral" ? "Bilateral" : "Unilateral" } : item))}
+                      className="flex items-center gap-1 px-3 py-1.5 bg-white rounded-xl shadow-sm border border-slate-100 active:scale-95 transition-all"
+                    >
                       <div className="w-1 h-1 rounded-full bg-blue-500"></div>
-                      <span className="text-[11px] font-bold text-slate-700">
-                        {ex.execution === "Single" ? "Unilateral" : "Bilateral"}
+                      <span className="text-[10px] font-bold text-slate-700">
+                        {ex.execution === "Unilateral" ? "Unilateral" : "Bilateral"}
                       </span>
-                    </div>
+                    </button>
                   </div>
 
                   <div className="flex items-center gap-3">
@@ -1001,47 +1012,7 @@ const ActiveWorkout = () => {
                 />
               </div>
 
-              {/* EDIT EXECUTION & RESISTANCE */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">
-                    Style
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setEditingExercise({
-                        ...editingExercise,
-                        execution:
-                          editingExercise.execution === "Single"
-                            ? "Both"
-                            : "Single",
-                      })
-                    }
-                    className="w-full py-3 bg-slate-50 rounded-xl text-[10px] font-bold uppercase text-slate-600 border border-slate-100"
-                  >
-                    {editingExercise.execution === "Single"
-                      ? "Unilateral"
-                      : "Bilateral"}
-                  </button>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">
-                    Base (kg)
-                  </label>
-                  <input
-                    type="number"
-                    value={editingExercise.resistance}
-                    onChange={(e) =>
-                      setEditingExercise({
-                        ...editingExercise,
-                        resistance: e.target.value,
-                      })
-                    }
-                    className="w-full p-3 bg-slate-50 rounded-xl font-bold text-center border border-slate-100 outline-none"
-                  />
-                </div>
-              </div>
+           
 
               <div className="space-y-2">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">
@@ -1179,8 +1150,8 @@ const ActiveWorkout = () => {
                   .slice(0, historyLimit)
                   .map((entry, idx) => (
                     <div
-                      key={idx}
-                      className="relative pl-6 border-l-2 border-slate-100 pb-2"
+                    key={idx}
+                    className="relative pl-6 border-l-2 border-slate-100 pb-2"
                     >
                       <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-white border-4 border-emerald-500" />
                       <div className="flex justify-between items-start mb-2">
@@ -1192,9 +1163,30 @@ const ActiveWorkout = () => {
                               year: "numeric",
                             })}
                           </p>
-                          <h4 className="font-bold text-slate-800 text-sm capitalize">
-                            {entry.workoutName || "Routine"}
-                          </h4>
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-bold text-slate-800 text-sm capitalize">
+                              {entry.workoutName || "Routine"}
+                            </h4>
+                            {Number(entry.resistance) > 0 && (
+                              <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 border border-amber-100 rounded-lg text-[9px] font-bold uppercase tracking-wider">
+                                <div className="w-1 h-1 rounded-full bg-amber-400" />
+                                +{entry.resistance}kg
+                              </span>
+                            )}
+
+                            {entry.execution === 'Unilateral' && (
+                              <span className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-lg text-[9px] font-bold uppercase tracking-wider">
+                                <div className="w-1 h-1 rounded-full bg-blue-400" />
+                                Unilateral
+                              </span>
+                            )}
+                              
+                            {entry.execution === 'Bilateral' && (
+                              <span className="px-2 py-0.5 bg-slate-50 text-slate-400 border border-slate-100 rounded-lg text-[9px] font-bold uppercase tracking-wider">
+                                Bilateral
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-2">

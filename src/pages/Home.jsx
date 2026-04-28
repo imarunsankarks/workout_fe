@@ -26,7 +26,6 @@ const Home = () => {
   const { user, token, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const [history, setHistory] = useState([]);
-  const [exercises, setExercises] = useState([]); // New state to store library
   const [loading, setLoading] = useState(true);
   const [selectedWorkout, setSelectedWorkout] = useState(null);
   const [hasActiveSession, setHasActiveSession] = useState(false);
@@ -44,12 +43,9 @@ const Home = () => {
 
     workout.details?.forEach((ex) => {
       if (ex.type === "Strength") {
-        // Find exercise details from our library state to get resistance and execution
-        const libEntry = exercises.find(
-          (l) => l.name.toLowerCase() === ex.name.toLowerCase(),
-        );
-        const baseResistance = Number(libEntry?.resistance) || 0;
-        const multiplier = libEntry?.execution === "Single" ? 2 : 1;
+        // Use values directly from the workout detail object
+        const baseResistance = Number(ex.resistance) || 0;
+        const multiplier = ex.execution === "Single" ? 2 : 1;
 
         ex.sets.forEach((set) => {
           const plateWeight = Number(set.weight) || 0;
@@ -89,22 +85,12 @@ const Home = () => {
   const fetchWorkouts = async () => {
     setLoading(true);
     try {
-      // 1. Fetch History
       const res = await axios.get(
         `${process.env.REACT_APP_API_URL}/api/workouts/${user.id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
-      // 2. Fetch Exercises for resistance/execution lookup
-      const exRes = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/exercises/${user.id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-
-      setExercises(exRes.data);
       setHistory(res.data);
     } catch (err) {
       console.error("Error fetching data:", err);
@@ -527,7 +513,31 @@ const Home = () => {
                     ) : (
                       <Dumbbell className="text-emerald-500" size={18} />
                     )}
-                    <h5 className="font-bold text-slate-700 capitalize">{ex.name}</h5>
+                    <div className="flex flex-row gap-2 items-center">
+                      <h5 className="font-black text-slate-800 capitalize leading-tight">
+                        {ex.name}
+                      </h5>
+                 
+                      {Number(ex.resistance) > 0 && (
+                        <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 border border-amber-100 rounded-lg text-[9px] font-bold uppercase tracking-wider">
+                          <div className="w-1 h-1 rounded-full bg-amber-400" />
+                          +{ex.resistance}kg
+                        </span>
+                      )}
+
+                      {ex.execution === 'Unilateral' && (
+                        <span className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-lg text-[9px] font-bold uppercase tracking-wider">
+                          <div className="w-1 h-1 rounded-full bg-blue-400" />
+                          Unilateral
+                        </span>
+                      )}
+                        
+                      {ex.execution === 'Bilateral' && (
+                        <span className="px-2 py-0.5 bg-slate-50 text-slate-400 border border-slate-100 rounded-lg text-[9px] font-bold uppercase tracking-wider">
+                          Bilateral
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="space-y-2">
                     {ex.sets.map((set, sIdx) => (

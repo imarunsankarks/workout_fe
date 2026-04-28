@@ -257,7 +257,9 @@ const Reports = () => {
           workoutName: workout.name,
           date: workout.date,
           sets: detail.sets,
-          type: detail.type
+          type: detail.type,
+          resistance: detail.resistance,
+          execution: detail.execution
         };
       })
       .sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -705,7 +707,28 @@ const Reports = () => {
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
                         {new Date(entry.date).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'})}
                       </p>
-                      <h4 className="font-bold text-slate-800 text-sm capitalize">{entry.workoutName || 'Routine'}</h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-bold text-slate-800 text-sm capitalize">{entry.workoutName || 'Routine'}</h4>
+                        {Number(entry.resistance) > 0 && (
+                          <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 border border-amber-100 rounded-lg text-[9px] font-bold uppercase tracking-wider">
+                            <div className="w-1 h-1 rounded-full bg-amber-400" />
+                            +{entry.resistance}kg
+                          </span>
+                        )}
+
+                        {entry.execution === 'Unilateral' && (
+                          <span className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-lg text-[9px] font-bold uppercase tracking-wider">
+                            <div className="w-1 h-1 rounded-full bg-blue-400" />
+                            Unilateral
+                          </span>
+                        )}
+                          
+                        {entry.execution === 'Bilateral' && (
+                          <span className="px-2 py-0.5 bg-slate-50 text-slate-400 border border-slate-100 rounded-lg text-[9px] font-bold uppercase tracking-wider">
+                            Bilateral
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
 
