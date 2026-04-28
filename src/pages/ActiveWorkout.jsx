@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
   Play,
@@ -98,6 +98,66 @@ const SortableSetRow = ({ id, sIdx, set, ex, onUpdate, onDelete }) => {
   );
 };
 
+// --- TIMER UTIL ---
+const formatTime = (s) => {
+  const mins = Math.floor(s / 60);
+  const secs = s % 60;
+  return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+};
+
+// --- ISOLATED TIMER COMPONENT ---
+const SessionTimer = React.memo(({ isActive, lastUnpausedAt, onToggle, onTick }) => {
+  const [seconds, setSeconds] = useState(() => {
+    const saved = localStorage.getItem("active_session_seconds");
+    return saved ? parseInt(saved) : 0;
+  });
+
+  useEffect(() => {
+    let interval = null;
+    if (isActive && lastUnpausedAt) {
+      interval = setInterval(() => {
+        const now = Date.now();
+        const passed = Math.floor((now - lastUnpausedAt) / 1000);
+        const base = parseInt(
+          localStorage.getItem("active_session_base_seconds") || "0",
+        );
+        const total = base + passed;
+        setSeconds(total);
+        onTick?.(total);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isActive, lastUnpausedAt, onTick]);
+
+  useEffect(() => {
+    localStorage.setItem("active_session_seconds", seconds.toString());
+  }, [seconds]);
+
+  return (
+    <div className="bg-white rounded-3xl p-6 shadow-sm mb-6 flex justify-between items-center border border-slate-100">
+      <div className="flex items-center gap-4">
+        <div className="bg-emerald-50 p-3 rounded-2xl text-emerald-600">
+          <Timer size={24} />
+        </div>
+        <div>
+          <h1 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">
+            Session Duration
+          </h1>
+          <p className="text-3xl font-mono font-bold text-slate-800 leading-none">
+            {formatTime(seconds)}
+          </p>
+        </div>
+      </div>
+      <button
+        onClick={onToggle}
+        className={`p-4 rounded-2xl transition-all ${isActive ? "bg-red-50 text-red-500" : "bg-emerald-600 text-white shadow-lg"}`}
+      >
+        {isActive ? <Pause size={20} /> : <Play size={20} />}
+      </button>
+    </div>
+  );
+});
+
 const ActiveWorkout = () => {
   const navigate = useNavigate();
   const { user, token } = useContext(AuthContext);
@@ -107,10 +167,14 @@ const ActiveWorkout = () => {
     return saved ? JSON.parse(saved) : [];
   });
 
-  const [seconds, setSeconds] = useState(() => {
-    const saved = localStorage.getItem("active_session_seconds");
-    return saved ? parseInt(saved) : 0;
-  });
+  // Latest seconds value reported by <SessionTimer />. Stored in a ref so
+  // updates do NOT cause this component to re-render every tick.
+  const secondsRef = useRef(
+    parseInt(localStorage.getItem("active_session_seconds") || "0"),
+  );
+  const handleTick = useCallback((s) => {
+    secondsRef.current = s;
+  }, []);
 
   const [isActive, setIsActive] = useState(() => {
     const saved = localStorage.getItem("active_session_is_active");
@@ -175,7 +239,6 @@ const ActiveWorkout = () => {
 
   useEffect(() => {
     localStorage.setItem("active_session_exercises", JSON.stringify(exercises));
-    localStorage.setItem("active_session_seconds", seconds.toString());
     localStorage.setItem("active_session_is_active", JSON.stringify(isActive));
     if (lastUnpausedAt) {
       localStorage.setItem(
@@ -185,7 +248,7 @@ const ActiveWorkout = () => {
     } else {
       localStorage.removeItem("active_session_last_unpaused");
     }
-  }, [exercises, seconds, isActive, lastUnpausedAt]);
+  }, [exercises, isActive, lastUnpausedAt]);
 
   const fetchLibrary = async () => {
     try {
@@ -223,61 +286,49 @@ const ActiveWorkout = () => {
     }
   }, [user.id]);
 
+  const hasRunningTimedSet = exercises.some(
+    (ex) => ex.isRunning && (ex.type === "Warmup" || ex.type === "Stretching"),
+  );
   useEffect(() => {
-    let interval = null;
-    if (isActive && lastUnpausedAt) {
-      interval = setInterval(() => {
-        const now = Date.now();
-        const timePassedSinceUnpause = Math.floor(
-          (now - lastUnpausedAt) / 1000,
-        );
-        const baseSeconds = parseInt(
-          localStorage.getItem("active_session_base_seconds") || "0",
-        );
-        const total = baseSeconds + timePassedSinceUnpause;
-        setSeconds(total);
-
-        setExercises((prev) => {
-          if (!prev.some((ex) => ex.isRunning)) return prev;
-          return prev.map((ex) => {
-            if (
-              ex.isRunning &&
-              (ex.type === "Warmup" || ex.type === "Stretching")
-            ) {
-              const newSets = [...ex.sets];
-              const idx = ex.activeSetIdx ?? 0;
-              newSets[idx] = {
-                ...newSets[idx],
-                time: (newSets[idx].time || 0) + 1,
-              };
-              return { ...ex, sets: newSets };
-            }
-            return ex;
-          });
+    if (!isActive || !hasRunningTimedSet) return undefined;
+    const interval = setInterval(() => {
+      setExercises((prev) => {
+        if (!prev.some((ex) => ex.isRunning)) return prev;
+        return prev.map((ex) => {
+          if (
+            ex.isRunning &&
+            (ex.type === "Warmup" || ex.type === "Stretching")
+          ) {
+            const newSets = [...ex.sets];
+            const idx = ex.activeSetIdx ?? 0;
+            newSets[idx] = {
+              ...newSets[idx],
+              time: (newSets[idx].time || 0) + 1,
+            };
+            return { ...ex, sets: newSets };
+          }
+          return ex;
         });
-      }, 1000);
-    } else {
-      clearInterval(interval);
-    }
+      });
+    }, 1000);
     return () => clearInterval(interval);
-  }, [isActive, lastUnpausedAt]);
+  }, [isActive, hasRunningTimedSet]);
 
-  const toggleGlobalTimer = () => {
-    if (!isActive) {
-      const now = Date.now();
-      setLastUnpausedAt(now);
-      localStorage.setItem("active_session_base_seconds", seconds.toString());
-    } else {
-      setLastUnpausedAt(null);
-    }
-    setIsActive(!isActive);
-  };
-
-  const formatTime = (s) => {
-    const mins = Math.floor(s / 60);
-    const secs = s % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
+  const toggleGlobalTimer = useCallback(() => {
+    setIsActive((prevActive) => {
+      if (!prevActive) {
+        const now = Date.now();
+        setLastUnpausedAt(now);
+        localStorage.setItem(
+          "active_session_base_seconds",
+          secondsRef.current.toString(),
+        );
+      } else {
+        setLastUnpausedAt(null);
+      }
+      return !prevActive;
+    });
+  }, []);
 
   const addExercise = (template) => {
     const lastEntry = allWorkouts
@@ -393,7 +444,7 @@ const ActiveWorkout = () => {
     const workoutData = {
       userId: user.id,
       name: finalName,
-      duration: Math.floor(seconds / 60),
+      duration: Math.floor(secondsRef.current / 60),
       muscles: [...new Set(formattedDetails.map((ex) => ex.muscle))],
       details: formattedDetails,
     };
@@ -452,28 +503,13 @@ const ActiveWorkout = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 pb-40">
-      {/* Timer Card */}
-      <div className="bg-white rounded-3xl p-6 shadow-sm mb-6 flex justify-between items-center border border-slate-100">
-        <div className="flex items-center gap-4">
-          <div className="bg-emerald-50 p-3 rounded-2xl text-emerald-600">
-            <Timer size={24} />
-          </div>
-          <div>
-            <h1 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">
-              Session Duration
-            </h1>
-            <p className="text-3xl font-mono font-bold text-slate-800 leading-none">
-              {formatTime(seconds)}
-            </p>
-          </div>
-        </div>
-        <button
-          onClick={toggleGlobalTimer}
-          className={`p-4 rounded-2xl transition-all ${isActive ? "bg-red-50 text-red-500" : "bg-emerald-600 text-white shadow-lg"}`}
-        >
-          {isActive ? <Pause size={20} /> : <Play size={20} />}
-        </button>
-      </div>
+      {/* Timer Card (isolated so its 1s ticks don't re-render the whole page) */}
+      <SessionTimer
+        isActive={isActive}
+        lastUnpausedAt={lastUnpausedAt}
+        onToggle={toggleGlobalTimer}
+        onTick={handleTick}
+      />
 
       {/* Active Exercise List */}
       <div className="space-y-4">
