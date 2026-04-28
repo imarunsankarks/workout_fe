@@ -514,7 +514,7 @@ const Home = () => {
                       <Dumbbell className="text-emerald-500" size={18} />
                     )}
                     <div className="flex flex-row gap-2 items-center">
-                      <h5 className="font-black text-slate-800 capitalize leading-tight">
+                      <h5 className="font-bold text-slate-800 capitalize leading-tight">
                         {ex.name}
                       </h5>
                  

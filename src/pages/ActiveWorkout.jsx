@@ -280,16 +280,46 @@ const ActiveWorkout = () => {
   };
 
   const addExercise = (template) => {
+    const lastEntry = allWorkouts
+      .filter((workout) =>
+        workout.details?.some(
+          (ex) => ex.name.toLowerCase() === template.name.toLowerCase(),
+        ),
+      )
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .map((workout) =>
+        workout.details.find(
+          (ex) => ex.name.toLowerCase() === template.name.toLowerCase(),
+        ),
+      )[0];
+
+    let prefilledSets;
+    if (template.type === "Strength") {
+      prefilledSets =
+        lastEntry?.sets && lastEntry.sets.length > 0
+          ? lastEntry.sets.map((s) => ({
+              weight: s.weight ?? "",
+              reps: s.reps ?? "",
+            }))
+          : [{ weight: "", reps: "" }];
+    } else {
+      prefilledSets =
+        lastEntry?.sets && lastEntry.sets.length > 0
+          ? lastEntry.sets.map(() => ({ time: 0 }))
+          : [{ time: 0 }];
+    }
+
     const newEx = {
       ...template,
+      resistance:
+        lastEntry?.resistance ?? template.resistance ?? 0,
+      execution:
+        lastEntry?.execution ?? template.execution ?? "Bilateral",
       instanceId: Date.now(),
       isCollapsed: false,
       isRunning: false,
       activeSetIdx: 0,
-      sets:
-        template.type === "Strength"
-          ? [{ weight: "", reps: "" }]
-          : [{ time: 0 }],
+      sets: prefilledSets,
     };
     setExercises([...exercises, newEx]);
     setIsModalOpen(false);
