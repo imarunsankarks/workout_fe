@@ -70,18 +70,27 @@ const Reports = () => {
             if (exercise.type === 'Strength') {
               const muscleGroup = exercise.muscle || 'Other';
               const exerciseName = exercise.name;
-              
-              const maxSet = exercise.sets.reduce((prev, current) => 
-                (prev.weight > current.weight) ? prev : current
-              , { weight: 0, reps: 0 });
+              const baseResistance = Number(exercise.resistance) || 0;
+              const maxSet = exercise.sets.reduce((prev, current) => {
+                const prevTotal = (Number(prev.weight) || 0) + baseResistance;
+                const currentTotal = (Number(current.weight) || 0) + baseResistance;
+                return (prevTotal > currentTotal) ? prev : current;
+              }, { weight: 0, reps: 0 });
+
+              const currentSetTotal = (Number(maxSet.weight) || 0) + baseResistance;
 
               if (maxSet.weight >= 0) {
                 if (!prMap[muscleGroup]) prMap[muscleGroup] = {};
-                if (!prMap[muscleGroup][exerciseName] || maxSet.weight > prMap[muscleGroup][exerciseName].weight) {
+                
+                const existingRecord = prMap[muscleGroup][exerciseName];
+                const existingTotal = existingRecord ? (existingRecord.weight + existingRecord.resistance) : -1;
+
+                if (!existingRecord || currentSetTotal > existingTotal) {
                   prMap[muscleGroup][exerciseName] = {
-                    weight: maxSet.weight,
+                    weight: Number(maxSet.weight),
                     reps: maxSet.reps,
-                    date: workout.date
+                    date: workout.date,
+                    resistance: baseResistance,
                   };
                 }
               }
@@ -380,7 +389,7 @@ const Reports = () => {
 
         {/* Tab Bar */}
         <div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar scroll-smooth" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          {['Legs', 'Chest', 'Back', 'Biceps','Shoulders', 'Triceps', 'Abs', 'Other'].map((muscle) => (
+          {['Legs', 'Chest', 'Back', 'Biceps','Shoulders', 'Triceps', 'Abs', 'Full Body'].map((muscle) => (
             <button
               key={muscle}
               onClick={() => setActivePrTab(muscle)}
@@ -412,6 +421,12 @@ const Reports = () => {
                       </p>
                       <div className="w-1 h-1 rounded-full bg-slate-200"></div>
                       <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">{data.reps} Reps</p>
+                      {data.resistance > 0 && (
+                        <div className="w-1 h-1 rounded-full bg-slate-200"></div>
+                      )}
+                      {data.resistance > 0 && (
+                        <p className="text-[9px] text-amber-500 font-bold uppercase tracking-tighter">{data.resistance} kg</p>
+                      )}
                     </div>
                   </div>
                   <div className="bg-emerald-50 px-4 py-2 rounded-2xl border border-emerald-100 text-right">

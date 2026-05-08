@@ -19,6 +19,10 @@ import {
   ChevronDown,
   ChevronUp,
   Info,
+  RotateCcw,
+  Calendar,
+  Clock as ClockIcon,
+  ChevronRight
 } from "lucide-react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
@@ -167,8 +171,6 @@ const ActiveWorkout = () => {
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Latest seconds value reported by <SessionTimer />. Stored in a ref so
-  // updates do NOT cause this component to re-render every tick.
   const secondsRef = useRef(
     parseInt(localStorage.getItem("active_session_seconds") || "0"),
   );
@@ -202,10 +204,11 @@ const ActiveWorkout = () => {
   const [activeTab, setActiveTab] = useState("");
   const presetNames = ["Arms", "Legs", "Push", "Pull", "Other"];
 
-  // --- NEW STATE FOR INFO TOGGLE ---
-  const [showInfo, setShowInfo] = useState({});
+  // --- REPEAT WORKOUT STATES ---
+  const [showRepeatModal, setShowRepeatModal] = useState(false);
+  const [workoutToRepeat, setWorkoutToRepeat] = useState(null);
 
-  // --- HISTORY STATES ---
+  const [showInfo, setShowInfo] = useState({});
   const [allWorkouts, setAllWorkouts] = useState([]);
   const [selectedPrHistory, setSelectedPrHistory] = useState(null);
   const [historyLimit, setHistoryLimit] = useState(5);
@@ -219,7 +222,7 @@ const ActiveWorkout = () => {
 
   const handleDragEnd = (event, exerciseInstanceId) => {
     const { active, over } = event;
-    if (active.id !== over.id) {
+    if (over && active.id !== over.id) {
       setExercises((prev) => {
         const newExs = [...prev];
         let targetEx = newExs.find(
@@ -264,7 +267,6 @@ const ActiveWorkout = () => {
     }
   };
 
-  // --- FETCH HISTORY ---
   const fetchHistory = async () => {
     try {
       const res = await axios.get(
@@ -375,6 +377,27 @@ const ActiveWorkout = () => {
     setExercises([...exercises, newEx]);
     setIsModalOpen(false);
     setSearchTerm("");
+  };
+
+  const handleConfirmRepeat = () => {
+    if (!workoutToRepeat) return;
+    
+    const prefilledExercises = workoutToRepeat.details.map((ex, idx) => ({
+      ...ex,
+      instanceId: Date.now() + idx,
+      isCollapsed: false,
+      isRunning: false,
+      activeSetIdx: 0,
+      sets: ex.sets.map(s => ({
+        weight: s.weight ?? "",
+        reps: s.reps ?? "",
+        time: s.time ?? 0
+      }))
+    }));
+
+    setExercises(prefilledExercises);
+    setShowRepeatModal(false);
+    setWorkoutToRepeat(null);
   };
 
   const handlePrClick = (exerciseName) => {
@@ -503,13 +526,29 @@ const ActiveWorkout = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 pb-40">
-      {/* Timer Card (isolated so its 1s ticks don't re-render the whole page) */}
+      {/* Timer Card */}
       <SessionTimer
         isActive={isActive}
         lastUnpausedAt={lastUnpausedAt}
         onToggle={toggleGlobalTimer}
         onTick={handleTick}
       />
+      {/* REPEAT WORKOUT BUTTON */}
+      <button 
+        onClick={() => setShowRepeatModal(true)}
+        className="w-full mb-6 bg-white border border-slate-100 p-4 rounded-3xl flex items-center justify-between shadow-sm active:scale-[0.98] transition-all group"
+      >
+        <div className="flex items-center gap-3">
+          <div className="bg-amber-50 p-2 rounded-xl text-amber-500 group-hover:bg-amber-500 group-hover:text-white transition-colors">
+            <RotateCcw size={18} strokeWidth={2.5} />
+          </div>
+          <div className="text-left">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Session shortcut</p>
+            <p className="text-sm font-bold text-slate-700 leading-none">Repeat Previous Workout</p>
+          </div>
+        </div>
+        <ChevronRight size={18} className="text-slate-300" />
+      </button>
 
       {/* Active Exercise List */}
       <div className="space-y-4">
@@ -775,7 +814,80 @@ const ActiveWorkout = () => {
         </button>
       </div>
 
-      {/* DISCARD PROMPT */}
+      {/* REPEAT PREVIOUS WORKOUT MODAL */}
+      {showRepeatModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[500] flex items-end justify-center">
+          <div className="bg-white w-full max-w-lg rounded-t-[40px] p-8 max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
+            <div className="flex justify-between items-center mb-8">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-800 tracking-tight">Recent Sessions</h2>
+                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Select a workout to repeat</p>
+              </div>
+              <button onClick={() => setShowRepeatModal(false)} className="bg-slate-100 p-2 rounded-full text-slate-400 hover:bg-slate-200 transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {allWorkouts.slice(0, 8).map((w) => (
+                <button
+                  key={w._id}
+                  onClick={() => setWorkoutToRepeat(w)}
+                  className="w-full bg-slate-50 border border-slate-100 p-5 rounded-[28px] flex items-center justify-between hover:bg-white hover:border-emerald-200 transition-all active:scale-[0.98]"
+                >
+                  <div className="text-left">
+                    <h4 className="font-bold text-slate-800 capitalize mb-1">{w.name}</h4>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase">
+                        <Calendar size={12} className="text-emerald-500" />
+                        {new Date(w.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                      </div>
+                      <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase">
+                        <ClockIcon size={12} className="text-emerald-500" />
+                        {w.duration} mins
+                      </div>
+                    </div>
+                  </div>
+                  <ChevronRight size={18} className="text-slate-300" />
+                </button>
+              ))}
+              {allWorkouts.length === 0 && (
+                <div className="py-12 text-center text-slate-400 italic text-sm">No workout history found yet.</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* REPEAT CONFIRMATION MODAL */}
+      {workoutToRepeat && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[600] flex items-center justify-center p-6 text-center">
+          <div className="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in zoom-in duration-200">
+            <div className="bg-amber-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-600">
+              <RotateCcw size={32} />
+            </div>
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">Repeat Workout?</h2>
+            <p className="text-slate-500 text-sm mb-8 leading-relaxed">
+              Would you like to perform the same <span className="font-bold text-slate-800">"{workoutToRepeat.name}"</span> workout done on <span className="font-bold text-slate-800">{new Date(workoutToRepeat.date).toLocaleDateString()}</span> today?
+            </p>
+            <div className="flex flex-col gap-2">
+              <button 
+                onClick={handleConfirmRepeat} 
+                className="w-full py-4 bg-emerald-600 text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all"
+              >
+                Yes, Prefill Workout
+              </button>
+              <button 
+                onClick={() => setWorkoutToRepeat(null)} 
+                className="w-full py-4 text-slate-400 font-bold hover:bg-slate-50 rounded-2xl transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showDiscardPrompt && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[250] flex items-center justify-center p-6 text-center">
           <div className="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
