@@ -20,6 +20,9 @@ import {
   Zap,
   CheckCircle2,
   Loader2,
+  Edit3,
+  AlertTriangle,
+  Plus
 } from "lucide-react";
 
 const Home = () => {
@@ -36,6 +39,8 @@ const Home = () => {
   const [visibleLimit, setVisibleLimit] = useState(8);
   const [isWarming, setIsWarming] = useState(false);
   const [warmupStatus, setWarmupStatus] = useState("idle");
+  const [fullscreenImage, setFullscreenImage] = useState(null);
+  const [showImageDeleteConfirm, setShowImageDeleteConfirm] = useState(false);
 
   const calculateIntensity = (workout) => {
     if (!workout.duration || workout.duration === 0) return 0;
@@ -174,6 +179,46 @@ const Home = () => {
       }, 2000);
     }
   };
+
+  const handleImageUpdate = async (workoutId, imageUrl, imagePublicId) => {
+  try {
+    const res = await axios.patch(`${process.env.REACT_APP_API_URL}/api/workouts/${workoutId}/update-image`, {
+      imageUrl,
+      imagePublicId
+    }, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    
+    // Update local states to reflect changes immediately
+    setSelectedWorkout(res.data);
+    setHistory(prev => prev.map(w => w._id === workoutId ? res.data : w));
+  } catch (err) {
+    console.error("Error updating image:", err);
+    alert("Failed to update image");
+  }
+};
+
+const onFileChange = async (e, workoutId) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  try {
+    // Show a temporary loading state if you have one
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET);
+    formData.append("cloud_name", process.env.REACT_APP_CLOUDINARY_CLOUD_NAME);
+
+    const uploadRes = await axios.post(
+      `https://api.cloudinary.com/v1_1/${process.env.REACT_APP_CLOUDINARY_CLOUD_NAME}/image/upload`,
+      formData
+    );
+
+    await handleImageUpdate(workoutId, uploadRes.data.secure_url, uploadRes.data.public_id);
+  } catch (err) {
+    alert("Upload failed");
+  }
+};
 
   return (
     <div className="p-6 bg-slate-50 min-h-screen pb-24">
@@ -499,6 +544,103 @@ const Home = () => {
                 <X size={20} />
               </button>
             </div>
+            {/* --- NEW: IMAGE & NOTE SECTION --- */}
+            <div className="mb-6">
+              {selectedWorkout.imageUrl ? (
+                /* --- VIEW IMAGE STATE --- */
+                <div 
+                  style={{ height: '180px' }}
+                  className="relative w-full aspect-square rounded-[32px] overflow-hidden shadow-md border border-slate-100 group"
+                >
+                  <img 
+                    onClick={() => setFullscreenImage(selectedWorkout.imageUrl)}
+                    src={selectedWorkout.imageUrl} 
+                    alt="Workout Progress" 
+                    className="w-full h-full object-cover cursor-zoom-in active:scale-[0.98] transition-transform"
+                  />
+
+                  {/* Action Buttons */}
+                  <div className="absolute top-3 right-3 flex gap-2 z-10">
+                    <label className="bg-white/20 backdrop-blur-md p-2 rounded-xl text-white hover:bg-white/40 transition-colors cursor-pointer shadow-lg border border-white/20">
+                      <Edit3 size={16} />
+                      <input 
+                        type="file" 
+                        className="hidden" 
+                        accept="image/*" 
+                        onChange={(e) => onFileChange(e, selectedWorkout._id)} 
+                      />
+                    </label>
+                    
+                    <button 
+                      onClick={() => setShowImageDeleteConfirm(true)}
+                      className="bg-red-500/80 backdrop-blur-md p-2 rounded-xl text-white hover:bg-red-600 transition-colors shadow-lg border border-white/10"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+
+                  {selectedWorkout.notes && (
+                    <div className="absolute bottom-0 left-0 right-0 p-6 pointer-events-none">
+                      <span className="text-[8px] block font-black uppercase tracking-[0.2em] text-emerald-400 mb-1">
+                        Session Note
+                      </span>
+                      <p className="text-white text-sm font-medium leading-relaxed drop-shadow-md line-clamp-3">
+                        {selectedWorkout.notes}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* --- ADD IMAGE STATE (Empty State) --- */
+                <label className="flex flex-col items-center justify-center w-full h-[120px] border-2 border-dashed border-slate-200 rounded-[32px] cursor-pointer hover:bg-slate-50 hover:border-emerald-300 transition-all group">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <div className="p-3 bg-slate-50 rounded-2xl text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-500 transition-colors mb-2">
+                      <Plus size={20} strokeWidth={3} />
+                    </div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Add Session Photo</p>
+                  </div>
+                  <input 
+                    type="file" 
+                    className="hidden" 
+                    accept="image/*" 
+                    onChange={(e) => onFileChange(e, selectedWorkout._id)} 
+                  />
+                </label>
+              )}
+            </div>
+
+            {showImageDeleteConfirm && (
+              <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[700] flex items-center justify-center p-6 text-center">
+                <div className="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
+                  <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
+                    <AlertTriangle size={32} />
+                  </div>
+                  <h2 className="text-2xl font-black text-slate-800 mb-2">Delete Photo?</h2>
+                  <p className="text-slate-500 text-sm mb-8 leading-relaxed">
+                    This will permanently remove the image from this workout record.
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    <button 
+                      onClick={() => {
+                        handleImageUpdate(selectedWorkout._id, null, null);
+                        setShowImageDeleteConfirm(false);
+                      }} 
+                      className="w-full py-4 bg-red-500 text-white font-black rounded-2xl shadow-lg active:scale-95 transition-all"
+                    >
+                      Yes, Delete Photo
+                    </button>
+                    <button 
+                      onClick={() => setShowImageDeleteConfirm(false)} 
+                      className="w-full py-4 text-slate-400 font-bold hover:bg-slate-50 rounded-2xl transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="space-y-6">
               {selectedWorkout.details?.map((ex, idx) => (
                 <div
@@ -603,6 +745,32 @@ const Home = () => {
               {warmupStatus === "loading" ? "System Syncing" : "Ready to Lift"}
             </p>
           </div>
+        </div>
+      )}
+      {/* FULLSCREEN IMAGE LIGHTBOX */}
+      {fullscreenImage && (
+        <div 
+          className="fixed inset-0 bg-slate-900/95 backdrop-blur-xl z-[600] flex flex-col items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={() => setFullscreenImage(null)}
+        >
+          {/* Close Button */}
+          <button className="absolute top-6 right-6 bg-white/10 hover:bg-white/20 p-3 rounded-full text-white transition-colors">
+            <X size={24} />
+          </button>
+          
+          {/* Full Image */}
+          <img 
+            src={fullscreenImage} 
+            className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain animate-in zoom-in duration-300"
+            alt="Full Progress"
+          />
+          
+          {/* Note in Fullscreen */}
+          {selectedWorkout.notes && (
+            <div className="mt-6 max-w-md text-center">
+              <p className="text-white/90 text-lg font-medium italic">"{selectedWorkout.notes}"</p>
+            </div>
+          )}
         </div>
       )}
     </div>

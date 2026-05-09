@@ -202,6 +202,9 @@ const ActiveWorkout = () => {
   const [editingExercise, setEditingExercise] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [activeTab, setActiveTab] = useState("");
+  const [workoutNote, setWorkoutNote] = useState("");
+  const [selectedImage, setSelectedSetImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const presetNames = ["Arms", "Legs", "Push", "Pull", "Other"];
 
   // --- REPEAT WORKOUT STATES ---
@@ -240,6 +243,13 @@ const ActiveWorkout = () => {
     }
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedSetImage(file);
+      setImagePreview(URL.createObjectURL(file)); // Creates a local URL for the UI preview
+    }
+  };
   useEffect(() => {
     localStorage.setItem("active_session_exercises", JSON.stringify(exercises));
     localStorage.setItem("active_session_is_active", JSON.stringify(isActive));
@@ -436,61 +446,88 @@ const ActiveWorkout = () => {
   };
 
   const saveWorkout = async () => {
-    const finalName = workoutName.trim() || "Daily Session";
+      const finalName = workoutName.trim() || "Daily Session";
 
-    const formattedDetails = exercises
-      .map((ex) => {
-        const validSets = ex.sets.filter((set) => {
-          if (ex.type === "Strength") {
-            return set.weight !== "" && set.reps !== "" && Number(set.reps) > 0;
-          } else {
-            return set.time && Number(set.time) > 0;
-          }
-        });
+      // 1. Filter valid sets
+      const formattedDetails = exercises
+        .map((ex) => {
+          const validSets = ex.sets.filter((set) => {
+            if (ex.type === "Strength") {
+              return set.weight !== "" && set.reps !== "" && Number(set.reps) > 0;
+            } else {
+              return set.time && Number(set.time) > 0;
+            }
+          });
 
-        return {
-          name: ex.name,
-          type: ex.type,
-          muscle: ex.muscle,
-          sets: validSets,
-          execution: ex.execution || "Bilateral",
-          resistance: ex.resistance || 0,
-        };
-      })
-      .filter((ex) => ex.sets.length > 0);
+          return {
+            name: ex.name,
+            type: ex.type,
+            muscle: ex.muscle,
+            sets: validSets,
+            execution: ex.execution || "Bilateral",
+            resistance: ex.resistance || 0,
+          };
+        })
+        .filter((ex) => ex.sets.length > 0);
 
-    if (formattedDetails.length === 0) {
-      setNullData(true);
-      return;
-    }
+      if (formattedDetails.length === 0) {
+        setNullData(true);
+        return;
+      }
 
-    const workoutData = {
-      userId: user.id,
-      name: finalName,
-      duration: Math.floor(secondsRef.current / 60),
-      muscles: [...new Set(formattedDetails.map((ex) => ex.muscle))],
-      details: formattedDetails,
-    };
-
-    try {
       setLoadingSave(true);
       setShowFinishPrompt(false);
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/workouts`,
-        workoutData,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
-      handleDiscard();
-      navigate("/");
-    } catch (err) {
-      console.error("Save Error:", err);
-      alert("Could not save to database.");
-      setLoadingSave(false);
-      setShowFinishPrompt(true);
-    }
-  };
+
+      try {
+        let uploadedUrl = null;
+        let publicId = null;
+
+        // 2. Upload Image to Cloudinary if a file exists
+        if (selectedImage) {
+          const formData = new FormData();
+          formData.append("file", selectedImage);
+          formData.append("upload_preset", process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET);
+          formData.append("cloud_name", process.env.REACT_APP_CLOUDINARY_CLOUD_NAME);
+
+            const uploadRes = await axios.post(
+              `https://api.cloudinary.com/v1_1/${process.env.REACT_APP_CLOUDINARY_CLOUD_NAME}/image/upload`,
+              formData
+            );
+            uploadedUrl = uploadRes.data.secure_url;
+            publicId = uploadRes.data.public_id;
+        }
+
+        // 3. Construct the final data object with the new URL
+        const workoutData = {
+          userId: user.id,
+          name: finalName,
+          duration: Math.floor(secondsRef.current / 60),
+          muscles: [...new Set(formattedDetails.map((ex) => ex.muscle))],
+          details: formattedDetails,
+          notes: workoutNote, 
+          imageUrl: uploadedUrl,
+          imagePublicId: uploadedUrl ? publicId : null,
+        };
+
+        // 4. Send to your Node.js backend
+        await axios.post(
+          `${process.env.REACT_APP_API_URL}/api/workouts`,
+          workoutData,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+
+        // 5. Cleanup
+        handleDiscard();
+        navigate("/");
+      } catch (err) {
+        console.error("Save Error:", err);
+        alert("Could not save to database. Image upload or network error.");
+        setLoadingSave(false);
+        setShowFinishPrompt(true);
+      }
+    };
 
   const deleteLibraryItem = async (id) => {
     try {
@@ -918,12 +955,12 @@ const ActiveWorkout = () => {
       {/* FINISH PROMPT */}
       {showFinishPrompt && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-6 text-center">
-          <div className="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
+          <div className="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
             <CheckCircle2 size={48} className="mx-auto mb-4 text-emerald-500" />
-            <h2 className="text-2xl font-bold text-slate-800 mb-6">
-              Great Session!
-            </h2>
-            <div className="flex flex-wrap justify-center gap-2 mb-6">
+            <h2 className="text-2xl font-bold text-slate-800 mb-6">Great Session!</h2>
+            
+            {/* Preset Name Tabs */}
+            <div className="flex flex-wrap justify-center gap-2 mb-4">
               {presetNames.map((name) => (
                 <button
                   key={name}
@@ -932,39 +969,80 @@ const ActiveWorkout = () => {
                     if (name !== "Other") setWorkoutName(name);
                     else setWorkoutName("");
                   }}
-                  className={`px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${
-                    activeTab === name
-                      ? "bg-slate-900 text-white shadow-lg"
-                      : "bg-slate-50 text-slate-400 border border-slate-100"
+                  className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${
+                    activeTab === name ? "bg-slate-900 text-white shadow-lg" : "bg-slate-50 text-slate-400 border border-slate-100"
                   }`}
                 >
                   {name}
                 </button>
               ))}
             </div>
+
+            {/* Custom Name Input */}
             {activeTab === "Other" && (
-              <div className="animate-in slide-in-from-top-2 duration-300">
+              <div className="animate-in slide-in-from-top-2 duration-300 mb-4">
                 <input
                   autoFocus
                   type="text"
                   placeholder="Custom Name (e.g. Chest & Back)"
-                  className="w-full p-5 bg-slate-50 rounded-2xl font-bold mb-6 outline-none border-2 border-emerald-500/20 focus:border-emerald-500 transition-all"
+                  className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none border-2 border-emerald-500/20 focus:border-emerald-500 transition-all text-sm"
                   value={workoutName}
                   onChange={(e) => setWorkoutName(e.target.value)}
                 />
               </div>
             )}
+
+            {/* --- NEW: NOTES SECTION --- */}
+            <div className="mb-4">
+              <textarea
+                placeholder="How did it feel? (Optional note)"
+                className="w-full p-4 bg-slate-50 rounded-2xl font-medium outline-none border border-slate-100 focus:border-emerald-500 transition-all text-sm min-h-[80px] resize-none"
+                value={workoutNote}
+                onChange={(e) => setWorkoutNote(e.target.value)}
+              />
+            </div>
+
+            {/* --- NEW: IMAGE UPLOAD SECTION --- */}
+            <div className="mb-6">
+              {imagePreview ? (
+                <div className="relative group inline-block">
+                  <img 
+                    src={imagePreview} 
+                    alt="Preview" 
+                    className="w-full aspect-video object-cover rounded-2xl border-2 border-emerald-500/20 shadow-md" 
+                  />
+                  <button 
+                    onClick={() => {setSelectedSetImage(null); setImagePreview(null);}}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full shadow-lg"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-200 rounded-[24px] cursor-pointer hover:bg-slate-50 transition-colors group">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <Plus className="text-slate-300 group-hover:text-emerald-500 transition-colors mb-2" size={24} />
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Add Progress Photo</p>
+                  </div>
+                  <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
+                </label>
+              )}
+            </div>
+
             {nullData && (
-              <p className="text-red-500 text-sm mb-4">
+              <p className="text-red-500 text-sm mb-4 font-bold italic">
                 Please complete at least one set!
               </p>
             )}
-            <div className="flex gap-3 mt-2">
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
               <button
                 onClick={() => {
                   setShowFinishPrompt(false);
                   setActiveTab("");
                   setNullData(false);
+                  setImagePreview(null); // Clear image on cancel
                 }}
                 className="flex-1 py-4 text-slate-400 font-bold hover:bg-slate-50 rounded-2xl transition-colors"
               >
@@ -974,9 +1052,7 @@ const ActiveWorkout = () => {
                 onClick={saveWorkout}
                 disabled={!workoutName}
                 className={`flex-1 py-4 font-bold rounded-2xl shadow-lg transition-all ${
-                  !workoutName
-                    ? "bg-slate-100 text-slate-300 cursor-not-allowed"
-                    : "bg-emerald-600 text-white active:scale-95"
+                  !workoutName ? "bg-slate-100 text-slate-300 cursor-not-allowed" : "bg-emerald-600 text-white active:scale-95"
                 }`}
               >
                 Save
