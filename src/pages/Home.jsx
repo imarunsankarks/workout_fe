@@ -24,6 +24,7 @@ import {
   AlertTriangle,
   Plus
 } from "lucide-react";
+import ThemeToggle from "../components/ThemeToggle";
 
 const Home = () => {
   const { user, token, logout } = useContext(AuthContext);
@@ -226,21 +227,22 @@ const onFileChange = async (e, workoutId) => {
 };
 
   return (
-    <div className="p-6 bg-slate-50 min-h-screen pb-24">
+    <div className="p-6 bg-slate-50 dark:bg-slate-950 min-h-screen pb-24 transition-colors duration-300">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-2xl font-black text-slate-800 tracking-tight">
+          <h1 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">
             GainsTracker
           </h1>
-          <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">
+          <p className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-widest">
             Welcome, {user?.name || "Champ"}
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <button
             onClick={handleWarmup}
-            className="p-2.5 bg-amber-50 text-amber-500 rounded-xl hover:bg-amber-100 transition-all active:scale-90 shadow-sm border border-amber-100"
+            className="p-2.5 bg-amber-50 text-amber-500 rounded-xl hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-300 dark:hover:bg-amber-500/20 transition-all active:scale-90 shadow-sm border border-amber-100 dark:border-amber-400/20"
             title="Warmup Server"
           >
             <Zap size={20} strokeWidth={1.5} />
@@ -248,7 +250,7 @@ const onFileChange = async (e, workoutId) => {
 
           <button
             onClick={() => setShowLogoutPrompt(true)}
-            className="text-red-500 hover:text-red-700 transition-colors p-2"
+            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors p-2"
           >
             <LogOut size={22} />
           </button>
@@ -257,12 +259,12 @@ const onFileChange = async (e, workoutId) => {
 
       {/* Start / Resume Workout Card */}
       <div
-        className={`p-6 rounded-[32px] text-white shadow-xl mb-10 relative overflow-hidden transition-all duration-300 ${
+        className={`p-6 rounded-[32px] text-white shadow-xl dark:shadow-lg mb-10 relative overflow-hidden transition-all duration-300 ${
           hasActiveSession
             ? isPaused
-              ? "bg-slate-700 shadow-slate-200"
-              : "bg-amber-500 shadow-amber-200"
-            : "bg-emerald-600 shadow-emerald-200"
+              ? "bg-slate-700 shadow-slate-200 dark:shadow-slate-200/60"
+              : "bg-amber-500 shadow-amber-200 dark:shadow-amber-400/40"
+            : "bg-emerald-600 shadow-emerald-200 dark:shadow-emerald-300/30"
         }`}
       >
         <div className="relative z-10">
@@ -308,27 +310,27 @@ const onFileChange = async (e, workoutId) => {
       {/* Logout Confirmation Modal */}
       {showLogoutPrompt && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6 text-center">
-          <div className="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
+          <div className="bg-white dark:bg-slate-900 dark:border dark:border-slate-800 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
             <div className="bg-red-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-red-600">
               <LogOut size={32} />
             </div>
-            <h2 className="text-2xl font-bold text-slate-800 mb-2">
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
               Logging out?
             </h2>
-            <p className="text-slate-500 text-sm mb-8 leading-relaxed">
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 leading-relaxed">
               Are you sure you want to sign out? <br />
               Your active session (if any) will stay saved on this device.
             </p>
             <div className="flex flex-col gap-2">
               <button
                 onClick={logout}
-                className="w-full py-4 bg-red-500 text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all"
+                className="w-full py-4 bg-red-500 text-white font-bold rounded-2xl shadow-lg dark:shadow-md active:scale-95 transition-all"
               >
                 Yes, Sign Out
               </button>
               <button
                 onClick={() => setShowLogoutPrompt(false)}
-                className="w-full py-4 text-slate-400 font-bold hover:bg-slate-50 rounded-2xl transition-colors"
+                className="w-full py-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-colors"
               >
                 Stay Logged In
               </button>
@@ -340,27 +342,27 @@ const onFileChange = async (e, workoutId) => {
       {/* Delete Confirmation Modal */}
       {workoutToDelete && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6 text-center">
-          <div className="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
+          <div className="bg-white dark:bg-slate-900 dark:border dark:border-slate-800 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
             <div className="bg-orange-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-orange-600">
               <Trash2 size={32} />
             </div>
-            <h2 className="text-2xl font-bold text-slate-800 mb-2">
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
               Delete Workout?
             </h2>
-            <p className="text-slate-500 text-sm mb-8 leading-relaxed">
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 leading-relaxed">
               This action cannot be undone. This workout will be permanently
               removed from your history.
             </p>
             <div className="flex flex-col gap-2">
               <button
                 onClick={confirmDelete}
-                className="w-full py-4 bg-orange-600 text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all"
+                className="w-full py-4 bg-orange-600 text-white font-bold rounded-2xl shadow-lg dark:shadow-md active:scale-95 transition-all"
               >
                 Delete Permanently
               </button>
               <button
                 onClick={() => setWorkoutToDelete(null)}
-                className="w-full py-4 text-slate-400 font-bold hover:bg-slate-50 rounded-2xl transition-colors"
+                className="w-full py-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-colors"
               >
                 Keep Workout
               </button>
@@ -372,27 +374,27 @@ const onFileChange = async (e, workoutId) => {
       {/* Confirmation Start Prompt Modal */}
       {showStartPrompt && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[250] flex items-center justify-center p-6 text-center">
-          <div className="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
+          <div className="bg-white dark:bg-slate-900 dark:border dark:border-slate-800 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
             <div className="bg-emerald-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-emerald-600">
               <Play size={32} fill="currentColor" />
             </div>
-            <h2 className="text-2xl font-bold text-slate-800 mb-2">
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
               Ready to Start?
             </h2>
-            <p className="text-slate-500 text-sm mb-8">
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-8">
               This will begin a new session and start the timer. Are you ready
               to crush your goals?
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowStartPrompt(false)}
-                className="flex-1 py-4 text-slate-400 font-bold hover:bg-slate-50 rounded-2xl transition-colors"
+                className="flex-1 py-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-colors"
               >
                 Not yet
               </button>
               <button
                 onClick={confirmStartWorkout}
-                className="flex-1 bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-emerald-100 active:scale-95 transition-all"
+                className="flex-1 bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-lg dark:shadow-md shadow-emerald-100 active:scale-95 transition-all"
               >
                 Let's Go!
               </button>
@@ -403,11 +405,11 @@ const onFileChange = async (e, workoutId) => {
 
       {/* History List */}
       <div className="flex justify-between items-center mb-4">
-        <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2">
+        <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg flex items-center gap-2">
           <Activity size={20} className="text-emerald-500" /> Recent Workouts
         </h3>
         {history.length > 0 && (
-          <span className="text-[10px] font-bold text-slate-400 bg-slate-200 px-2 py-1 rounded-md uppercase">
+          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 bg-slate-200 dark:bg-slate-800 px-2 py-1 rounded-md uppercase">
             Last {Math.min(history.length, visibleLimit)} Workouts
           </span>
         )}
@@ -418,17 +420,17 @@ const onFileChange = async (e, workoutId) => {
           {[1, 2, 3].map((item) => (
             <div
               key={item}
-              className="bg-white p-5 rounded-[24px] flex justify-between items-center border border-slate-100 shadow-sm relative overflow-hidden"
+              className="bg-white dark:bg-slate-900 p-5 rounded-[24px] flex justify-between items-center border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-50/60 to-transparent -translate-x-full animate-shimmer"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-50/60 dark:via-slate-800/60 to-transparent -translate-x-full animate-shimmer"></div>
               <div className="flex items-center gap-4 w-full">
-                <div className="bg-slate-100 p-3 rounded-2xl w-11 h-11 animate-pulse"></div>
+                <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-2xl w-11 h-11 animate-pulse"></div>
                 <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-slate-100 rounded-md w-1/2 animate-pulse"></div>
-                  <div className="h-2 bg-slate-100 rounded-md w-1/4 animate-pulse"></div>
+                  <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded-md w-1/2 animate-pulse"></div>
+                  <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-md w-1/4 animate-pulse"></div>
                 </div>
               </div>
-              <div className="bg-slate-50 w-6 h-6 rounded-full animate-pulse"></div>
+              <div className="bg-slate-50 dark:bg-slate-800 w-6 h-6 rounded-full animate-pulse"></div>
             </div>
           ))}
         </div>
@@ -444,18 +446,18 @@ const onFileChange = async (e, workoutId) => {
                   <div
                     key={workout._id}
                     onClick={() => setSelectedWorkout(workout)}
-                    className="group bg-white p-5 rounded-[24px] flex justify-between items-center border border-slate-100 shadow-sm active:scale-[0.98] transition-all cursor-pointer relative"
+                    className="group bg-white dark:bg-slate-900 p-5 rounded-[24px] flex justify-between items-center border border-slate-100 dark:border-slate-800 shadow-sm active:scale-[0.98] transition-all cursor-pointer relative"
                   >
                     <div className="flex items-center gap-4">
                       <div
                         className={`p-3 rounded-2xl flex flex-col items-center justify-center min-w-[52px] ${
                           progress.type === "up"
-                            ? "bg-emerald-50 text-emerald-600"
+                            ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                             : progress.type === "down"
-                              ? "bg-red-50 text-red-600"
+                              ? "bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400"
                               : progress.type === "neutral"
-                                ? "bg-blue-50 text-blue-600"
-                                : "bg-slate-50 text-slate-400"
+                                ? "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                                : "bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500"
                         }`}
                       >
                         {progress.type === "up" && <TrendingUp size={20} />}
@@ -470,17 +472,17 @@ const onFileChange = async (e, workoutId) => {
                         )}
                       </div>
                       <div>
-                        <h4 className="font-bold text-slate-800 leading-tight capitalize">
+                        <h4 className="font-bold text-slate-800 dark:text-slate-100 leading-tight capitalize">
                           {workout.name}
                         </h4>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-bold">
+                          <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-full font-bold">
                             Score: {intensity}
                           </span>
-                          <span className="text-[10px] text-slate-300 font-bold uppercase tracking-tighter">
+                          <span className="text-[10px] text-slate-300 dark:text-slate-600 font-bold uppercase tracking-tighter">
                             {workout.duration ? `${workout.duration} MINS` : ""}
                           </span>
-                          <span className="text-[10px] text-slate-300 font-bold uppercase tracking-tighter">
+                          <span className="text-[10px] text-slate-300 dark:text-slate-600 font-bold uppercase tracking-tighter">
                             {new Date(workout.date).toLocaleDateString(
                               "en-GB",
                               { day: "2-digit", month: "short" },
@@ -495,11 +497,11 @@ const onFileChange = async (e, workoutId) => {
                           e.stopPropagation();
                           setWorkoutToDelete(workout._id);
                         }}
-                        className="p-2 text-slate-200 hover:text-red-500 transition-colors"
+                        className="p-2 text-slate-200 dark:text-slate-700 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                       >
                         <Trash2 size={18} />
                       </button>
-                      <ChevronRight size={18} className="text-slate-200" />
+                      <ChevronRight size={18} className="text-slate-200 dark:text-slate-700" />
                     </div>
                   </div>
                 );
@@ -508,7 +510,7 @@ const onFileChange = async (e, workoutId) => {
               {visibleLimit < history.length && (
                 <button
                   onClick={() => setVisibleLimit((prev) => prev + 8)}
-                  className="w-full py-4 mt-2 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] bg-white rounded-2xl border border-slate-100 shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2"
+                  className="w-full py-4 mt-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2"
                 >
                   <Activity size={14} className="text-emerald-500" />
                   Load Older Workouts
@@ -516,9 +518,9 @@ const onFileChange = async (e, workoutId) => {
               )}
             </>
           ) : (
-            <div className="bg-white p-12 rounded-[32px] border-2 border-dashed border-slate-200 text-center">
-              <Dumbbell size={24} className="mx-auto mb-3 text-slate-300" />
-              <p className="text-slate-400 text-sm italic">
+            <div className="bg-white dark:bg-slate-900 p-12 rounded-[32px] border-2 border-dashed border-slate-200 dark:border-slate-700 text-center">
+              <Dumbbell size={24} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
+              <p className="text-slate-400 dark:text-slate-500 text-sm italic">
                 No workouts recorded yet.
               </p>
             </div>
@@ -529,13 +531,13 @@ const onFileChange = async (e, workoutId) => {
       {/* Detail Modal */}
       {selectedWorkout && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[200] flex items-end justify-center">
-          <div className="bg-white w-full max-w-lg rounded-t-[40px] p-8 max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-t-[40px] p-8 max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
             <div className="flex justify-between items-start mb-6">
               <div>
-                <h2 className="text-2xl font-bold text-slate-800 capitalize">
+                <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 capitalize">
                   {selectedWorkout.name}
                 </h2>
-                <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">
+                <p className="text-slate-400 dark:text-slate-500 font-bold text-xs uppercase tracking-widest">
                   {new Date(selectedWorkout.date).toLocaleDateString("en-GB", {
                     day: "2-digit",
                     month: "long",
@@ -544,7 +546,7 @@ const onFileChange = async (e, workoutId) => {
               </div>
               <button
                 onClick={() => setSelectedWorkout(null)}
-                className="bg-slate-100 p-2 rounded-full text-slate-400"
+                className="bg-slate-100 dark:bg-slate-800 p-2 rounded-full text-slate-400 dark:text-slate-500"
               >
                 <X size={20} />
               </button>
@@ -555,7 +557,7 @@ const onFileChange = async (e, workoutId) => {
                 /* --- VIEW IMAGE STATE --- */
                 <div 
                   style={{ height: '180px' }}
-                  className="relative w-full aspect-square rounded-[32px] overflow-hidden shadow-md border border-slate-100 group"
+                  className="relative w-full aspect-square rounded-[32px] overflow-hidden shadow-md border border-slate-100 dark:border-slate-800 group"
                 >
                   <img 
                     onClick={() => setFullscreenImage(selectedWorkout.imageUrl)}
@@ -566,7 +568,7 @@ const onFileChange = async (e, workoutId) => {
 
                   {/* Action Buttons */}
                   <div className="absolute top-3 right-3 flex gap-2 z-10">
-                    <label className="bg-white/20 backdrop-blur-md p-2 rounded-xl text-white hover:bg-white/40 transition-colors cursor-pointer shadow-lg border border-white/20">
+                    <label className="bg-white/20 backdrop-blur-md p-2 rounded-xl text-white hover:bg-white/40 transition-colors cursor-pointer shadow-lg dark:shadow-md border border-white/20">
                       <Edit3 size={16} />
                       <input 
                         type="file" 
@@ -578,7 +580,7 @@ const onFileChange = async (e, workoutId) => {
                     
                     <button 
                       onClick={() => setShowImageDeleteConfirm(true)}
-                      className="bg-red-500/80 backdrop-blur-md p-2 rounded-xl text-white hover:bg-red-600 transition-colors shadow-lg border border-white/10"
+                      className="bg-red-500/80 backdrop-blur-md p-2 rounded-xl text-white hover:bg-red-600 transition-colors shadow-lg dark:shadow-md border border-white/10"
                     >
                       <Trash2 size={16} />
                     </button>
@@ -617,8 +619,8 @@ const onFileChange = async (e, workoutId) => {
                 <label
                   className={`relative overflow-hidden flex flex-col items-center justify-center w-full h-[120px] border-2 border-dashed rounded-[32px] transition-all group ${
                     isUploading
-                      ? "border-emerald-300 bg-emerald-50/40 cursor-wait pointer-events-none"
-                      : "border-slate-200 cursor-pointer hover:bg-slate-50 hover:border-emerald-300"
+                      ? "border-emerald-300 bg-emerald-50/40 dark:bg-emerald-500/10 cursor-wait pointer-events-none"
+                      : "border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-emerald-300"
                   }`}
                 >
                   {isUploading ? (
@@ -635,10 +637,10 @@ const onFileChange = async (e, workoutId) => {
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <div className="p-3 bg-slate-50 rounded-2xl text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-500 transition-colors mb-2">
+                      <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-slate-400 dark:text-slate-500 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-500/10 group-hover:text-emerald-500 transition-colors mb-2">
                         <Plus size={20} strokeWidth={3} />
                       </div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Add Session Photo</p>
+                      <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Add Session Photo</p>
                     </div>
                   )}
                   <input
@@ -654,12 +656,12 @@ const onFileChange = async (e, workoutId) => {
 
             {showImageDeleteConfirm && (
               <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[700] flex items-center justify-center p-6 text-center">
-                <div className="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
+                <div className="bg-white dark:bg-slate-900 dark:border dark:border-slate-800 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
                   <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
                     <AlertTriangle size={32} />
                   </div>
-                  <h2 className="text-2xl font-black text-slate-800 mb-2">Delete Photo?</h2>
-                  <p className="text-slate-500 text-sm mb-8 leading-relaxed">
+                  <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 mb-2">Delete Photo?</h2>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 leading-relaxed">
                     This will permanently remove the image from this workout record.
                   </p>
                   <div className="flex flex-col gap-2">
@@ -668,13 +670,13 @@ const onFileChange = async (e, workoutId) => {
                         handleImageUpdate(selectedWorkout._id, null, null);
                         setShowImageDeleteConfirm(false);
                       }} 
-                      className="w-full py-4 bg-red-500 text-white font-black rounded-2xl shadow-lg active:scale-95 transition-all"
+                      className="w-full py-4 bg-red-500 text-white font-black rounded-2xl shadow-lg dark:shadow-md active:scale-95 transition-all"
                     >
                       Yes, Delete Photo
                     </button>
                     <button 
                       onClick={() => setShowImageDeleteConfirm(false)} 
-                      className="w-full py-4 text-slate-400 font-bold hover:bg-slate-50 rounded-2xl transition-colors"
+                      className="w-full py-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-colors"
                     >
                       Cancel
                     </button>
@@ -686,7 +688,7 @@ const onFileChange = async (e, workoutId) => {
               {selectedWorkout.details?.map((ex, idx) => (
                 <div
                   key={idx}
-                  className="bg-slate-50/50 p-4 rounded-3xl border border-slate-100"
+                  className="bg-slate-50/50 dark:bg-slate-800/40 p-4 rounded-3xl border border-slate-100 dark:border-slate-800"
                 >
                   <div className="flex items-center gap-3 mb-4">
                     {ex.type === "Warmup" ? (
@@ -697,26 +699,26 @@ const onFileChange = async (e, workoutId) => {
                       <Dumbbell className="text-emerald-500" size={18} />
                     )}
                     <div className="flex flex-row gap-2 items-center">
-                      <h5 className="font-bold text-slate-800 capitalize leading-tight">
+                      <h5 className="font-bold text-slate-800 dark:text-slate-100 capitalize leading-tight">
                         {ex.name}
                       </h5>
                  
                       {Number(ex.resistance) > 0 && (
-                        <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 border border-amber-100 rounded-lg text-[9px] font-bold uppercase tracking-wider">
+                        <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-300 border border-amber-100 dark:border-amber-400/20 rounded-lg text-[9px] font-bold uppercase tracking-wider">
                           <div className="w-1 h-1 rounded-full bg-amber-400" />
                           +{ex.resistance}kg
                         </span>
                       )}
 
                       {ex.execution === 'Unilateral' && (
-                        <span className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-lg text-[9px] font-bold uppercase tracking-wider">
+                        <span className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-300 border border-blue-100 dark:border-blue-400/20 rounded-lg text-[9px] font-bold uppercase tracking-wider">
                           <div className="w-1 h-1 rounded-full bg-blue-400" />
                           Unilateral
                         </span>
                       )}
                         
                       {ex.execution === 'Bilateral' && (
-                        <span className="px-2 py-0.5 bg-slate-50 text-slate-400 border border-slate-100 rounded-lg text-[9px] font-bold uppercase tracking-wider">
+                        <span className="px-2 py-0.5 bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-700 rounded-lg text-[9px] font-bold uppercase tracking-wider">
                           Bilateral
                         </span>
                       )}
@@ -726,12 +728,12 @@ const onFileChange = async (e, workoutId) => {
                     {ex.sets.map((set, sIdx) => (
                       <div
                         key={sIdx}
-                        className="flex justify-between text-sm bg-white px-4 py-2 rounded-xl border border-slate-50"
+                        className="flex justify-between text-sm bg-white dark:bg-slate-900 px-4 py-2 rounded-xl border border-slate-50 dark:border-slate-800"
                       >
-                        <span className="font-bold text-slate-400 text-[10px] uppercase tracking-widest">
+                        <span className="font-bold text-slate-400 dark:text-slate-500 text-[10px] uppercase tracking-widest">
                           Set {sIdx + 1}
                         </span>
-                        <span className="font-bold text-slate-600">
+                        <span className="font-bold text-slate-600 dark:text-slate-300">
                           {ex.type === "Strength"
                             ? `${set.weight}kg x ${set.reps}`
                             : formatTime(set.time)}
@@ -744,7 +746,7 @@ const onFileChange = async (e, workoutId) => {
             </div>
             <button
               onClick={() => setSelectedWorkout(null)}
-              className="w-full mt-8 bg-slate-900 text-white font-bold py-4 rounded-2xl"
+              className="w-full mt-8 bg-slate-900 dark:bg-slate-700 text-white font-bold py-4 rounded-2xl"
             >
               CLOSE
             </button>
@@ -754,35 +756,35 @@ const onFileChange = async (e, workoutId) => {
 
       {isWarming && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[600] flex items-center justify-center p-6 text-center">
-          <div className="bg-white w-full max-w-sm rounded-[40px] p-10 shadow-2xl animate-in zoom-in duration-300">
+          <div className="bg-white dark:bg-slate-900 dark:border dark:border-slate-800 w-full max-w-sm rounded-[40px] p-10 shadow-2xl animate-in zoom-in duration-300">
             <div className="relative w-24 h-24 mx-auto mb-8">
               {warmupStatus === "loading" ? (
                 <>
                   <div className="absolute inset-0 rounded-full bg-amber-500/20 animate-ping"></div>
-                  <div className="relative bg-amber-500 w-24 h-24 rounded-full flex items-center justify-center text-white shadow-xl shadow-amber-200">
+                  <div className="relative bg-amber-500 w-24 h-24 rounded-full flex items-center justify-center text-white shadow-xl dark:shadow-md shadow-amber-200">
                     <Loader2 size={40} className="animate-spin" />
                   </div>
                 </>
               ) : (
-                <div className="relative bg-emerald-500 w-24 h-24 rounded-full flex items-center justify-center text-white shadow-xl shadow-emerald-200 animate-in zoom-in">
+                <div className="relative bg-emerald-500 w-24 h-24 rounded-full flex items-center justify-center text-white shadow-xl dark:shadow-md shadow-emerald-200 animate-in zoom-in">
                   <CheckCircle2 size={48} />
                 </div>
               )}
             </div>
-            <h2 className="text-2xl font-bold text-slate-800 mb-2">
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
               {warmupStatus === "loading" ? "Warming Up" : "Engine Ready"}
             </h2>
-            <p className="text-slate-500 text-sm leading-relaxed">
+            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
               {warmupStatus === "loading"
                 ? "Waking up the backend. Preparing your training environment..."
                 : "Database connection established. Let's get these gains!"}
             </p>
-            <div className="mt-8 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+            <div className="mt-8 h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
               <div
                 className={`h-full transition-all duration-[3000ms] ${warmupStatus === "loading" ? "w-full bg-amber-500" : "w-full bg-emerald-500"}`}
               ></div>
             </div>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-4">
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-[0.2em] mt-4">
               {warmupStatus === "loading" ? "System Syncing" : "Ready to Lift"}
             </p>
           </div>

@@ -11,15 +11,15 @@ const Navbar = () => {
 
   // Logic to determine active states
   const isActive = (path) => pathname === path;
-  const activeClass = "text-emerald-600";
-  const inactiveClass = "text-slate-400";
+  const activeClass = "text-emerald-600 dark:text-emerald-400";
+  const inactiveClass = "text-slate-400 dark:text-slate-500";
 
   return (
     <nav
       className={`fixed bottom-0 left-0 right-0 transition-all duration-300 ease-in-out z-[100] ${
         isMenuOpen
-          ? "h-screen bg-white/40 backdrop-blur-md"
-          : "h-20 bg-white/90 backdrop-blur-xl border-t border-slate-100 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]"
+          ? "h-screen bg-white/40 dark:bg-slate-950/40 backdrop-blur-md"
+          : "h-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-slate-100 dark:border-slate-900 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]"
       }`}
     >
       <div
@@ -36,7 +36,7 @@ const Navbar = () => {
         >
           <div
             className={`p-1 rounded-xl transition-all ${
-              isActive("/") ? "bg-emerald-50" : "bg-transparent"
+              isActive("/") ? "bg-emerald-50 dark:bg-emerald-500/10" : "bg-transparent"
             }`}
           >
             <Home size={22} strokeWidth={isActive("/") ? 2.5 : 2} />
@@ -57,9 +57,9 @@ const Navbar = () => {
             )}
 
             <div
-              className={`relative p-4 rounded-[22px] text-white shadow-xl border-[6px] border-slate-50 transition-all duration-400 ease-in-out flex items-center justify-center ${
+              className={`relative p-4 rounded-[22px] text-white shadow-xl dark:shadow-md border-[6px] border-slate-50 dark:border-slate-900/90 transition-all duration-400 ease-in-out flex items-center justify-center ${
                 isMenuOpen
-                  ? "bg-slate-800 rotate-[135deg] scale-90"
+                  ? "bg-slate-800 dark:bg-slate-900/90 rotate-[135deg] scale-90"
                   : "bg-emerald-600 shadow-emerald-200 active:scale-90"
               }`}
             >
@@ -73,8 +73,8 @@ const Navbar = () => {
             <span
               className={`absolute -bottom-6 left-1/2 -translate-x-1/2 text-[9px] font-bold uppercase tracking-widest transition-all duration-400 ${
                 isMenuOpen
-                  ? "text-slate-800 opacity-100"
-                  : "text-emerald-600 opacity-100"
+                  ? "text-slate-800 dark:text-slate-100 opacity-100"
+                  : "text-emerald-600 dark:text-emerald-400 opacity-100"
               }`}
             >
               {isMenuOpen ? "Close" : "Action"}
@@ -92,7 +92,7 @@ const Navbar = () => {
         >
           <div
             className={`p-1 rounded-xl transition-all ${
-              isActive("/reports") ? "bg-emerald-50" : "bg-transparent"
+              isActive("/reports") ? "bg-emerald-50 dark:bg-emerald-500/10" : "bg-transparent"
             }`}
           >
             <User size={22} strokeWidth={isActive("/reports") ? 2.5 : 2} />
@@ -115,16 +115,16 @@ const Navbar = () => {
             <Link
               to="/add-exercise"
               onClick={() => setIsMenuOpen(false)}
-              className="bg-white p-6 rounded-[32px] shadow-2xl shadow-slate-200/50 flex items-center gap-5 active:scale-95 transition-all border border-slate-50 w-full"
+              className="bg-white dark:bg-slate-900 p-6 rounded-[32px] shadow-2xl shadow-slate-200/50 dark:shadow-black/40 flex items-center gap-5 active:scale-95 transition-all border border-slate-50 dark:border-slate-800 w-full"
             >
-              <div className="bg-emerald-500 w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-100">
+              <div className="bg-emerald-500 w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg dark:shadow-md shadow-emerald-100">
                 <Plus size={24} strokeWidth={3} />
               </div>
               <div className="text-left">
-                <p className="font-bold text-slate-800 text-base leading-tight">
+                <p className="font-bold text-slate-800 dark:text-slate-100 text-base leading-tight">
                   Add Exercise
                 </p>
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mt-1">
+                <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mt-1">
                   Create custom lift
                 </p>
               </div>
@@ -133,16 +133,16 @@ const Navbar = () => {
             <Link
               to="/library"
               onClick={() => setIsMenuOpen(false)}
-              className="bg-white p-6 rounded-[32px] shadow-2xl shadow-slate-200/50 flex items-center gap-5 active:scale-95 transition-all border border-slate-50 w-full"
+              className="bg-white dark:bg-slate-900 p-6 rounded-[32px] shadow-2xl shadow-slate-200/50 dark:shadow-black/40 flex items-center gap-5 active:scale-95 transition-all border border-slate-50 dark:border-slate-800 w-full"
             >
-              <div className="bg-blue-500 w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-100">
+              <div className="bg-blue-500 w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg dark:shadow-md shadow-blue-100">
                 <Dumbbell size={24} />
               </div>
               <div className="text-left">
-                <p className="font-bold text-slate-800 text-base leading-tight">
+                <p className="font-bold text-slate-800 dark:text-slate-100 text-base leading-tight">
                   My Library
                 </p>
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mt-1">
+                <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mt-1">
                   Manage all items
                 </p>
               </div>

@@ -4,7 +4,16 @@
 
 /* Your custom styles */
 body {
-  @apply bg-slate-50;
+  @apply bg-slate-50 text-slate-800 transition-colors duration-300;
+}
+
+html.dark body {
+  @apply bg-slate-950 text-slate-100;
+}
+
+/* Dark mode color-scheme hint so native form controls / scrollbars adapt */
+html.dark {
+  color-scheme: dark;
 }
 
 @keyframes progress-loading {

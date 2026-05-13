@@ -7,6 +7,7 @@ import {
   Activity, ChevronLeft, ChevronRight, Clock, Trophy, 
   Target, TrendingUp, AlertTriangle, Trash2, Dumbbell, Calendar, ChevronDown, ChevronUp, Key, X, PauseCircle, Play, Image as ImageIcon
 } from 'lucide-react';
+import ThemeToggle from '../components/ThemeToggle';
 
 const Reports = () => {
   const { user, token, logout } = useContext(AuthContext); 
@@ -298,21 +299,21 @@ const Reports = () => {
   }, [fullscreenImage, allWorkouts]);
 
   if (loading) return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 transition-colors duration-300">
       <div className="relative mb-8">
         <div className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping duration-[2000ms]"></div>
-        <div className="relative bg-white p-8 rounded-full shadow-xl border border-emerald-100">
+        <div className="relative bg-white dark:bg-slate-900 p-8 rounded-full shadow-xl dark:shadow-md border border-emerald-100 dark:border-emerald-500/30">
           <Activity size={48} className="text-emerald-500 animate-pulse" />
         </div>
       </div>
       <div className="w-full max-w-[200px] text-center">
-        <h2 className="text-slate-800 font-bold text-sm uppercase tracking-[0.3em] mb-4">
+        <h2 className="text-slate-800 dark:text-slate-100 font-bold text-sm uppercase tracking-[0.3em] mb-4">
           Analyzing Gains
         </h2>
-        <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+        <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
           <div className="h-full bg-emerald-500 rounded-full animate-progress-loading"></div>
         </div>
-        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-4 animate-bounce">
+        <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mt-4 animate-bounce">
           Generating Report...
         </p>
       </div>
@@ -322,33 +323,36 @@ const Reports = () => {
   const galleryImages = allWorkouts.filter(w => w.imageUrl).map(w => w.imageUrl);
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6 pb-40">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-6 pb-40 transition-colors duration-300">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Analytics</h1>
-          <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">Growth Tracking</p>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">Analytics</h1>
+          <p className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">Growth Tracking</p>
         </div>
-        <div className={`${tier.color} text-white px-4 py-2 rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-lg flex items-center gap-2 transition-all duration-500`}>
-           {tier.icon} {tier.label}
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <div className={`${tier.color} text-white px-4 py-2 rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-lg dark:shadow-md flex items-center gap-2 transition-all duration-500`}>
+             {tier.icon} {tier.label}
+          </div>
         </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 gap-4 mb-8">
-        <div className="bg-white p-5 rounded-[32px] shadow-sm border border-slate-100">
-          <div className="bg-emerald-100 w-10 h-10 rounded-2xl flex items-center justify-center text-emerald-600 mb-3">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-[32px] shadow-sm border border-slate-100 dark:border-slate-800">
+          <div className="bg-emerald-100 dark:bg-emerald-500/15 w-10 h-10 rounded-2xl flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-3">
             <Activity size={20} />
           </div>
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Sessions</p>
-          <p className="text-xl font-bold text-slate-800">{stats.totalWorkouts}</p>
+          <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Total Sessions</p>
+          <p className="text-xl font-bold text-slate-800 dark:text-slate-100">{stats.totalWorkouts}</p>
         </div>
-        <div className="bg-white p-5 rounded-[32px] shadow-sm border border-slate-100">
-          <div className="bg-blue-100 w-10 h-10 rounded-2xl flex items-center justify-center text-blue-600 mb-3">
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-[32px] shadow-sm border border-slate-100 dark:border-slate-800">
+          <div className="bg-blue-100 dark:bg-blue-500/15 w-10 h-10 rounded-2xl flex items-center justify-center text-blue-600 dark:text-blue-400 mb-3">
             <Clock size={20} />
           </div>
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Time Invested</p>
-          <p className="text-xl font-bold text-slate-800">{formatMins(stats.totalMinutes)}</p>
+          <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Time Invested</p>
+          <p className="text-xl font-bold text-slate-800 dark:text-slate-100">{formatMins(stats.totalMinutes)}</p>
         </div>
       </div>
 
@@ -357,33 +361,33 @@ const Reports = () => {
           <div 
             onClick={() => navigate('/workout', { state: { from: 'reports' } })}
             className={`group relative overflow-hidden p-0.5 rounded-[26px] cursor-pointer transition-all duration-500 active:scale-[0.97] ${
-              isPaused ? 'bg-slate-200' : 'bg-gradient-to-r from-amber-400 via-orange-500 to-amber-400 bg-[length:200%_auto] animate-gradient-x'
+              isPaused ? 'bg-slate-200 dark:bg-slate-700' : 'bg-gradient-to-r from-amber-400 via-orange-500 to-amber-400 bg-[length:200%_auto] animate-gradient-x'
             }`}
           >
-            <div className="bg-white rounded-[24px] px-5 py-4 flex items-center justify-between">
+            <div className="bg-white dark:bg-slate-900 rounded-[24px] px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="relative">
                   {!isPaused && (
                     <div className="absolute inset-0 bg-amber-500/20 rounded-xl animate-ping"></div>
                   )}
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
-                    isPaused ? 'bg-slate-100 text-slate-400' : 'bg-amber-50 text-amber-600'
+                    isPaused ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500' : 'bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-300'
                   }`}>
                     {isPaused ? <PauseCircle size={24} /> : <Activity size={24} className="animate-bounce" />}
                   </div>
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${isPaused ? 'text-slate-400' : 'text-orange-600'}`}>
+                    <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${isPaused ? 'text-slate-400 dark:text-slate-500' : 'text-orange-600 dark:text-orange-400'}`}>
                       {isPaused ? 'Paused' : 'Live Session'}
                     </span>
                   </div>
-                  <h5 className="text-sm font-bold text-slate-800 uppercase tracking-tight">
+                  <h5 className="text-sm font-bold text-slate-800 dark:text-slate-100 uppercase tracking-tight">
                     {isPaused ? 'Pick up where you left' : 'Crushing the workout'}
                   </h5>
                 </div>
               </div>
-              <div className={`p-2 rounded-full transition-all ${isPaused ? 'bg-slate-100 text-slate-400' : 'bg-amber-500 text-white shadow-lg shadow-amber-200'}`}>
+              <div className={`p-2 rounded-full transition-all ${isPaused ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500' : 'bg-amber-500 text-white shadow-lg dark:shadow-md shadow-amber-200'}`}>
                 <ChevronRight size={20} strokeWidth={3} />
               </div>
             </div>
@@ -395,7 +399,7 @@ const Reports = () => {
       <div className="mb-10">
         <div className="flex items-center gap-2 mb-4 px-2">
           <Trophy size={18} className="text-amber-500" />
-          <h3 className="font-bold text-slate-700 uppercase text-[10px] tracking-widest">Personal Records</h3>
+          <h3 className="font-bold text-slate-700 dark:text-slate-200 uppercase text-[10px] tracking-widest">Personal Records</h3>
         </div>
         <div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar scroll-smooth" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {['Legs', 'Chest', 'Back', 'Biceps','Shoulders', 'Triceps', 'Abs', 'Full Body'].map((muscle) => (
@@ -403,7 +407,7 @@ const Reports = () => {
               key={muscle}
               onClick={() => setActivePrTab(muscle)}
               className={`px-6 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${
-                activePrTab === muscle ? 'bg-slate-900 text-white shadow-md' : 'bg-white text-slate-400 border border-slate-100'
+                activePrTab === muscle ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-md' : 'bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-800'
               }`}
             >
               {muscle}
@@ -417,41 +421,41 @@ const Reports = () => {
                 .sort(([, a], [, b]) => b.weight - a.weight)
                 .slice(0, showAllPrs ? undefined : 5)
                 .map(([name, data]) => (
-                <div key={name} onClick={() => handlePrClick(name)} className="group bg-white p-5 rounded-[28px] shadow-sm border border-slate-100 flex justify-between items-center active:scale-[0.98] transition-all cursor-pointer relative overflow-hidden">
+                <div key={name} onClick={() => handlePrClick(name)} className="group bg-white dark:bg-slate-900 p-5 rounded-[28px] shadow-sm border border-slate-100 dark:border-slate-800 flex justify-between items-center active:scale-[0.98] transition-all cursor-pointer relative overflow-hidden">
                   <div>
-                    <h4 className="font-bold text-slate-800 text-sm mb-1 capitalize">{name}</h4>
+                    <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm mb-1 capitalize">{name}</h4>
                     <div className="flex items-center gap-3">
-                      <p className="text-[9px] text-slate-400 font-bold flex items-center gap-1 uppercase tracking-tighter">
+                      <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold flex items-center gap-1 uppercase tracking-tighter">
                         <Calendar size={10} /> {new Date(data.date).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'2-digit'})}
                       </p>
-                      <div className="w-1 h-1 rounded-full bg-slate-200"></div>
-                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">{data.reps} Reps</p>
+                      <div className="w-1 h-1 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+                      <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-tighter">{data.reps} Reps</p>
                       {data.resistance > 0 && (
                         <>
-                          <div className="w-1 h-1 rounded-full bg-slate-200"></div>
-                          <p className="text-[9px] text-amber-500 font-bold uppercase tracking-tighter">{data.resistance} kg</p>
+                          <div className="w-1 h-1 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+                          <p className="text-[9px] text-amber-500 dark:text-amber-400 font-bold uppercase tracking-tighter">{data.resistance} kg</p>
                         </>
                       )}
                     </div>
                   </div>
-                  <div className="bg-emerald-50 px-4 py-2 rounded-2xl border border-emerald-100 text-right">
-                    <p className="text-xl font-bold text-emerald-600 leading-none">{data.weight}<span className="text-[10px] ml-0.5">kg</span></p>
+                  <div className="bg-emerald-50 dark:bg-emerald-500/10 px-4 py-2 rounded-2xl border border-emerald-100 dark:border-emerald-500/30 text-right">
+                    <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400 leading-none">{data.weight}<span className="text-[10px] ml-0.5">kg</span></p>
                   </div>
                 </div>
               ))}
               {Object.keys(personalRecords[activePrTab]).length > 5 && (
                 <button
                   onClick={() => setShowAllPrs(!showAllPrs)}
-                  className="mt-2 py-3 w-full flex items-center justify-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-white rounded-2xl border border-slate-100 active:scale-95 transition-all shadow-sm"
+                  className="mt-2 py-3 w-full flex items-center justify-center gap-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 active:scale-95 transition-all shadow-sm"
                 >
                   {showAllPrs ? <>{'Show Less'} <ChevronUp size={14}/></> : <>{'View All'} {Object.keys(personalRecords[activePrTab]).length} {activePrTab} {'PRs'} <ChevronDown size={14}/></>}
                 </button>
               )}
             </div>
           ) : (
-            <div className="bg-white p-10 rounded-[32px] text-center border-2 border-dashed border-slate-200 flex flex-col items-center">
-                <Dumbbell size={24} className="text-slate-200 mb-3"/>
-                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest italic">No {activePrTab} PRs recorded</p>
+            <div className="bg-white dark:bg-slate-900 p-10 rounded-[32px] text-center border-2 border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center">
+                <Dumbbell size={24} className="text-slate-200 dark:text-slate-700 mb-3"/>
+                <p className="text-slate-400 dark:text-slate-500 text-[10px] font-bold uppercase tracking-widest italic">No {activePrTab} PRs recorded</p>
             </div>
           )}
         </div>
@@ -461,17 +465,17 @@ const Reports = () => {
       <div className="mb-10">
         <div className="flex items-center gap-2 mb-4 px-2">
           <ImageIcon size={18} className="text-blue-500" />
-          <h3 className="font-bold text-slate-700 uppercase text-[10px] tracking-widest">Progress Gallery</h3>
+          <h3 className="font-bold text-slate-700 dark:text-slate-200 uppercase text-[10px] tracking-widest">Progress Gallery</h3>
         </div>
         
         {galleryImages.length > 0 ? (
-          <div className="bg-white p-4 rounded-[32px] shadow-sm border border-slate-100">
+          <div className="bg-white dark:bg-slate-900 p-4 rounded-[32px] shadow-sm border border-slate-100 dark:border-slate-800">
             <div className="grid grid-cols-4 gap-2">
               {galleryImages.slice(0, 8).map((img, idx) => (
                 <div 
                   key={idx} 
                   onClick={() => setFullscreenImage(img)}
-                  className="aspect-square rounded-xl overflow-hidden border border-slate-100 cursor-pointer active:scale-95 transition-transform"
+                  className="aspect-square rounded-xl overflow-hidden border border-slate-100 dark:border-slate-800 cursor-pointer active:scale-95 transition-transform"
                 >
                   <img src={img} alt="progress" className="w-full h-full object-cover" />
                 </div>
@@ -480,31 +484,31 @@ const Reports = () => {
             {galleryImages.length > 0 && (
               <button 
                 onClick={() => setShowFullGallery(true)}
-                className="w-full mt-4 py-3 text-[10px] font-bold text-blue-500 uppercase tracking-widest bg-blue-50/50 rounded-2xl border border-blue-100 active:scale-95 transition-all"
+                className="w-full mt-4 py-3 text-[10px] font-bold text-blue-500 dark:text-blue-400 uppercase tracking-widest bg-blue-50/50 dark:bg-blue-500/10 rounded-2xl border border-blue-100 dark:border-blue-500/30 active:scale-95 transition-all"
               >
                 View Full Gallery ({galleryImages.length})
               </button>
             )}
           </div>
         ) : (
-          <div className="bg-white p-10 rounded-[32px] text-center border-2 border-dashed border-slate-200 flex flex-col items-center">
-            <ImageIcon size={24} className="text-slate-200 mb-3"/>
-            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest italic">No progress photos yet</p>
+          <div className="bg-white dark:bg-slate-900 p-10 rounded-[32px] text-center border-2 border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center">
+            <ImageIcon size={24} className="text-slate-200 dark:text-slate-700 mb-3"/>
+            <p className="text-slate-400 dark:text-slate-500 text-[10px] font-bold uppercase tracking-widest italic">No progress photos yet</p>
           </div>
         )}
       </div>
 
       {/* Intensity Trend */}
-      <div className="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100 mb-6">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-[32px] shadow-sm border border-slate-100 dark:border-slate-800 mb-6">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
             <TrendingUp size={18} className="text-emerald-500" />
-            <h3 className="font-bold text-slate-700 uppercase text-[10px] tracking-widest">Intensity trend</h3>
+            <h3 className="font-bold text-slate-700 dark:text-slate-200 uppercase text-[10px] tracking-widest">Intensity trend</h3>
           </div>
-          <div className="flex items-center bg-slate-50 p-1 rounded-xl border border-slate-100 gap-1">
-            <button onClick={() => {setCurrentWeekOffset(prev => prev - 1); setClickedIntensity(true)}} className="p-1.5 hover:bg-white hover:shadow-sm rounded-lg transition-all text-slate-400 hover:text-emerald-600"><ChevronLeft size={16}/></button>
-            <span className="text-[9px] font-bold text-slate-400 px-2 uppercase">{currentWeekOffset === 0 ? "This Week" : currentWeekOffset === -1 ? "Last Week" : `${Math.abs(currentWeekOffset)}w ago`}</span>
-            <button onClick={() => {setCurrentWeekOffset(prev => prev + 1); setClickedIntensity(true)}} className="p-1.5 hover:bg-white hover:shadow-sm rounded-lg transition-all text-slate-400 hover:text-emerald-600"><ChevronRight size={16}/></button>
+          <div className="flex items-center bg-slate-50 dark:bg-slate-800 p-1 rounded-xl border border-slate-100 dark:border-slate-700 gap-1">
+            <button onClick={() => {setCurrentWeekOffset(prev => prev - 1); setClickedIntensity(true)}} className="p-1.5 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm rounded-lg transition-all text-slate-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400"><ChevronLeft size={16}/></button>
+            <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 px-2 uppercase">{currentWeekOffset === 0 ? "This Week" : currentWeekOffset === -1 ? "Last Week" : `${Math.abs(currentWeekOffset)}w ago`}</span>
+            <button onClick={() => {setCurrentWeekOffset(prev => prev + 1); setClickedIntensity(true)}} className="p-1.5 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm rounded-lg transition-all text-slate-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400"><ChevronRight size={16}/></button>
           </div>
         </div>
         <div className="h-44 w-full">
@@ -520,32 +524,32 @@ const Reports = () => {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-full flex items-center justify-center text-slate-300 text-xs italic">No activity recorded for this period</div>
+            <div className="h-full flex items-center justify-center text-slate-300 dark:text-slate-600 text-xs italic">No activity recorded for this period</div>
           )}
         </div>
       </div>
 
       {/* Muscle Focus */}
-      <div className="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100 mb-10">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-[32px] shadow-sm border border-slate-100 dark:border-slate-800 mb-10">
         <div className="flex items-center gap-2 mb-6">
           <Target size={18} className="text-emerald-500" />
-          <h3 className="font-bold text-slate-700 uppercase text-[10px] tracking-widest">Muscle Volume (%)</h3>
+          <h3 className="font-bold text-slate-700 dark:text-slate-200 uppercase text-[10px] tracking-widest">Muscle Volume (%)</h3>
         </div>
         <div className="space-y-5">
           {muscleDistribution.length > 0 ? muscleDistribution.map((muscle) => (
             <div key={muscle.name}>
               <div className="flex justify-between items-end mb-2">
-                <span className="text-sm font-bold text-slate-700">{muscle.name}</span>
-                <span className="text-[10px] font-bold text-slate-400">{muscle.percentage}%</span>
+                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{muscle.name}</span>
+                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">{muscle.percentage}%</span>
               </div>
-              <div className="h-2 w-full bg-slate-50 rounded-full overflow-hidden border border-slate-100">
+              <div className="h-2 w-full bg-slate-50 dark:bg-slate-800 rounded-full overflow-hidden border border-slate-100 dark:border-slate-700">
                 <div 
                   className="h-full rounded-full transition-all duration-1000" 
                   style={{ width: `${muscle.percentage}%`, backgroundColor: muscle.color }}
                 ></div>
               </div>
             </div>
-          )) : <div className="text-center text-slate-300 text-xs italic py-4">No data available</div>}
+          )) : <div className="text-center text-slate-300 dark:text-slate-600 text-xs italic py-4">No data available</div>}
         </div>
       </div>
 
@@ -567,17 +571,17 @@ const Reports = () => {
       <div className="mt-8">
         <button 
           onClick={() => setShowPasswordModal(true)}
-          className="w-full py-4 flex items-center justify-center gap-2 text-slate-500 font-bold text-[10px] uppercase tracking-[0.2em] bg-white rounded-2xl border border-slate-100 shadow-sm hover:bg-slate-50 transition-all mb-4"
+          className="w-full py-4 flex items-center justify-center gap-2 text-slate-500 dark:text-slate-300 font-bold text-[10px] uppercase tracking-[0.2em] bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-all mb-4"
         >
           <Key size={16} className="text-emerald-500" /> Change Password
         </button>
       </div>
-      <hr className="mb-3" />
+      <hr className="mb-3 border-slate-200 dark:border-slate-800" />
 
       {/* Delete Profile */}
       <button 
         onClick={() => setShowDeletePrompt(true)}
-        className="w-full py-4 flex items-center justify-center gap-2 text-red-400 font-bold text-[10px] uppercase tracking-[0.2em] bg-red-50/50 rounded-2xl hover:bg-red-50 transition-all border border-red-100"
+        className="w-full py-4 flex items-center justify-center gap-2 text-red-400 dark:text-red-300 font-bold text-[10px] uppercase tracking-[0.2em] bg-red-50/50 dark:bg-red-500/10 rounded-2xl hover:bg-red-50 dark:hover:bg-red-500/20 transition-all border border-red-100 dark:border-red-500/30"
       >
         <Trash2 size={16} /> Delete Account & Data
       </button>
@@ -585,24 +589,24 @@ const Reports = () => {
       {/* Modals & Popups */}
       {showFullGallery && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[500] flex items-end justify-center">
-          <div className="bg-white w-full max-w-lg rounded-t-[40px] p-8 max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-t-[40px] p-8 max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
             <div className="flex justify-between items-center mb-8">
               <div>
-                <h2 className="text-2xl font-black text-slate-800 tracking-tight">Full Gallery</h2>
-                <p className="text-blue-500 font-bold text-[10px] uppercase tracking-[0.2em]">All Progress Photos</p>
+                <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">Full Gallery</h2>
+                <p className="text-blue-500 dark:text-blue-400 font-bold text-[10px] uppercase tracking-[0.2em]">All Progress Photos</p>
               </div>
-              <button onClick={() => setShowFullGallery(false)} className="bg-slate-100 p-2 rounded-full text-slate-400 hover:bg-slate-200 transition-colors">
+              <button onClick={() => setShowFullGallery(false)} className="bg-slate-100 dark:bg-slate-800 p-2 rounded-full text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                 <X size={20} />
               </button>
             </div>
             <div className="grid grid-cols-4 gap-2 mb-8">
               {galleryImages.map((img, idx) => (
-                <div key={idx} onClick={() => setFullscreenImage(img)} className="aspect-square rounded-xl overflow-hidden border border-slate-100 cursor-pointer active:scale-95 transition-all">
+                <div key={idx} onClick={() => setFullscreenImage(img)} className="aspect-square rounded-xl overflow-hidden border border-slate-100 dark:border-slate-800 cursor-pointer active:scale-95 transition-all">
                   <img src={img} alt="progress" className="w-full h-full object-cover" />
                 </div>
               ))}
             </div>
-            <button onClick={() => setShowFullGallery(false)} className="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl">CLOSE</button>
+            <button onClick={() => setShowFullGallery(false)} className="w-full bg-slate-900 dark:bg-slate-700 text-white font-bold py-4 rounded-2xl">CLOSE</button>
           </div>
         </div>
       )}
@@ -683,18 +687,18 @@ const Reports = () => {
 
       {showDeletePrompt && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6 text-center">
-          <div className="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600">
+          <div className="bg-white dark:bg-slate-900 dark:border dark:border-slate-800 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="bg-red-100 dark:bg-red-500/15 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600 dark:text-red-400">
               <AlertTriangle size={32} />
             </div>
-            <h2 className="text-2xl font-bold text-slate-800 mb-2">Delete Profile?</h2>
-            <p className="text-slate-500 text-sm mb-8 leading-relaxed">
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">Delete Profile?</h2>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 leading-relaxed">
               This will permanently delete your account and history. 
-              <span className="font-bold text-red-400 text-xs uppercase tracking-tighter block mt-1">This action is irreversible.</span>
+              <span className="font-bold text-red-400 dark:text-red-300 text-xs uppercase tracking-tighter block mt-1">This action is irreversible.</span>
             </p>
             <div className="flex flex-col gap-2">
               <button onClick={handleDeleteProfile} className="w-full py-4 bg-red-500 text-white font-bold rounded-2xl active:scale-95 transition-all">Yes, Delete Everything</button>
-              <button onClick={() => setShowDeletePrompt(false)} className="w-full py-4 text-slate-400 font-bold hover:bg-slate-50 rounded-2xl transition-colors">Cancel</button>
+              <button onClick={() => setShowDeletePrompt(false)} className="w-full py-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-colors">Cancel</button>
             </div>
           </div>
         </div>
@@ -702,11 +706,11 @@ const Reports = () => {
 
       {showPasswordModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[400] flex items-center justify-center p-6">
-          <div className="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
-            <h2 className="text-2xl font-bold text-slate-800 mb-2">
+          <div className="bg-white dark:bg-slate-900 dark:border dark:border-slate-800 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
               {passwordStep === 1 ? 'Verify Identity' : 'Set New Password'}
             </h2>
-            <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-6">
+            <p className="text-slate-400 dark:text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-6">
               {passwordStep === 1 ? 'Enter current credentials' : 'Enter your new strong password'}
             </p>
 
@@ -715,13 +719,13 @@ const Reports = () => {
                 <>
                   <input 
                     type="email" placeholder="Email Address"
-                    className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none border border-slate-100 focus:border-emerald-500"
+                    className="w-full p-4 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-2xl font-bold outline-none border border-slate-100 dark:border-slate-700 focus:border-emerald-500 dark:focus:border-emerald-400"
                     value={passwordData.email}
                     onChange={(e) => setPasswordData({...passwordData, email: e.target.value})}
                   />
                   <input 
                     type="password" placeholder="Current Password"
-                    className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none border border-slate-100 focus:border-emerald-500"
+                    className="w-full p-4 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-2xl font-bold outline-none border border-slate-100 dark:border-slate-700 focus:border-emerald-500 dark:focus:border-emerald-400"
                     value={passwordData.currentPassword}
                     onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
                   />
@@ -730,13 +734,13 @@ const Reports = () => {
                 <>
                   <input 
                     type="password" placeholder="New Password"
-                    className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none border border-slate-100 focus:border-emerald-500"
+                    className="w-full p-4 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-2xl font-bold outline-none border border-slate-100 dark:border-slate-700 focus:border-emerald-500 dark:focus:border-emerald-400"
                     value={passwordData.newPassword}
                     onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
                   />
                   <input 
                     type="password" placeholder="Repeat New Password"
-                    className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none border border-slate-100 focus:border-emerald-500"
+                    className="w-full p-4 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-2xl font-bold outline-none border border-slate-100 dark:border-slate-700 focus:border-emerald-500 dark:focus:border-emerald-400"
                     value={passwordData.confirmPassword}
                     onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
                   />
@@ -746,8 +750,8 @@ const Reports = () => {
 
             {/* ERROR MESSAGE BLOCK */}
             {passwordError && (
-              <div className="mb-4 p-3 bg-red-50 rounded-xl border border-red-100 animate-in fade-in slide-in-from-top-1 duration-200">
-                <p className="text-red-500 text-[10px] font-bold uppercase tracking-tight flex items-center justify-center gap-2">
+              <div className="mb-4 p-3 bg-red-50 dark:bg-red-500/10 rounded-xl border border-red-100 dark:border-red-500/30 animate-in fade-in slide-in-from-top-1 duration-200">
+                <p className="text-red-500 dark:text-red-300 text-[10px] font-bold uppercase tracking-tight flex items-center justify-center gap-2">
                   <AlertTriangle size={14} /> {passwordError}
                 </p>
               </div>
@@ -756,7 +760,7 @@ const Reports = () => {
             <div className="flex flex-col gap-2">
               <button 
                 onClick={handleChangePassword}
-                className="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all"
+                className="w-full py-4 bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white font-bold rounded-2xl shadow-lg dark:shadow-md active:scale-95 transition-all"
               >
                 {passwordStep === 1 ? 'Verify & Continue' : 'Update Password'}
               </button>
@@ -766,7 +770,7 @@ const Reports = () => {
                   setPasswordStep(1); 
                   setPasswordError(""); // Clear error on close
                 }}
-                className="w-full py-4 text-slate-400 font-bold hover:bg-slate-50 rounded-2xl transition-colors"
+                className="w-full py-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-colors"
               >
                 Cancel
               </button>
@@ -777,7 +781,7 @@ const Reports = () => {
 
       {showSuccessOverlay && (
         <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[600] flex flex-col items-center justify-center p-6 text-center">
-          <div className="bg-white rounded-[40px] p-10 w-full max-w-sm shadow-2xl relative overflow-hidden animate-in zoom-in duration-300">
+          <div className="bg-white dark:bg-slate-900 dark:border dark:border-slate-800 rounded-[40px] p-10 w-full max-w-sm shadow-2xl relative overflow-hidden animate-in zoom-in duration-300">
             
             {/* Circular Timer Animation */}
             <div className="relative w-24 h-24 mx-auto mb-6 flex items-center justify-center">
@@ -789,7 +793,7 @@ const Reports = () => {
                   stroke="currentColor"
                   strokeWidth="8"
                   fill="transparent"
-                  className="text-slate-100"
+                  className="text-slate-100 dark:text-slate-800"
                 />
                 <circle
                   cx="48"
@@ -803,27 +807,27 @@ const Reports = () => {
                   className="text-emerald-500 transition-all duration-1000 ease-linear"
                 />
               </svg>
-              <span className="absolute text-2xl font-bold text-slate-800">{countdown}</span>
+              <span className="absolute text-2xl font-bold text-slate-800 dark:text-slate-100">{countdown}</span>
             </div>
 
-            <div className="bg-emerald-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-600">
+            <div className="bg-emerald-100 dark:bg-emerald-500/15 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-600 dark:text-emerald-400">
               <Activity size={32} />
             </div>
             
-            <h2 className="text-2xl font-bold text-slate-800 mb-2">Security Updated</h2>
-            <p className="text-slate-500 text-sm mb-6 leading-relaxed">
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">Security Updated</h2>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-6 leading-relaxed">
               Password changed successfully. <br/>
               For your safety, please log in again with your new credentials.
             </p>
 
-            <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
               <div 
                 className="h-full bg-emerald-500 transition-all duration-1000 ease-linear" 
                 style={{ width: `${(countdown / 3) * 100}%` }}
               ></div>
             </div>
             
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-4">
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-[0.2em] mt-4">
               Logging out...
             </p>
           </div>
@@ -833,15 +837,15 @@ const Reports = () => {
       {/* PR HISTORY BOTTOM SHEET */}
       {selectedPrHistory && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[500] flex items-end justify-center">
-          <div className="bg-white w-full max-w-lg rounded-t-[40px] p-8 max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-t-[40px] p-8 max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
             
             {/* Modal Header */}
             <div className="flex justify-between items-start mb-8">
               <div>
-                <h2 className="text-2xl font-bold text-slate-800 tracking-tight capitalize">{selectedPrHistory.name}</h2>
-                <p className="text-emerald-500 font-bold text-[10px] uppercase tracking-[0.2em]">Full History</p>
+                <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight capitalize">{selectedPrHistory.name}</h2>
+                <p className="text-emerald-500 dark:text-emerald-400 font-bold text-[10px] uppercase tracking-[0.2em]">Full History</p>
               </div>
-              <button onClick={() => setSelectedPrHistory(null)} className="bg-slate-100 p-2 rounded-full text-slate-400">
+              <button onClick={() => setSelectedPrHistory(null)} className="bg-slate-100 dark:bg-slate-800 p-2 rounded-full text-slate-400 dark:text-slate-500">
                 <X size={20} />
               </button>
             </div>
@@ -849,32 +853,32 @@ const Reports = () => {
             {/* History List */}
             <div className="space-y-6">
               {selectedPrHistory.history.slice(0, historyLimit).map((entry, idx) => (
-                <div key={idx} className="relative pl-6 border-l-2 border-slate-100 pb-2">
-                  <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-white border-4 border-emerald-500" />
+                <div key={idx} className="relative pl-6 border-l-2 border-slate-100 dark:border-slate-800 pb-2">
+                  <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-white dark:bg-slate-900 border-4 border-emerald-500" />
                   
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                      <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">
                         {new Date(entry.date).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'})}
                       </p>
                       <div className="flex items-center gap-2">
-                        <h4 className="font-bold text-slate-800 text-sm capitalize">{entry.workoutName || 'Routine'}</h4>
+                        <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm capitalize">{entry.workoutName || 'Routine'}</h4>
                         {Number(entry.resistance) > 0 && (
-                          <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 border border-amber-100 rounded-lg text-[9px] font-bold uppercase tracking-wider">
+                          <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-300 border border-amber-100 dark:border-amber-400/20 rounded-lg text-[9px] font-bold uppercase tracking-wider">
                             <div className="w-1 h-1 rounded-full bg-amber-400" />
                             +{entry.resistance}kg
                           </span>
                         )}
 
                         {entry.execution === 'Unilateral' && (
-                          <span className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-lg text-[9px] font-bold uppercase tracking-wider">
+                          <span className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-300 border border-blue-100 dark:border-blue-400/20 rounded-lg text-[9px] font-bold uppercase tracking-wider">
                             <div className="w-1 h-1 rounded-full bg-blue-400" />
                             Unilateral
                           </span>
                         )}
                           
                         {entry.execution === 'Bilateral' && (
-                          <span className="px-2 py-0.5 bg-slate-50 text-slate-400 border border-slate-100 rounded-lg text-[9px] font-bold uppercase tracking-wider">
+                          <span className="px-2 py-0.5 bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-700 rounded-lg text-[9px] font-bold uppercase tracking-wider">
                             Bilateral
                           </span>
                         )}
@@ -884,9 +888,9 @@ const Reports = () => {
 
                   <div className="grid grid-cols-2 gap-2">
                     {entry.sets.map((set, sIdx) => (
-                      <div key={sIdx} className="bg-slate-50 px-3 py-2 rounded-xl border border-slate-100 flex justify-between items-center">
-                        <span className="text-[9px] font-bold text-slate-400">SET {sIdx + 1}</span>
-                        <span className="text-xs font-bold text-slate-700">
+                      <div key={sIdx} className="bg-slate-50 dark:bg-slate-800 px-3 py-2 rounded-xl border border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                        <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500">SET {sIdx + 1}</span>
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
                           {entry.type === 'Strength' ? `${set.weight}kg x ${set.reps}` : `${set.time}s`}
                         </span>
                       </div>
@@ -899,7 +903,7 @@ const Reports = () => {
               {historyLimit < selectedPrHistory.history.length && (
                 <button
                   onClick={() => setHistoryLimit(prev => prev + 5)}
-                  className="w-full py-4 mt-4 text-[10px] font-bold text-emerald-600 uppercase tracking-[0.2em] bg-white rounded-2xl border border-emerald-100 active:scale-95 transition-all flex items-center justify-center gap-2"
+                  className="w-full py-4 mt-4 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-[0.2em] bg-white dark:bg-slate-900 rounded-2xl border border-emerald-100 dark:border-emerald-500/30 active:scale-95 transition-all flex items-center justify-center gap-2"
                 >
                   {/* <Activity size={14} /> */}
                   Show 5 More Sessions
@@ -909,7 +913,7 @@ const Reports = () => {
 
             <button 
               onClick={() => setSelectedPrHistory(null)} 
-              className="w-full mt-8 bg-slate-900 text-white font-bold py-4 rounded-2xl"
+              className="w-full mt-8 bg-slate-900 dark:bg-slate-700 text-white font-bold py-4 rounded-2xl"
             >
               CLOSE
             </button>

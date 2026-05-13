@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, AuthContext } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { useContext } from 'react';
 import Login from './pages/Login';
 import Home from './pages/Home';
@@ -46,8 +47,10 @@ const RootApp = () => {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <RootApp />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <RootApp />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

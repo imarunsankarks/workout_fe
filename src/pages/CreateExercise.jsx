@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Save, Dumbbell, Flame, Move, CheckCircle2, Info } from 'lucide-react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
+import ThemeToggle from '../components/ThemeToggle';
 
 const CreateExercise = () => {
   const { user, token } = useContext(AuthContext);
@@ -59,32 +60,35 @@ const CreateExercise = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6 pb-32">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-6 pb-32">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <button onClick={() => navigate(-1)} className="p-3 bg-white rounded-2xl shadow-sm text-slate-400">
-          <ChevronLeft size={20} />
-        </button>
-        <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Add Movement</h1>
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-4">
+          <button onClick={() => navigate(-1)} className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm text-slate-400 dark:text-slate-500">
+            <ChevronLeft size={20} />
+          </button>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">Add Movement</h1>
+        </div>
+        <ThemeToggle />
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Exercise Name */}
-        <div className="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100">
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 block px-1">Movement Name</label>
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-[32px] shadow-sm border border-slate-100 dark:border-slate-700">
+          <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 block px-1">Movement Name</label>
           <input 
             autoFocus
             type="text" 
             placeholder="e.g. Diamond Pushups"
-            className="w-full bg-slate-50 border-none rounded-2xl p-4 font-bold text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+            className="w-full bg-slate-50 dark:bg-slate-700 border-none rounded-2xl p-4 font-bold text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
             value={formData.name}
             onChange={(e) => setFormData({...formData, name: e.target.value})}
           />
         </div>
 
         {/* Type Selection */}
-        <div className="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100">
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 block px-1">Category</label>
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-[32px] shadow-sm border border-slate-100 dark:border-slate-700">
+          <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4 block px-1">Category</label>
           <div className="grid grid-cols-3 gap-3">
             {types.map((t) => (
               <button
@@ -93,8 +97,8 @@ const CreateExercise = () => {
                 onClick={() => setFormData({...formData, type: t.id})}
                 className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${
                   formData.type === t.id 
-                  ? `border-slate-900 bg-slate-900 text-white shadow-lg` 
-                  : 'border-slate-50 bg-slate-50 text-slate-400'
+                  ? `border-slate-900 dark:border-slate-600 bg-slate-900 dark:bg-slate-700 text-white shadow-lg dark:shadow-md` 
+                  : 'border-slate-50 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-400 dark:text-slate-500'
                 }`}
               >
                 {t.icon}
@@ -105,8 +109,8 @@ const CreateExercise = () => {
         </div>
 
         {/* Muscle Group */}
-        <div className="bg-white p-6 rounded-[32px] shadow-sm border border-slate-100">
-          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 block px-1">Target Muscle</label>
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-[32px] shadow-sm border border-slate-100 dark:border-slate-700">
+          <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4 block px-1">Target Muscle</label>
           <div className="flex flex-wrap gap-2">
             {muscleGroups.map((m) => (
               <button
@@ -116,7 +120,7 @@ const CreateExercise = () => {
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                   formData.muscle === m 
                   ? 'bg-emerald-500 text-white shadow-md shadow-emerald-100' 
-                  : 'bg-slate-50 text-slate-400 hover:bg-slate-100'
+                  : 'bg-slate-50 dark:bg-slate-700 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-600'
                 }`}
               >
                 {m}
@@ -128,8 +132,8 @@ const CreateExercise = () => {
         {/* Submit Button */}
         <button 
           disabled={loading || !formData.name}
-          className={`w-full py-5 rounded-[24px] font-bold text-white shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3 ${
-            !formData.name ? 'bg-slate-200 cursor-not-allowed' : 'bg-emerald-600 shadow-emerald-100'
+          className={`w-full py-5 rounded-[24px] font-bold text-white shadow-xl dark:shadow-md transition-all active:scale-95 flex items-center justify-center gap-3 ${
+            !formData.name ? 'bg-slate-200 dark:bg-slate-700 cursor-not-allowed' : 'bg-emerald-600 shadow-emerald-100'
           }`}
         >
           {loading ? (

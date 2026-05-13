@@ -11,6 +11,7 @@ import {
   Activity,
   AlertCircle,
 } from "lucide-react";
+import ThemeToggle from "../components/ThemeToggle";
 
 const Login = () => {
   const { login } = useContext(AuthContext);
@@ -80,25 +81,29 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center p-6">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col justify-center p-6">
       <div className="max-w-sm mx-auto w-full">
+        {/* Theme Toggle */}
+        <div className="flex justify-end mb-4">
+          <ThemeToggle />
+        </div>
         {/* Brand Header */}
         <div className="text-center mb-10">
-          <div className="bg-emerald-600 w-16 h-16 rounded-[22px] flex items-center justify-center mx-auto mb-4 shadow-xl shadow-emerald-100">
+          <div className="bg-emerald-600 w-16 h-16 rounded-[22px] flex items-center justify-center mx-auto mb-4 shadow-xl dark:shadow-md shadow-emerald-100">
             <Activity size={32} className="text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-slate-800 tracking-tight">
+          <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
             GainsTracker
           </h1>
-          <p className="text-slate-400 font-bold text-xs uppercase tracking-[0.3em]">
+          <p className="text-slate-400 dark:text-slate-500 font-bold text-xs uppercase tracking-[0.3em]">
             Track. Grow. Repeat.
           </p>
         </div>
 
-        <div className="bg-white rounded-[40px] p-8 shadow-2xl shadow-slate-200 border border-slate-100">
+        <div className="bg-white dark:bg-slate-800 rounded-[40px] p-8 shadow-2xl shadow-slate-200 dark:shadow-none border border-slate-100 dark:border-slate-700">
           {error && (
             <div
-              className={`text-xs font-bold p-4 rounded-2xl mb-6 text-center flex items-center justify-center gap-2 ${isNewUser ? "bg-amber-50 text-amber-600" : "bg-red-50 text-red-500"}`}
+              className={`text-xs font-bold p-4 rounded-2xl mb-6 text-center flex items-center justify-center gap-2 ${isNewUser ? "bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400" : "bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400"}`}
             >
               {isNewUser && <AlertCircle size={14} />}
               {error}
@@ -110,22 +115,22 @@ const Login = () => {
               onSubmit={handleCheckEmail}
               className="animate-in fade-in slide-in-from-right duration-500"
             >
-              <h2 className="text-xl font-bold text-slate-800 mb-2">
+              <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">
                 Let's get started
               </h2>
-              <p className="text-slate-400 text-sm mb-6 font-medium">
+              <p className="text-slate-400 dark:text-slate-500 text-sm mb-6 font-medium">
                 Enter your email to sign in.
               </p>
 
               <div className="relative mb-6">
                 <Mail
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-500"
                   size={20}
                 />
                 <input
                   type="email"
                   placeholder="Email Address"
-                  className="w-full pl-12 pr-4 py-4 bg-slate-50 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                  className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-700 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-slate-800 dark:text-slate-200"
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
@@ -138,7 +143,7 @@ const Login = () => {
 
               <button
                 disabled={loading}
-                className="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:bg-slate-800 transition-all active:scale-95"
+                className="w-full py-4 bg-slate-900 dark:bg-slate-700 text-white font-bold rounded-2xl flex items-center justify-center gap-2 hover:bg-slate-800 dark:hover:bg-slate-600 transition-all active:scale-95"
               >
                 {loading ? (
                   <Loader2 className="animate-spin" />
@@ -157,16 +162,16 @@ const Login = () => {
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="text-slate-300 hover:text-slate-500 mb-4 flex items-center gap-1 text-xs font-bold uppercase tracking-widest"
+                className="text-slate-300 dark:text-slate-500 hover:text-slate-500 dark:hover:text-slate-400 mb-4 flex items-center gap-1 text-xs font-bold uppercase tracking-widest"
               >
                 <ArrowLeft size={14} /> Back
               </button>
 
-              <h2 className="text-xl font-bold text-slate-800 mb-1">
+              <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-1">
                 {/* {isNewUser ? "Create Account" : "Welcome Back"} */}
                 Welcome Back
               </h2>
-              <p className="text-slate-400 text-sm mb-6 font-medium">{email}</p>
+              <p className="text-slate-400 dark:text-slate-500 text-sm mb-6 font-medium">{email}</p>
 
               {/* SIGNUP FIELD COMMENTED OUT FOR FUTURE USE
               {isNewUser && (
@@ -186,13 +191,13 @@ const Login = () => {
 
               <div className="relative mb-6">
                 <Lock
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-500"
                   size={20}
                 />
                 <input
                   type="password"
                   placeholder="Password"
-                  className="w-full pl-12 pr-4 py-4 bg-slate-50 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                  className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-700 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-slate-800 dark:text-slate-200"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -201,7 +206,7 @@ const Login = () => {
 
               <button
                 disabled={loading}
-                className="w-full py-4 bg-emerald-600 text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-100 active:scale-95 transition-all"
+                className="w-full py-4 bg-emerald-600 text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-lg dark:shadow-md shadow-emerald-100 active:scale-95 transition-all"
               >
                 {loading ? <Loader2 className="animate-spin" /> : "Sign In"}
                 {/* {loading ? <Loader2 className="animate-spin" /> : (isNewUser ? "Create Account" : "Sign In")} */}
