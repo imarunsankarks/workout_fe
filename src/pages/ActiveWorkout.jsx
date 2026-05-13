@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import {
   Play,
   Plus,
@@ -22,7 +22,8 @@ import {
   RotateCcw,
   Calendar,
   Clock as ClockIcon,
-  ChevronRight
+  ChevronRight,
+  Loader2,
 } from "lucide-react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
@@ -164,7 +165,19 @@ const SessionTimer = React.memo(({ isActive, lastUnpausedAt, onToggle, onTick })
 
 const ActiveWorkout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, token } = useContext(AuthContext);
+
+  // --- ACCESS GUARD ---
+  // Only allow entering /workout when navigated programmatically from Home
+  // or Reports (which pass location.state.from). Direct URL entry, bookmarks,
+  // or any other internal navigation without that marker get redirected home.
+  const isAllowedEntry = ["home", "reports"].includes(location.state?.from);
+  useEffect(() => {
+    if (!isAllowedEntry) {
+      navigate("/", { replace: true });
+    }
+  }, [isAllowedEntry, navigate]);
 
   const [exercises, setExercises] = useState(() => {
     const saved = localStorage.getItem("active_session_exercises");
@@ -203,8 +216,10 @@ const ActiveWorkout = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [activeTab, setActiveTab] = useState("");
   const [workoutNote, setWorkoutNote] = useState("");
+  // selectedImage holds { url, publicId } after a successful Cloudinary upload
   const [selectedImage, setSelectedSetImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [isPhotoUploading, setIsPhotoUploading] = useState(false);
   const presetNames = ["Arms", "Legs", "Push", "Pull", "Other"];
 
   // --- REPEAT WORKOUT STATES ---
@@ -243,11 +258,46 @@ const ActiveWorkout = () => {
     }
   };
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setSelectedSetImage(file);
-      setImagePreview(URL.createObjectURL(file)); // Creates a local URL for the UI preview
+    if (!file) return;
+    // Reset input so re-selecting the same file still fires onChange
+    e.target.value = "";
+
+    // Show instant local preview while we upload to Cloudinary
+    const localPreview = URL.createObjectURL(file);
+    setImagePreview(localPreview);
+    setIsPhotoUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append(
+        "upload_preset",
+        process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET,
+      );
+      formData.append(
+        "cloud_name",
+        process.env.REACT_APP_CLOUDINARY_CLOUD_NAME,
+      );
+
+      const uploadRes = await axios.post(
+        `https://api.cloudinary.com/v1_1/${process.env.REACT_APP_CLOUDINARY_CLOUD_NAME}/image/upload`,
+        formData,
+      );
+
+      setSelectedSetImage({
+        url: uploadRes.data.secure_url,
+        publicId: uploadRes.data.public_id,
+      });
+      setImagePreview(uploadRes.data.secure_url);
+    } catch (err) {
+      console.error("Photo upload failed:", err);
+      alert("Photo upload failed. Try again.");
+      setImagePreview(null);
+      setSelectedSetImage(null);
+    } finally {
+      setIsPhotoUploading(false);
     }
   };
   useEffect(() => {
@@ -479,34 +529,16 @@ const ActiveWorkout = () => {
       setShowFinishPrompt(false);
 
       try {
-        let uploadedUrl = null;
-        let publicId = null;
-
-        // 2. Upload Image to Cloudinary if a file exists
-        if (selectedImage) {
-          const formData = new FormData();
-          formData.append("file", selectedImage);
-          formData.append("upload_preset", process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET);
-          formData.append("cloud_name", process.env.REACT_APP_CLOUDINARY_CLOUD_NAME);
-
-            const uploadRes = await axios.post(
-              `https://api.cloudinary.com/v1_1/${process.env.REACT_APP_CLOUDINARY_CLOUD_NAME}/image/upload`,
-              formData
-            );
-            uploadedUrl = uploadRes.data.secure_url;
-            publicId = uploadRes.data.public_id;
-        }
-
-        // 3. Construct the final data object with the new URL
+        // Image (if any) was already uploaded to Cloudinary at file-pick time.
         const workoutData = {
           userId: user.id,
           name: finalName,
           duration: Math.floor(secondsRef.current / 60),
           muscles: [...new Set(formattedDetails.map((ex) => ex.muscle))],
           details: formattedDetails,
-          notes: workoutNote, 
-          imageUrl: uploadedUrl,
-          imagePublicId: uploadedUrl ? publicId : null,
+          notes: workoutNote,
+          imageUrl: selectedImage?.url || null,
+          imagePublicId: selectedImage?.publicId || null,
         };
 
         // 4. Send to your Node.js backend
@@ -560,6 +592,9 @@ const ActiveWorkout = () => {
       console.error(err);
     }
   };
+
+  // Guard render: bail out (useEffect above will navigate away)
+  if (!isAllowedEntry) return null;
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 pb-40">
@@ -1005,26 +1040,68 @@ const ActiveWorkout = () => {
             {/* --- NEW: IMAGE UPLOAD SECTION --- */}
             <div className="mb-6">
               {imagePreview ? (
-                <div className="relative group inline-block">
-                  <img 
-                    src={imagePreview} 
-                    alt="Preview" 
-                    className="w-full aspect-video object-cover rounded-2xl border-2 border-emerald-500/20 shadow-md" 
+                <div className="relative group inline-block w-full">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-full aspect-video object-cover rounded-2xl border-2 border-emerald-500/20 shadow-md"
                   />
-                  <button 
-                    onClick={() => {setSelectedSetImage(null); setImagePreview(null);}}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full shadow-lg"
-                  >
-                    <X size={14} />
-                  </button>
+                  {/* Uploading overlay while Cloudinary upload is in-flight */}
+                  {isPhotoUploading && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/70 backdrop-blur-sm rounded-2xl animate-in fade-in duration-200">
+                      <div className="p-3 bg-white/10 rounded-2xl text-white mb-2 border border-white/20">
+                        <Loader2 size={22} strokeWidth={3} className="animate-spin" />
+                      </div>
+                      <p className="text-[10px] font-black text-white uppercase tracking-widest mb-2">
+                        Uploading...
+                      </p>
+                      <div className="w-32 h-1 bg-white/20 rounded-full overflow-hidden">
+                        <div className="h-full bg-emerald-400 rounded-full animate-progress-loading" />
+                      </div>
+                    </div>
+                  )}
+                  {!isPhotoUploading && (
+                    <button
+                      onClick={() => { setSelectedSetImage(null); setImagePreview(null); }}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full shadow-lg"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
                 </div>
               ) : (
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-200 rounded-[24px] cursor-pointer hover:bg-slate-50 transition-colors group">
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <Plus className="text-slate-300 group-hover:text-emerald-500 transition-colors mb-2" size={24} />
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Add Progress Photo</p>
-                  </div>
-                  <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
+                <label
+                  className={`relative overflow-hidden flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-[24px] transition-colors group ${
+                    isPhotoUploading
+                      ? "border-emerald-300 bg-emerald-50/40 cursor-wait pointer-events-none"
+                      : "border-slate-200 cursor-pointer hover:bg-slate-50"
+                  }`}
+                >
+                  {isPhotoUploading ? (
+                    <div className="flex flex-col items-center justify-center w-full px-8 animate-in fade-in duration-200">
+                      <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-500 mb-2">
+                        <Loader2 size={22} strokeWidth={3} className="animate-spin" />
+                      </div>
+                      <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-2">
+                        Uploading...
+                      </p>
+                      <div className="w-32 h-1 bg-emerald-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-emerald-500 rounded-full animate-progress-loading" />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <Plus className="text-slate-300 group-hover:text-emerald-500 transition-colors mb-2" size={24} />
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Add Progress Photo</p>
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    disabled={isPhotoUploading}
+                    onChange={handleImageChange}
+                  />
                 </label>
               )}
             </div>
@@ -1050,9 +1127,9 @@ const ActiveWorkout = () => {
               </button>
               <button
                 onClick={saveWorkout}
-                disabled={!workoutName}
+                disabled={!workoutName || isPhotoUploading}
                 className={`flex-1 py-4 font-bold rounded-2xl shadow-lg transition-all ${
-                  !workoutName ? "bg-slate-100 text-slate-300 cursor-not-allowed" : "bg-emerald-600 text-white active:scale-95"
+                  !workoutName || isPhotoUploading ? "bg-slate-100 text-slate-300 cursor-not-allowed" : "bg-emerald-600 text-white active:scale-95"
                 }`}
               >
                 Save

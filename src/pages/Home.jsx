@@ -41,6 +41,7 @@ const Home = () => {
   const [warmupStatus, setWarmupStatus] = useState("idle");
   const [fullscreenImage, setFullscreenImage] = useState(null);
   const [showImageDeleteConfirm, setShowImageDeleteConfirm] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   const calculateIntensity = (workout) => {
     if (!workout.duration || workout.duration === 0) return 0;
@@ -144,7 +145,7 @@ const Home = () => {
 
   const handleMainButtonClick = () => {
     if (hasActiveSession) {
-      navigate("/workout");
+      navigate("/workout", { state: { from: "home" } });
     } else {
       setShowStartPrompt(true);
     }
@@ -152,7 +153,7 @@ const Home = () => {
 
   const confirmStartWorkout = () => {
     setShowStartPrompt(false);
-    navigate("/workout");
+    navigate("/workout", { state: { from: "home" } });
   };
 
   const formatTime = (s) => {
@@ -201,9 +202,11 @@ const Home = () => {
 const onFileChange = async (e, workoutId) => {
   const file = e.target.files[0];
   if (!file) return;
+  // Reset input so picking the same file again still triggers onChange
+  e.target.value = "";
 
   try {
-    // Show a temporary loading state if you have one
+    setIsUploading(true);
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET);
@@ -217,6 +220,8 @@ const onFileChange = async (e, workoutId) => {
     await handleImageUpdate(workoutId, uploadRes.data.secure_url, uploadRes.data.public_id);
   } catch (err) {
     alert("Upload failed");
+  } finally {
+    setIsUploading(false);
   }
 };
 
@@ -591,21 +596,57 @@ const onFileChange = async (e, workoutId) => {
                       </p>
                     </div>
                   )}
+
+                  {/* Uploading overlay (image replace flow) */}
+                  {isUploading && (
+                    <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-900/70 backdrop-blur-sm animate-in fade-in duration-200">
+                      <div className="p-3 bg-white/10 rounded-2xl text-white mb-2 border border-white/20">
+                        <Loader2 size={22} strokeWidth={3} className="animate-spin" />
+                      </div>
+                      <p className="text-[10px] font-black text-white uppercase tracking-widest mb-2">
+                        Uploading...
+                      </p>
+                      <div className="w-32 h-1 bg-white/20 rounded-full overflow-hidden">
+                        <div className="h-full bg-emerald-400 rounded-full animate-progress-loading" />
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 /* --- ADD IMAGE STATE (Empty State) --- */
-                <label className="flex flex-col items-center justify-center w-full h-[120px] border-2 border-dashed border-slate-200 rounded-[32px] cursor-pointer hover:bg-slate-50 hover:border-emerald-300 transition-all group">
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <div className="p-3 bg-slate-50 rounded-2xl text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-500 transition-colors mb-2">
-                      <Plus size={20} strokeWidth={3} />
+                <label
+                  className={`relative overflow-hidden flex flex-col items-center justify-center w-full h-[120px] border-2 border-dashed rounded-[32px] transition-all group ${
+                    isUploading
+                      ? "border-emerald-300 bg-emerald-50/40 cursor-wait pointer-events-none"
+                      : "border-slate-200 cursor-pointer hover:bg-slate-50 hover:border-emerald-300"
+                  }`}
+                >
+                  {isUploading ? (
+                    <div className="flex flex-col items-center justify-center w-full px-8 animate-in fade-in duration-200">
+                      <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-500 mb-2">
+                        <Loader2 size={20} strokeWidth={3} className="animate-spin" />
+                      </div>
+                      <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-2">
+                        Uploading...
+                      </p>
+                      <div className="w-32 h-1 bg-emerald-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-emerald-500 rounded-full animate-progress-loading" />
+                      </div>
                     </div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Add Session Photo</p>
-                  </div>
-                  <input 
-                    type="file" 
-                    className="hidden" 
-                    accept="image/*" 
-                    onChange={(e) => onFileChange(e, selectedWorkout._id)} 
+                  ) : (
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <div className="p-3 bg-slate-50 rounded-2xl text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-500 transition-colors mb-2">
+                        <Plus size={20} strokeWidth={3} />
+                      </div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Add Session Photo</p>
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    disabled={isUploading}
+                    onChange={(e) => onFileChange(e, selectedWorkout._id)}
                   />
                 </label>
               )}
