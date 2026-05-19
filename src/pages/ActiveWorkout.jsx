@@ -24,6 +24,7 @@ import {
   Clock as ClockIcon,
   ChevronRight,
   Loader2,
+  GripVertical,
 } from "lucide-react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
@@ -45,64 +46,6 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-
-// --- SORTABLE ROW SUB-COMPONENT ---
-const SortableSetRow = ({ id, sIdx, set, ex, onUpdate, onDelete }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    zIndex: isDragging ? 100 : 1,
-    opacity: isDragging ? 0.6 : 1,
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`grid grid-cols-[50px_1fr_1fr_25px] gap-3 items-center ${isDragging ? "shadow-2xl rounded-2xl dark:bg-slate-700 bg-white" : ""}`}
-    >
-      <div
-        {...attributes}
-        {...listeners}
-        className="bg-slate-50 dark:bg-slate-700 rounded-xl py-3 text-center text-xs font-bold text-slate-400 dark:text-slate-300 uppercase cursor-grab active:cursor-grabbing hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors"
-      >
-        {sIdx + 1}
-      </div>
-
-      <input
-        type="number"
-        placeholder="kg"
-        value={set.weight}
-        onChange={(e) => onUpdate(sIdx, "weight", e.target.value)}
-        className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 py-3 rounded-xl text-center font-bold outline-none focus:border-emerald-500 text-slate-800 dark:text-slate-200"
-      />
-
-      <input
-        type="number"
-        placeholder="reps"
-        value={set.reps}
-        onChange={(e) => onUpdate(sIdx, "reps", e.target.value)}
-        className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 py-3 rounded-xl text-center font-bold outline-none focus:border-emerald-500 text-slate-800 dark:text-slate-200"
-      />
-
-      <button
-        onClick={() => onDelete(sIdx)}
-        className="text-slate-200 dark:text-slate-500 hover:text-red-400 dark:hover:text-red-400 transition-colors flex justify-center items-center"
-      >
-        <X size={16} />
-      </button>
-    </div>
-  );
-};
 
 // --- TIMER UTIL ---
 const formatTime = (s) => {
@@ -163,6 +106,36 @@ const SessionTimer = React.memo(({ isActive, lastUnpausedAt, onToggle, onTick })
     </div>
   );
 });
+
+// --- SORTABLE EXERCISE WRAPPER ---
+// Wraps each exercise card so it can be reordered via drag-and-drop.
+// Renders children as a function with `dragHandleProps` to attach to a handle.
+const SortableExercise = ({ id, children }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : 1,
+    opacity: isDragging ? 0.7 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      {children({
+        dragHandleProps: { ...attributes, ...listeners },
+        isDragging,
+      })}
+    </div>
+  );
+};
 
 const ActiveWorkout = () => {
   const navigate = useNavigate();
@@ -238,6 +211,22 @@ const ActiveWorkout = () => {
       activationConstraint: { delay: 200, tolerance: 5 },
     }),
   );
+
+  const handleExerciseDragEnd = (event) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setExercises((prev) => {
+        const oldIndex = prev.findIndex(
+          (ex) => `ex-${ex.instanceId}` === active.id,
+        );
+        const newIndex = prev.findIndex(
+          (ex) => `ex-${ex.instanceId}` === over.id,
+        );
+        if (oldIndex === -1 || newIndex === -1) return prev;
+        return arrayMove(prev, oldIndex, newIndex);
+      });
+    }
+  };
 
   const handleDragEnd = (event, exerciseInstanceId) => {
     const { active, over } = event;
@@ -417,10 +406,9 @@ const ActiveWorkout = () => {
             }))
           : [{ weight: "", reps: "" }];
     } else {
-      prefilledSets =
-        lastEntry?.sets && lastEntry.sets.length > 0
-          ? lastEntry.sets.map(() => ({ time: 0 }))
-          : [{ time: 0 }];
+      // Warmup/Stretching: always start with a single fresh set, regardless
+      // of how many sets the previous workout had.
+      prefilledSets = [{ time: 0 }];
     }
 
     const newEx = {
@@ -449,11 +437,13 @@ const ActiveWorkout = () => {
       isCollapsed: false,
       isRunning: false,
       activeSetIdx: 0,
-      sets: ex.sets.map(s => ({
-        weight: s.weight ?? "",
-        reps: s.reps ?? "",
-        time: s.time ?? 0
-      }))
+      sets:
+        ex.type === "Strength"
+          ? ex.sets.map((s) => ({
+              weight: s.weight ?? "",
+              reps: s.reps ?? "",
+            }))
+          : [{ time: 0 }],
     }));
 
     setExercises(prefilledExercises);
@@ -629,11 +619,21 @@ const ActiveWorkout = () => {
       </button>
 
       {/* Active Exercise List */}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleExerciseDragEnd}
+      >
+        <SortableContext
+          items={exercises.map((e) => `ex-${e.instanceId}`)}
+          strategy={verticalListSortingStrategy}
+        >
       <div className="space-y-4">
         {exercises.map((ex) => (
+          <SortableExercise key={ex.instanceId} id={`ex-${ex.instanceId}`}>
+            {({ dragHandleProps, isDragging: isExDragging }) => (
           <div
-            key={ex.instanceId}
-            className="bg-white dark:bg-slate-800 rounded-[32px] px-5 py-6 shadow-sm border border-slate-100 dark:border-slate-700 transition-all duration-300"
+            className={`bg-white dark:bg-slate-800 rounded-[32px] px-5 py-6 shadow-sm border border-slate-100 dark:border-slate-700 transition-all duration-300 ${isExDragging ? "shadow-2xl ring-2 ring-emerald-400/40" : ""}`}
           >
             {/* HEADER SECTION */}
             <div className="flex justify-between items-start">
@@ -692,6 +692,15 @@ const ActiveWorkout = () => {
                 >
                   <Info size={18} />
                 </button>
+                {/* DRAG HANDLE - reorder exercises */}
+                <button
+                  {...dragHandleProps}
+                  onClick={(e) => e.stopPropagation()}
+                  aria-label="Drag to reorder exercise"
+                  className="p-2 text-slate-300 dark:text-slate-500 hover:text-emerald-500 dark:hover:text-emerald-400 cursor-grab active:cursor-grabbing touch-none transition-colors"
+                >
+                  <GripVertical size={18} />
+                </button>
               </div>
             </div>
 
@@ -744,127 +753,158 @@ const ActiveWorkout = () => {
               <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                 <div className="h-4" />
                 {ex.type === "Strength" ? (
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={(e) => handleDragEnd(e, ex.instanceId)}
-                  >
-                    <div className="space-y-2">
-                      <SortableContext
-                        items={ex.sets.map(
-                          (_, i) => `set-${ex.instanceId}-${i}`,
-                        )}
-                        strategy={verticalListSortingStrategy}
-                      >
-                        {ex.sets.map((set, sIdx) => (
-                          <SortableSetRow
-                            key={`set-${ex.instanceId}-${sIdx}`}
-                            id={`set-${ex.instanceId}-${sIdx}`}
-                            sIdx={sIdx}
-                            set={set}
-                            ex={ex}
-                            onUpdate={(idx, field, val) => {
-                              const newExs = [...exercises];
-                              newExs.find(
-                                (i) => i.instanceId === ex.instanceId,
-                              ).sets[idx][field] = val;
-                              setExercises(newExs);
-                            }}
-                            onDelete={(idx) => {
-                              const newExs = [...exercises];
-                              newExs
-                                .find((i) => i.instanceId === ex.instanceId)
-                                .sets.splice(idx, 1);
-                              setExercises(newExs);
-                            }}
-                          />
-                        ))}
-                      </SortableContext>
-                    </div>
-                  </DndContext>
-                ) : (
                   <div className="space-y-2">
                     {ex.sets.map((set, sIdx) => (
                       <div
                         key={sIdx}
-                        className="flex items-center gap-3 bg-slate-50 dark:bg-slate-700 p-2 pl-4 rounded-2xl"
+                        className="grid grid-cols-[50px_1fr_1fr_25px] gap-3 items-center"
                       >
-                        <span className="text-[10px] font-bold text-slate-300 dark:text-slate-500 uppercase min-w-[40px]">
-                          Set {sIdx + 1}
-                        </span>
-                        <span className="flex-1 font-mono font-bold text-slate-700 dark:text-slate-200 text-center">
-                          {formatTime(set.time || 0)}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <button
-                            disabled={!isActive}
-                            onClick={() => {
-                              const newExs = [...exercises];
-                              const target = newExs.find(
-                                (i) => i.instanceId === ex.instanceId,
-                              );
-                              target.isRunning = !target.isRunning;
-                              target.activeSetIdx = sIdx;
-                              setExercises(newExs);
-                            }}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${ex.isRunning && ex.activeSetIdx === sIdx ? "bg-red-500 text-white" : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-200 shadow-sm"}`}
-                          >
-                            {ex.isRunning && ex.activeSetIdx === sIdx
-                              ? "Stop"
-                              : "Start"}
-                          </button>
-                          <button
-                            onClick={() => {
-                              const newExs = [...exercises];
-                              const target = newExs.find(
-                                (i) => i.instanceId === ex.instanceId,
-                              );
-                              target.sets.splice(sIdx, 1);
-                              setExercises(newExs);
-                            }}
-                            className="p-2 text-slate-200 dark:text-slate-500 hover:text-red-400 dark:hover:text-red-400"
-                          >
-                            <X size={16} />
-                          </button>
+                        <div className="bg-slate-50 dark:bg-slate-700 rounded-xl py-3 text-center text-xs font-bold text-slate-400 dark:text-slate-300 uppercase">
+                          {sIdx + 1}
                         </div>
+                        <input
+                          type="number"
+                          placeholder="kg"
+                          value={set.weight}
+                          onChange={(e) => {
+                            const newExs = [...exercises];
+                            newExs.find(
+                              (i) => i.instanceId === ex.instanceId,
+                            ).sets[sIdx].weight = e.target.value;
+                            setExercises(newExs);
+                          }}
+                          className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 py-3 rounded-xl text-center font-bold outline-none focus:border-emerald-500 text-slate-800 dark:text-slate-200"
+                        />
+                        <input
+                          type="number"
+                          placeholder="reps"
+                          value={set.reps}
+                          onChange={(e) => {
+                            const newExs = [...exercises];
+                            newExs.find(
+                              (i) => i.instanceId === ex.instanceId,
+                            ).sets[sIdx].reps = e.target.value;
+                            setExercises(newExs);
+                          }}
+                          className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 py-3 rounded-xl text-center font-bold outline-none focus:border-emerald-500 text-slate-800 dark:text-slate-200"
+                        />
+                        <button
+                          onClick={() => {
+                            const newExs = [...exercises];
+                            newExs
+                              .find((i) => i.instanceId === ex.instanceId)
+                              .sets.splice(sIdx, 1);
+                            setExercises(newExs);
+                          }}
+                          className="text-slate-200 dark:text-slate-500 hover:text-red-400 dark:hover:text-red-400 transition-colors flex justify-center items-center"
+                        >
+                          <X size={16} />
+                        </button>
                       </div>
                     ))}
                   </div>
-                )}
-                <button
-                  onClick={() => {
-                    const newExs = [...exercises];
-                    newExs
-                      .find((i) => i.instanceId === ex.instanceId)
-                      .sets.push(
-                        ex.type === "Strength"
-                          ? { weight: "", reps: "" }
-                          : { time: 0 },
+                ) : (
+                  <div className="space-y-2">
+                    {ex.sets.map((set, sIdx) => {
+                      const isThisRunning =
+                        ex.isRunning && ex.activeSetIdx === sIdx;
+                      const hasProgress = (set.time || 0) > 0;
+                      return (
+                        <div
+                          key={sIdx}
+                          className="flex items-center gap-2 bg-slate-50 dark:bg-slate-700 p-2 pl-4 rounded-2xl"
+                        >
+                          <span className="text-[10px] font-bold text-slate-300 dark:text-slate-500 uppercase min-w-[40px]">
+                            Set {sIdx + 1}
+                          </span>
+                          <span className="flex-1 font-mono font-bold text-slate-700 dark:text-slate-200 text-center">
+                            {formatTime(set.time || 0)}
+                          </span>
+                          <div className="flex items-center gap-1.5">
+                            {/* PAUSE / RESUME / START */}
+                            <button
+                              disabled={!isActive}
+                              onClick={() => {
+                                const newExs = [...exercises];
+                                const target = newExs.find(
+                                  (i) => i.instanceId === ex.instanceId,
+                                );
+                                target.isRunning = !isThisRunning;
+                                target.activeSetIdx = sIdx;
+                                setExercises(newExs);
+                              }}
+                              aria-label={
+                                isThisRunning
+                                  ? "Pause"
+                                  : hasProgress
+                                    ? "Resume"
+                                    : "Start"
+                              }
+                              className={`p-2 rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+                                isThisRunning
+                                  ? "bg-red-500 text-white shadow-sm"
+                                  : "bg-emerald-500 text-white shadow-sm"
+                              }`}
+                            >
+                              {isThisRunning ? (
+                                <Pause size={14} />
+                              ) : (
+                                <Play size={14} />
+                              )}
+                            </button>
+                            {/* RESET */}
+                            <button
+                              disabled={!hasProgress}
+                              onClick={() => {
+                                const newExs = [...exercises];
+                                const target = newExs.find(
+                                  (i) => i.instanceId === ex.instanceId,
+                                );
+                                target.sets[sIdx].time = 0;
+                                if (isThisRunning) target.isRunning = false;
+                                setExercises(newExs);
+                              }}
+                              aria-label="Reset"
+                              className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-200 shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
+                              <RotateCcw size={14} />
+                            </button>
+                          </div>
+                        </div>
                       );
-                    setExercises(newExs);
-                  }}
-                  disabled={
-                    ex.sets.length > 0 &&
-                    (ex.type === "Strength"
-                      ? ex.sets?.find((s) => !s.weight) ||
-                        ex.sets?.find((s) => !s.reps || Number(s.reps) === 0)
-                      : ex.sets[ex.sets.length - 1].time === 0)
-                  }
-                  className={`w-full mt-4 py-2 text-[10px] font-bold uppercase tracking-widest border-2 border-dashed rounded-xl transition-all ${
-                    ex.sets.length > 0 &&
-                    (ex.type === "Strength"
-                      ? ex.sets?.find((s) => !s.weight) ||
-                        ex.sets?.find((s) => !s.reps || Number(s.reps) === 0)
-                      : ex.sets[ex.sets.length - 1].time === 0)
-                      ? "border-slate-50 dark:border-slate-700 text-slate-200 dark:text-slate-600 cursor-not-allowed opacity-50"
-                      : "border-slate-100 dark:border-slate-700 text-slate-300 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-emerald-500 dark:hover:text-emerald-400 hover:border-emerald-100 dark:hover:border-emerald-700"
-                  }`}
-                >
-                  + ADD SET
-                </button>
+                    })}
+                  </div>
+                )}
+                {ex.type === "Strength" && (
+                  <button
+                    onClick={() => {
+                      const newExs = [...exercises];
+                      newExs
+                        .find((i) => i.instanceId === ex.instanceId)
+                        .sets.push({ weight: "", reps: "" });
+                      setExercises(newExs);
+                    }}
+                    disabled={
+                      ex.sets.length > 0 &&
+                      (ex.sets?.find((s) => !s.weight) ||
+                        ex.sets?.find((s) => !s.reps || Number(s.reps) === 0))
+                    }
+                    className={`w-full mt-4 py-2 text-[10px] font-bold uppercase tracking-widest border-2 border-dashed rounded-xl transition-all ${
+                      ex.sets.length > 0 &&
+                      (ex.sets?.find((s) => !s.weight) ||
+                        ex.sets?.find((s) => !s.reps || Number(s.reps) === 0))
+                        ? "border-slate-50 dark:border-slate-700 text-slate-200 dark:text-slate-600 cursor-not-allowed opacity-50"
+                        : "border-slate-100 dark:border-slate-700 text-slate-300 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-emerald-500 dark:hover:text-emerald-400 hover:border-emerald-100 dark:hover:border-emerald-700"
+                    }`}
+                  >
+                    + ADD SET
+                  </button>
+                )}
               </div>
             )}
           </div>
+            )}
+          </SortableExercise>
         ))}
 
         <button
@@ -875,6 +915,8 @@ const ActiveWorkout = () => {
           <span className="text-sm">Add Exercise / Stretch</span>
         </button>
       </div>
+        </SortableContext>
+      </DndContext>
 
       {/* Footer Actions */}
       <div className="fixed bottom-24 left-6 right-6 z-40 flex gap-3">
