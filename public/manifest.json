@@ -14,9 +14,10 @@
     { "src": "/icon-512x512.png", "sizes": "512x512", "type": "image/png" }
   ],
   "start_url": "/",
-  "background_color": "#f8fafc",
-  "theme_color": "#10b981",
-  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone", "minimal-ui"],
   "orientation": "portrait",
   "scope": "/"
 }

@@ -3,8 +3,18 @@
 @tailwind utilities;
 
 /* Your custom styles */
+html, body {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
 body {
   @apply bg-slate-50 text-slate-800 transition-colors duration-300;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  overscroll-behavior-y: none;
 }
 
 html.dark body {
