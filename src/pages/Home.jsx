@@ -259,52 +259,107 @@ const onFileChange = async (e, workoutId) => {
 
       {/* Start / Resume Workout Card */}
       <div
-        className={`p-6 rounded-[32px] text-white shadow-xl dark:shadow-lg mb-10 relative overflow-hidden transition-all duration-300 ${
+        className={`relative mb-8 rounded-[28px] overflow-hidden transition-all duration-500 shadow-xl ${
           hasActiveSession
             ? isPaused
-              ? "bg-slate-700 shadow-slate-200 dark:shadow-slate-200/60"
-              : "bg-amber-500 shadow-amber-200 dark:shadow-amber-400/40"
-            : "bg-emerald-600 shadow-emerald-200 dark:shadow-emerald-300/30"
+              ? "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900"
+              : "bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500"
+            : "bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700"
         }`}
       >
-        <div className="relative z-10">
-          <h2 className="text-xl font-bold mb-1">
+        {/* Decorative blobs */}
+        <div className="absolute -top-12 -right-12 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-14 -left-8 w-36 h-36 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+
+        {/* Decorative dumbbell silhouette */}
+        <Dumbbell
+          className={`absolute -right-6 -bottom-8 w-32 h-32 text-white/[0.07] rotate-12 pointer-events-none ${
+            !isPaused && hasActiveSession ? "animate-spin-slow" : ""
+          }`}
+        />
+
+
+        <div className="relative z-10 p-5 text-white">
+          {/* Status pill */}
+          <div className="flex items-center justify-between mb-3.5">
+            <div className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/20">
+              <span
+                className={`w-1 h-1 rounded-full ${
+                  hasActiveSession && !isPaused
+                    ? "bg-white animate-pulse"
+                    : isPaused
+                      ? "bg-slate-300"
+                      : "bg-emerald-200"
+                }`}
+              />
+              <span className="text-[8px] font-bold uppercase tracking-[0.2em]">
+                {hasActiveSession
+                  ? isPaused
+                    ? "Paused"
+                    : "Live"
+                  : "Ready"}
+              </span>
+            </div>
+
+            <div className="bg-white/15 backdrop-blur-md w-7 h-7 rounded-full flex items-center justify-center border border-white/20">
+              {hasActiveSession ? (
+                isPaused ? (
+                  <PauseCircle size={13} />
+                ) : (
+                  <Clock size={13} className="animate-pulse" />
+                )
+              ) : (
+                <Dumbbell size={13} />
+              )}
+            </div>
+          </div>
+
+          {/* Heading + subtext */}
+          <h2 className="text-xl font-black mb-1 tracking-tight leading-tight">
             {hasActiveSession
               ? isPaused
                 ? "Workout Paused"
-                : "Workout in Progress"
-              : "Ready to crush it?"}
+                : "In Progress"
+              : "Let's get moving"}
           </h2>
-          <p className="opacity-80 text-sm mb-6">
+          <p className="text-white/75 text-xs font-medium mb-4 leading-snug">
             {hasActiveSession
-              ? `Session is currently ${isPaused ? "on hold" : "active"}.`
+              ? `Session currently ${isPaused ? "on hold" : "active"}.`
               : history[0]
-                ? `Last session: ${new Date(history[0].date).toLocaleDateString("en-GB", { day: "2-digit", month: "short" })}`
-                : "You are yet to start your first workout!"}
+                ? `Last session ${new Date(history[0].date).toLocaleDateString(
+                    "en-GB",
+                    { day: "2-digit", month: "short" },
+                  )}`
+                : "Start your first workout!"}
           </p>
+
+          {/* CTA Button - Glass effect */}
           <button
             onClick={handleMainButtonClick}
-            className="bg-white text-slate-900 font-black px-8 py-3 rounded-2xl flex items-center gap-2 active:scale-95 transition-all shadow-md"
+            className="group w-auto py-3 px-4 rounded-[2rem] flex items-center justify-between active:scale-[0.98] transition-all text-white font-bold bg-white/20 backdrop-blur-lg hover:bg-white/20]"
           >
-            {hasActiveSession ? (
-              isPaused ? (
-                <PauseCircle size={18} className="text-slate-500" />
-              ) : (
-                <Clock size={18} className="animate-pulse text-amber-600" />
-              )
-            ) : (
-              <Play
-                size={18}
-                fill="currentColor"
-                className="text-emerald-600"
-              />
-            )}
-            {hasActiveSession ? "CONTINUE WORKOUT" : "START WORKOUT"}
+            <span className="flex items-center gap-2">
+              <span className="w-6 h-6 rounded-2xl bg-white/25 border border-white/30 flex items-center justify-center">
+                {hasActiveSession ? (
+                  isPaused ? (
+                    <PauseCircle size={12} />
+                  ) : (
+                    <Clock size={12} className="animate-pulse" />
+                  )
+                ) : (
+                  <Play size={11} fill="currentColor" />
+                )}
+              </span>
+              <span className="text-[11px] tracking-[0.18em]">
+                {hasActiveSession ? "CONTINUE WORKOUT" : "START WORKOUT"}
+              </span>
+            </span>
+            <ChevronRight
+              size={14}
+              className="text-white/80 group-active:translate-x-1 transition-transform"
+            />
           </button>
         </div>
-        <Dumbbell
-          className={`absolute -right-6 -bottom-6 w-32 h-32 opacity-10 rotate-12 ${!isPaused && hasActiveSession ? "animate-spin-slow" : ""}`}
-        />
       </div>
 
       {/* Logout Confirmation Modal */}
