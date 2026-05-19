@@ -33,6 +33,7 @@ import ThemeToggle from "../components/ThemeToggle";
 // --- NEW DND IMPORTS ---
 import {
   DndContext,
+  DragOverlay,
   closestCenter,
   TouchSensor,
   MouseSensor,
@@ -110,6 +111,8 @@ const SessionTimer = React.memo(({ isActive, lastUnpausedAt, onToggle, onTick })
 // --- SORTABLE EXERCISE WRAPPER ---
 // Wraps each exercise card so it can be reordered via drag-and-drop.
 // Renders children as a function with `dragHandleProps` to attach to a handle.
+// Locks the wrapper's height + width while dragging so the card doesn't
+// resize itself to match the slot it is hovering over.
 const SortableExercise = ({ id, children }) => {
   const {
     attributes,
@@ -120,15 +123,42 @@ const SortableExercise = ({ id, children }) => {
     isDragging,
   } = useSortable({ id });
 
+  const nodeRef = useRef(null);
+  const lockedSizeRef = useRef(null);
+
+  const composedRef = useCallback(
+    (node) => {
+      setNodeRef(node);
+      nodeRef.current = node;
+    },
+    [setNodeRef],
+  );
+
+  // Capture the rendered size on every render while NOT dragging, so that
+  // when a drag starts we already have the latest natural dimensions.
+  if (nodeRef.current && !isDragging) {
+    lockedSizeRef.current = {
+      width: nodeRef.current.offsetWidth,
+      height: nodeRef.current.offsetHeight,
+    };
+  }
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     zIndex: isDragging ? 50 : 1,
     opacity: isDragging ? 0.7 : 1,
+    ...(isDragging && lockedSizeRef.current
+      ? {
+          width: lockedSizeRef.current.width,
+          height: lockedSizeRef.current.height,
+          boxSizing: "border-box",
+        }
+      : {}),
   };
 
   return (
-    <div ref={setNodeRef} style={style}>
+    <div ref={composedRef} style={style}>
       {children({
         dragHandleProps: { ...attributes, ...listeners },
         isDragging,
@@ -212,7 +242,17 @@ const ActiveWorkout = () => {
     }),
   );
 
+  const [activeExId, setActiveExId] = useState(null);
+  const activeDraggingExercise = exercises.find(
+    (ex) => `ex-${ex.instanceId}` === activeExId,
+  );
+
+  const handleExerciseDragStart = (event) => {
+    setActiveExId(event.active.id);
+  };
+
   const handleExerciseDragEnd = (event) => {
+    setActiveExId(null);
     const { active, over } = event;
     if (over && active.id !== over.id) {
       setExercises((prev) => {
@@ -227,6 +267,8 @@ const ActiveWorkout = () => {
       });
     }
   };
+
+  const handleExerciseDragCancel = () => setActiveExId(null);
 
   const handleDragEnd = (event, exerciseInstanceId) => {
     const { active, over } = event;
@@ -622,7 +664,9 @@ const ActiveWorkout = () => {
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
+        onDragStart={handleExerciseDragStart}
         onDragEnd={handleExerciseDragEnd}
+        onDragCancel={handleExerciseDragCancel}
       >
         <SortableContext
           items={exercises.map((e) => `ex-${e.instanceId}`)}
@@ -631,9 +675,9 @@ const ActiveWorkout = () => {
       <div className="space-y-4">
         {exercises.map((ex) => (
           <SortableExercise key={ex.instanceId} id={`ex-${ex.instanceId}`}>
-            {({ dragHandleProps, isDragging: isExDragging }) => (
+            {({ dragHandleProps }) => (
           <div
-            className={`bg-white dark:bg-slate-800 rounded-[32px] px-5 py-6 shadow-sm border border-slate-100 dark:border-slate-700 transition-all duration-300 ${isExDragging ? "shadow-2xl ring-2 ring-emerald-400/40" : ""}`}
+            className="bg-white dark:bg-slate-800 rounded-[32px] px-5 py-6 shadow-sm border border-slate-100 dark:border-slate-700"
           >
             {/* HEADER SECTION */}
             <div className="flex justify-between items-start">
@@ -916,6 +960,47 @@ const ActiveWorkout = () => {
         </button>
       </div>
         </SortableContext>
+
+        {/* DRAG OVERLAY - renders the dragged exercise card as a fixed-size
+            floating clone so the original list-item never resizes to fit
+            slots of different heights. */}
+        <DragOverlay zIndex={9999} dropAnimation={null}>
+          {activeDraggingExercise ? (
+            <div className="bg-white dark:bg-slate-800 rounded-[32px] px-5 py-6 shadow-2xl border border-emerald-300 dark:border-emerald-700 ring-2 ring-emerald-400/40 ring-inset cursor-grabbing">
+              <div className="flex items-center gap-3">
+                <div
+                  className={`p-2 rounded-xl ${
+                    activeDraggingExercise.type === "Warmup"
+                      ? "text-amber-500 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-400"
+                      : activeDraggingExercise.type === "Stretching"
+                        ? "text-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400"
+                        : "text-emerald-500 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-400"
+                  }`}
+                >
+                  {activeDraggingExercise.type === "Warmup" ? (
+                    <Flame size={18} />
+                  ) : activeDraggingExercise.type === "Stretching" ? (
+                    <Move size={18} />
+                  ) : (
+                    <Dumbbell size={18} />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-bold text-slate-800 dark:text-slate-100 text-md leading-tight capitalize">
+                    {activeDraggingExercise.name}
+                  </h4>
+                  <p className="text-[9px] font-bold text-slate-300 dark:text-slate-500 uppercase tracking-widest mt-1">
+                    {activeDraggingExercise.muscle}
+                  </p>
+                </div>
+                <GripVertical
+                  size={18}
+                  className="text-emerald-500 dark:text-emerald-400"
+                />
+              </div>
+            </div>
+          ) : null}
+        </DragOverlay>
       </DndContext>
 
       {/* Footer Actions */}
