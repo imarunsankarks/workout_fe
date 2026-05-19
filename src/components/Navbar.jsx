@@ -1,4 +1,4 @@
-import { Home, User, Plus, Dumbbell, X } from "lucide-react";
+import { Home, User, Plus, Dumbbell, X, Activity } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { useContext } from "react";
@@ -144,6 +144,24 @@ const Navbar = () => {
                 </p>
                 <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mt-1">
                   Manage all items
+                </p>
+              </div>
+            </Link>
+
+            <Link
+              to="/metrics"
+              onClick={() => setIsMenuOpen(false)}
+              className="bg-white dark:bg-slate-900 p-6 rounded-[32px] shadow-2xl shadow-slate-200/50 dark:shadow-black/40 flex items-center gap-5 active:scale-95 transition-all border border-slate-50 dark:border-slate-800 w-full"
+            >
+              <div className="bg-orange-500 w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg dark:shadow-md shadow-orange-100">
+                <Activity size={24} />
+              </div>
+              <div className="text-left">
+                <p className="font-bold text-slate-800 dark:text-slate-100 text-base leading-tight">
+                  Body Metrics
+                </p>
+                <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mt-1">
+                  Track your progress
                 </p>
               </div>
             </Link>

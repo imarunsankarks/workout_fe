@@ -11,6 +11,7 @@ import Library from './pages/Library';
 import Navbar from './components/Navbar';
 import InstallPrompt from './components/InstallPrompt';
 import ScrollToTop from './components/ScrollToTop';
+import Metrics from './pages/Metrics';
 
 import useKeepAlive from './hooks/KeepAlive';
 import useControlledBack from './hooks/useControlledBack';
@@ -31,6 +32,7 @@ const AppContent = () => {
         <Route path="/reports" element={user ? <WorkoutReports /> : <Navigate to="/login" replace />} />
         <Route path="/add-exercise" element={user ? <CreateExercise /> : <Navigate to="/login" replace />} />
         <Route path="/library" element={user ? <Library /> : <Navigate to="/login" replace />} />
+        <Route path="/metrics" element={user ? <Metrics /> : <Navigate to="/login" replace />} />
       </Routes>
       {user && <Navbar />}
     </div>

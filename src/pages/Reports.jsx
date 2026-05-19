@@ -338,6 +338,26 @@ const Reports = () => {
         </div>
       </div>
 
+      {/* Body Metrics Nav */}
+      <button
+        onClick={() => navigate('/metrics')}
+        className="w-full bg-gradient-to-br from-orange-500 to-orange-600 dark:from-orange-600 dark:to-orange-800 text-white p-5 rounded-[32px] shadow-lg dark:shadow-md mb-6 flex items-center justify-between active:scale-[0.98] transition-all relative overflow-hidden"
+      >
+        <div className="flex items-center gap-4 relative z-10">
+          <div className="bg-white/20 backdrop-blur-sm w-12 h-12 rounded-2xl flex items-center justify-center">
+            <Activity size={22} strokeWidth={2.5} />
+          </div>
+          <div className="text-left">
+            <p className="font-bold text-base leading-tight">Body Metrics</p>
+            <p className="text-[10px] font-bold text-orange-50/80 uppercase tracking-widest mt-1">
+              Weight, fat % &amp; muscle trends
+            </p>
+          </div>
+        </div>
+        <ChevronRight size={20} className="text-white/80 relative z-10" />
+        <Activity className="absolute -right-4 -bottom-4 w-24 h-24 text-white/10 rotate-12" />
+      </button>
+
       {/* Stats Cards */}
       <div className="grid grid-cols-2 gap-4 mb-8">
         <div className="bg-white dark:bg-slate-900 p-5 rounded-[32px] shadow-sm border border-slate-100 dark:border-slate-800">
