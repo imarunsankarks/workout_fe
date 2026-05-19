@@ -446,7 +446,7 @@ const onFileChange = async (e, workoutId) => {
                   <div
                     key={workout._id}
                     onClick={() => setSelectedWorkout(workout)}
-                    className="group bg-white dark:bg-slate-900 p-5 rounded-[24px] flex justify-between items-center border border-slate-100 dark:border-slate-800 shadow-sm active:scale-[0.98] transition-all cursor-pointer relative"
+                    className="group bg-white dark:bg-slate-900 p-3 rounded-[24px] flex justify-between items-center border border-slate-100 dark:border-slate-800 shadow-sm active:scale-[0.98] transition-all cursor-pointer relative"
                   >
                     <div className="flex items-center gap-4">
                       <div

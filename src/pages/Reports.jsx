@@ -564,7 +564,7 @@ const Reports = () => {
                 <TrendingUp size={12}/> {stats.monthlyWorkouts} sessions (Last 30d)
             </div>
         </div>
-        <Activity className="absolute -right-8 -bottom-8 w-32 h-32 text-white/5 rotate-12" />
+        <Activity className="absolute -right-8 -bottom-8 w-32 h-32 text-emerald-500/40 rotate-12" />
       </div>
 
       {/* Change Password */}
