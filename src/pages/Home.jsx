@@ -25,6 +25,28 @@ import {
   Plus
 } from "lucide-react";
 import ThemeToggle from "../components/ThemeToggle";
+import { subscribeWorkoutTimer } from "../utils/workoutTimer";
+
+const formatSessionTime = (s) => {
+  const total = Math.max(0, Math.floor(s));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const sec = total % 60;
+  const pad = (n) => n.toString().padStart(2, "0");
+  return h > 0 ? `${pad(h)}:${pad(m)}:${pad(sec)}` : `${pad(m)}:${pad(sec)}`;
+};
+
+// Isolated subscriber so the parent Home does NOT re-render every second.
+const SessionLiveTime = React.memo(({ className }) => {
+  const [seconds, setSeconds] = useState(0);
+  useEffect(() => {
+    const unsub = subscribeWorkoutTimer((state) => {
+      if (state) setSeconds(state.seconds);
+    });
+    return unsub;
+  }, []);
+  return <span className={className}>{formatSessionTime(seconds)}</span>;
+});
 
 const Home = () => {
   const { user, token, logout } = useContext(AuthContext);
@@ -322,16 +344,23 @@ const onFileChange = async (e, workoutId) => {
                 : "In Progress"
               : "Let's get moving"}
           </h2>
-          <p className="text-white/75 text-xs font-medium mb-4 leading-snug">
-            {hasActiveSession
-              ? `Session currently ${isPaused ? "on hold" : "active"}.`
-              : history[0]
+          {hasActiveSession ? (
+            <div className="flex items-baseline gap-2 mb-4">
+              <SessionLiveTime className="text-md font-mono font-bold text-white leading-none tracking-tight" />
+              <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/70">
+                {isPaused ? "On hold" : "Elapsed"}
+              </span>
+            </div>
+          ) : (
+            <p className="text-white/75 text-xs font-medium mb-4 leading-snug">
+              {history[0]
                 ? `Last session ${new Date(history[0].date).toLocaleDateString(
                     "en-GB",
                     { day: "2-digit", month: "short" },
                   )}`
                 : "Start your first workout!"}
-          </p>
+            </p>
+          )}
 
           {/* CTA Button - Glass effect */}
           <button

@@ -47,6 +47,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { subscribeWorkoutTimer } from "../utils/workoutTimer";
 
 // --- TIMER UTIL ---
 const formatTime = (s) => {
@@ -56,28 +57,23 @@ const formatTime = (s) => {
 };
 
 // --- ISOLATED TIMER COMPONENT ---
-const SessionTimer = React.memo(({ isActive, lastUnpausedAt, onToggle, onTick }) => {
+// Subscribes to the shared workoutTimer so we only run a single global
+// interval. Only this memoized component re-renders each tick; the parent
+// ActiveWorkout (with the exercise list / drag-and-drop) is not affected.
+const SessionTimer = React.memo(({ isActive, onToggle, onTick }) => {
   const [seconds, setSeconds] = useState(() => {
     const saved = localStorage.getItem("active_session_seconds");
     return saved ? parseInt(saved) : 0;
   });
 
   useEffect(() => {
-    let interval = null;
-    if (isActive && lastUnpausedAt) {
-      interval = setInterval(() => {
-        const now = Date.now();
-        const passed = Math.floor((now - lastUnpausedAt) / 1000);
-        const base = parseInt(
-          localStorage.getItem("active_session_base_seconds") || "0",
-        );
-        const total = base + passed;
-        setSeconds(total);
-        onTick?.(total);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isActive, lastUnpausedAt, onTick]);
+    const unsubscribe = subscribeWorkoutTimer((state) => {
+      if (!state) return;
+      setSeconds(state.seconds);
+      onTick?.(state.seconds);
+    });
+    return unsubscribe;
+  }, [onTick]);
 
   useEffect(() => {
     localStorage.setItem("active_session_seconds", seconds.toString());
@@ -369,40 +365,14 @@ const ActiveWorkout = () => {
     }
   }, [exercises, isActive, lastUnpausedAt]);
 
-  // --- ONGOING WORKOUT NOTIFICATION ---
-  // Sticky notification that shows the current session timer.
-  // Updates every second while the workout is active so the time stays live.
+  // Eagerly request notification permission on entering the workout page so
+  // the prompt fires while the user gesture is still fresh. The actual
+  // notification driving is handled at App-level by useWorkoutNotification
+  // so it keeps ticking even when this component unmounts (other routes).
   useEffect(() => {
-    if (!isAllowedEntry) return undefined;
-    let cancelled = false;
-    let interval = null;
-
-    const push = () => {
-      const status = isActive ? "In progress" : "Paused";
-      postToSW({
-        type: "WORKOUT_NOTIFICATION_UPDATE",
-        payload: {
-          title: `Workout · ${status}`,
-          body: `Session time · ${formatTime(secondsRef.current)}`,
-          isActive,
-        },
-      });
-    };
-
-    (async () => {
-      const ok = await ensureNotifPermission();
-      if (!ok || cancelled) return;
-      push();
-      if (isActive) {
-        interval = setInterval(push, 1000);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-      if (interval) clearInterval(interval);
-    };
-  }, [isAllowedEntry, isActive, ensureNotifPermission, postToSW]);
+    if (!isAllowedEntry) return;
+    ensureNotifPermission();
+  }, [isAllowedEntry, ensureNotifPermission]);
 
   const fetchLibrary = async () => {
     try {
@@ -716,7 +686,6 @@ const ActiveWorkout = () => {
       {/* Timer Card */}
       <SessionTimer
         isActive={isActive}
-        lastUnpausedAt={lastUnpausedAt}
         onToggle={toggleGlobalTimer}
         onTick={handleTick}
       />

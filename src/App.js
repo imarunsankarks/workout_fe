@@ -15,11 +15,13 @@ import Metrics from './pages/Metrics';
 
 import useKeepAlive from './hooks/KeepAlive';
 import useControlledBack from './hooks/useControlledBack';
+import useWorkoutNotification from './hooks/useWorkoutNotification';
 
 const AppContent = () => {
   const { user } = useContext(AuthContext);
   useControlledBack();
   useKeepAlive();
+  useWorkoutNotification();
 
   return (
     <div className="pb-20 select-none">
