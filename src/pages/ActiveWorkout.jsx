@@ -195,6 +195,30 @@ const ActiveWorkout = () => {
     secondsRef.current = s;
   }, []);
 
+  // --- ONGOING WORKOUT NOTIFICATION HELPERS ---
+  const postToSW = useCallback((msg) => {
+    if (!("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.ready
+      .then((reg) => {
+        const target = navigator.serviceWorker.controller || reg.active;
+        if (target) target.postMessage(msg);
+      })
+      .catch(() => {});
+  }, []);
+
+  const ensureNotifPermission = useCallback(async () => {
+    if (typeof window === "undefined" || !("Notification" in window))
+      return false;
+    if (Notification.permission === "granted") return true;
+    if (Notification.permission === "denied") return false;
+    try {
+      const result = await Notification.requestPermission();
+      return result === "granted";
+    } catch {
+      return false;
+    }
+  }, []);
+
   const [isActive, setIsActive] = useState(() => {
     const saved = localStorage.getItem("active_session_is_active");
     return saved !== null ? JSON.parse(saved) : true;
@@ -345,6 +369,41 @@ const ActiveWorkout = () => {
     }
   }, [exercises, isActive, lastUnpausedAt]);
 
+  // --- ONGOING WORKOUT NOTIFICATION ---
+  // Sticky notification that shows the current session timer.
+  // Updates every second while the workout is active so the time stays live.
+  useEffect(() => {
+    if (!isAllowedEntry) return undefined;
+    let cancelled = false;
+    let interval = null;
+
+    const push = () => {
+      const status = isActive ? "In progress" : "Paused";
+      postToSW({
+        type: "WORKOUT_NOTIFICATION_UPDATE",
+        payload: {
+          title: `Workout · ${status}`,
+          body: `Session time · ${formatTime(secondsRef.current)}`,
+          isActive,
+        },
+      });
+    };
+
+    (async () => {
+      const ok = await ensureNotifPermission();
+      if (!ok || cancelled) return;
+      push();
+      if (isActive) {
+        interval = setInterval(push, 1000);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      if (interval) clearInterval(interval);
+    };
+  }, [isAllowedEntry, isActive, ensureNotifPermission, postToSW]);
+
   const fetchLibrary = async () => {
     try {
       const res = await axios.get(
@@ -423,6 +482,19 @@ const ActiveWorkout = () => {
       return !prevActive;
     });
   }, []);
+
+  // Listen for actions triggered from the notification (Pause/Resume button).
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return undefined;
+    const handler = (event) => {
+      if (event.data?.type === "WORKOUT_TOGGLE_TIMER") {
+        toggleGlobalTimer();
+      }
+    };
+    navigator.serviceWorker.addEventListener("message", handler);
+    return () =>
+      navigator.serviceWorker.removeEventListener("message", handler);
+  }, [toggleGlobalTimer]);
 
   const addExercise = (template) => {
     const lastEntry = allWorkouts
@@ -519,12 +591,17 @@ const ActiveWorkout = () => {
     setSelectedPrHistory({ name: exerciseName, history: exerciseHistory });
   };
 
+  const clearWorkoutNotification = useCallback(() => {
+    postToSW({ type: "WORKOUT_NOTIFICATION_CLEAR" });
+  }, [postToSW]);
+
   const handleDiscard = () => {
     localStorage.removeItem("active_session_exercises");
     localStorage.removeItem("active_session_seconds");
     localStorage.removeItem("active_session_is_active");
     localStorage.removeItem("active_session_last_unpaused");
     localStorage.removeItem("active_session_base_seconds");
+    clearWorkoutNotification();
     navigate("/");
   };
 
