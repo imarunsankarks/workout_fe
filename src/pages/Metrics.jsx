@@ -189,33 +189,30 @@ const Metrics = () => {
   // --- RENDER ---
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 px-6 pt-8 pb-32">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="p-2 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-300 active:scale-95 transition-all"
-          >
-            <ChevronLeft size={20} />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
-              Body Metrics
-            </h1>
-            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">
-              Track your progress over time
-            </p>
-          </div>
-        </div>
-        <ThemeToggle />
-      </div>
-
       {loading ? (
-        <div className="text-center text-slate-400 dark:text-slate-500 py-20 text-sm font-bold uppercase tracking-widest">
-          Loading...
-        </div>
+        <MetricsLoader />
       ) : (
         <>
+          {/* Header */}
+          <div className="flex justify-between items-center mb-8">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate(-1)}
+                className="p-2 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-300 active:scale-95 transition-all"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <div>
+                <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                  Body Metrics
+                </h1>
+                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">
+                  Track your progress over time
+                </p>
+              </div>
+            </div>
+            <ThemeToggle />
+          </div>
           {/* CURRENT METRICS SUMMARY */}
           <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 dark:from-emerald-600 dark:to-emerald-900 rounded-[32px] p-6 mb-6 text-white shadow-lg dark:shadow-md relative overflow-hidden">
             <div className="flex justify-between items-start mb-5 relative z-10">
@@ -732,6 +729,28 @@ const toISO = (d) => {
   return `${yr}-${mo}-${dy}`;
 };
 
+const MetricsLoader = () => (
+  <div className="flex flex-col items-center justify-center py-24 h-[calc(100vh-80px)]">
+    <div className="relative mb-8">
+      <div className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping duration-[2000ms]"></div>
+      <div className="relative bg-white dark:bg-slate-900 p-8 rounded-full shadow-xl dark:shadow-md border border-emerald-100 dark:border-emerald-500/30">
+        <Scale size={48} className="text-emerald-500 animate-pulse" />
+      </div>
+    </div>
+    <div className="w-full max-w-[200px] text-center">
+      <h2 className="text-slate-800 dark:text-slate-100 font-bold text-sm uppercase tracking-[0.3em] mb-4">
+        Loading Body Metrics
+      </h2>
+      <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+        <div className="h-full bg-emerald-500 rounded-full animate-progress-loading"></div>
+      </div>
+      <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mt-4 animate-bounce">
+        Fetching Your Data...
+      </p>
+    </div>
+  </div>
+);
+
 const ITEM_H = 40; // px per wheel row
 const WHEEL_H = 200; // px wheel viewport height (5 rows visible)
 const SPACER = (WHEEL_H - ITEM_H) / 2; // 80
@@ -786,11 +805,10 @@ const WheelColumn = ({ items, value, onChange, format }) => {
             <div
               key={item}
               style={{ height: ITEM_H, scrollSnapAlign: "center" }}
-              className={`flex items-center justify-center text-sm font-bold transition-all ${
-                isSel
+              className={`flex items-center justify-center text-sm font-bold transition-all ${isSel
                   ? "text-slate-900 dark:text-white scale-105"
                   : "text-slate-400 dark:text-slate-500"
-              }`}
+                }`}
             >
               {format ? format(item) : item}
             </div>
@@ -893,11 +911,11 @@ const DatePicker = ({ label, value, onChange, max, min }) => {
 
   const display = value
     ? new Date(value + "T00:00:00").toLocaleDateString("en-GB", {
-        weekday: "short",
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      })
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    })
     : "Select a date";
 
   return (
