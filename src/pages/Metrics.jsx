@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useMemo } from "react";
+import React, { useState, useEffect, useContext, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import {
   ChevronLeft,
+  ChevronRight,
   Plus,
   Pencil,
   Trash2,
@@ -269,11 +270,11 @@ const Metrics = () => {
                   Trend
                 </h2>
                 <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">
-                  Body Fat % vs Muscle Mass (kg)
+                  Body Fat % · Weight · Muscle (kg)
                 </p>
               </div>
             </div>
-            <div className="h-64 w-full -ml-4">
+            <div className="h-64 w-full -ml-4 [&_.recharts-surface]:outline-none [&_.recharts-surface]:focus:outline-none [&_*:focus]:outline-none">
               {chartData.length >= 2 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
@@ -322,19 +323,19 @@ const Metrics = () => {
                       tick={{
                         fontSize: 10,
                         fontWeight: 700,
-                        fill: "#10b981",
+                        fill: "#64748b",
                       }}
                       axisLine={false}
                       tickLine={false}
                       width={40}
                       label={{
-                        value: "Muscle kg",
+                        value: "kg",
                         angle: 90,
                         position: "insideRight",
                         style: {
                           fontSize: 10,
                           fontWeight: 700,
-                          fill: "#10b981",
+                          fill: "#64748b",
                         },
                       }}
                     />
@@ -353,6 +354,7 @@ const Metrics = () => {
                         if (name === "Body Fat %") return [`${value}%`, name];
                         if (name === "Muscle Mass")
                           return [`${value} kg`, name];
+                        if (name === "Weight") return [`${value} kg`, name];
                         return [value, name];
                       }}
                     />
@@ -379,6 +381,17 @@ const Metrics = () => {
                       stroke="#10b981"
                       strokeWidth={3}
                       dot={{ r: 4, fill: "#10b981" }}
+                      activeDot={{ r: 6 }}
+                      connectNulls
+                    />
+                    <Line
+                      yAxisId="right"
+                      type="monotone"
+                      dataKey="weight"
+                      name="Weight"
+                      stroke="#6366f1"
+                      strokeWidth={3}
+                      dot={{ r: 4, fill: "#6366f1" }}
                       activeDot={{ r: 6 }}
                       connectNulls
                     />
@@ -520,13 +533,11 @@ const Metrics = () => {
             </div>
 
             <div className="space-y-4">
-              <FormField
+              <DatePicker
                 label="Date"
-                type="date"
                 value={form.date}
                 onChange={(v) => setForm({ ...form, date: v })}
                 max={new Date().toISOString().slice(0, 10)}
-                required
               />
               <div className="grid grid-cols-2 gap-3">
                 <FormField
@@ -707,5 +718,267 @@ const FormField = ({
     />
   </div>
 );
+
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+const DOW = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+
+const toISO = (d) => {
+  const yr = d.getFullYear();
+  const mo = String(d.getMonth() + 1).padStart(2, "0");
+  const dy = String(d.getDate()).padStart(2, "0");
+  return `${yr}-${mo}-${dy}`;
+};
+
+const ITEM_H = 40; // px per wheel row
+const WHEEL_H = 200; // px wheel viewport height (5 rows visible)
+const SPACER = (WHEEL_H - ITEM_H) / 2; // 80
+
+const WheelColumn = ({ items, value, onChange, format }) => {
+  const ref = useRef(null);
+  const timer = useRef(null);
+
+  // Sync external value -> scroll position
+  useEffect(() => {
+    if (!ref.current) return;
+    const idx = items.indexOf(value);
+    if (idx < 0) return;
+    const target = idx * ITEM_H;
+    if (Math.abs(ref.current.scrollTop - target) > 1) {
+      ref.current.scrollTop = target;
+    }
+  }, [value, items]);
+
+  const handleScroll = () => {
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      if (!ref.current) return;
+      const idx = Math.round(ref.current.scrollTop / ITEM_H);
+      const clamped = Math.max(0, Math.min(items.length - 1, idx));
+      const target = clamped * ITEM_H;
+      if (Math.abs(ref.current.scrollTop - target) > 1) {
+        ref.current.scrollTo({ top: target, behavior: "smooth" });
+      }
+      const newVal = items[clamped];
+      if (newVal !== value) onChange(newVal);
+    }, 120);
+  };
+
+  return (
+    <div className="relative flex-1 overflow-hidden" style={{ height: WHEEL_H }}>
+      <div
+        ref={ref}
+        onScroll={handleScroll}
+        className="h-full overflow-y-auto"
+        style={{
+          scrollSnapType: "y mandatory",
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
+        }}
+      >
+        <style>{`.wheel-scroll::-webkit-scrollbar{display:none}`}</style>
+        <div style={{ height: SPACER }} />
+        {items.map((item) => {
+          const isSel = item === value;
+          return (
+            <div
+              key={item}
+              style={{ height: ITEM_H, scrollSnapAlign: "center" }}
+              className={`flex items-center justify-center text-sm font-bold transition-all ${
+                isSel
+                  ? "text-slate-900 dark:text-white scale-105"
+                  : "text-slate-400 dark:text-slate-500"
+              }`}
+            >
+              {format ? format(item) : item}
+            </div>
+          );
+        })}
+        <div style={{ height: SPACER }} />
+      </div>
+
+      {/* Center selection band */}
+      <div
+        className="pointer-events-none absolute left-1 right-1 top-1/2 -translate-y-1/2 rounded-xl border-y border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/40 dark:bg-emerald-500/5"
+        style={{ height: ITEM_H }}
+      />
+
+      {/* Top / bottom fade */}
+      <div
+        className="pointer-events-none absolute top-0 left-0 right-0 bg-gradient-to-b from-white dark:from-slate-800 to-transparent"
+        style={{ height: SPACER }}
+      />
+      <div
+        className="pointer-events-none absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white dark:from-slate-800 to-transparent"
+        style={{ height: SPACER }}
+      />
+    </div>
+  );
+};
+
+const DatePicker = ({ label, value, onChange, max, min }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  const maxDate = max ? new Date(max + "T23:59:59") : null;
+  const minDate = min ? new Date(min + "T00:00:00") : null;
+
+  const parsed = value ? new Date(value + "T00:00:00") : new Date();
+  const [draft, setDraft] = useState({
+    y: parsed.getFullYear(),
+    m: parsed.getMonth(),
+    d: parsed.getDate(),
+  });
+
+  // Re-sync when reopening
+  useEffect(() => {
+    if (!open) return;
+    const p = value ? new Date(value + "T00:00:00") : new Date();
+    setDraft({ y: p.getFullYear(), m: p.getMonth(), d: p.getDate() });
+  }, [open, value]);
+
+  // Click outside to close + commit
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        commit();
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, draft]);
+
+  // Build year range
+  const currentYear = new Date().getFullYear();
+  const minYear = minDate ? minDate.getFullYear() : 1950;
+  const maxYear = maxDate ? maxDate.getFullYear() : currentYear + 5;
+  const years = useMemo(() => {
+    const arr = [];
+    for (let y = minYear; y <= maxYear; y++) arr.push(y);
+    return arr;
+  }, [minYear, maxYear]);
+
+  const months = useMemo(() => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], []);
+
+  const daysInMonth = new Date(draft.y, draft.m + 1, 0).getDate();
+  const days = useMemo(() => {
+    const arr = [];
+    for (let d = 1; d <= daysInMonth; d++) arr.push(d);
+    return arr;
+  }, [daysInMonth]);
+
+  // Clamp draft day if month/year shrink
+  useEffect(() => {
+    if (draft.d > daysInMonth) {
+      setDraft((s) => ({ ...s, d: daysInMonth }));
+    }
+  }, [daysInMonth, draft.d]);
+
+  const clampToBounds = (y, m, d) => {
+    let dt = new Date(y, m, d);
+    if (maxDate && dt > maxDate) dt = new Date(maxDate);
+    if (minDate && dt < minDate) dt = new Date(minDate);
+    return { y: dt.getFullYear(), m: dt.getMonth(), d: dt.getDate() };
+  };
+
+  const commit = () => {
+    const c = clampToBounds(draft.y, draft.m, draft.d);
+    onChange(toISO(new Date(c.y, c.m, c.d)));
+  };
+
+  const display = value
+    ? new Date(value + "T00:00:00").toLocaleDateString("en-GB", {
+        weekday: "short",
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : "Select a date";
+
+  return (
+    <div className="relative" ref={ref}>
+      <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-1.5">
+        {label}
+      </label>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full bg-slate-50 dark:bg-slate-700 border border-slate-100 dark:border-slate-600 px-4 py-3 rounded-2xl font-bold text-slate-800 dark:text-slate-100 outline-none focus:border-emerald-500 dark:focus:border-emerald-400 transition-colors flex items-center justify-between"
+      >
+        <span className={value ? "" : "text-slate-400"}>{display}</span>
+        <Calendar size={16} className="text-emerald-500" />
+      </button>
+
+      {open && (
+        <div className="absolute left-0 right-0 mt-2 z-50 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 p-4 animate-in fade-in slide-in-from-top-1 duration-150">
+          <div className="flex items-center justify-between mb-2 px-1">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+              Pick a date
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                const t = new Date();
+                const c = clampToBounds(
+                  t.getFullYear(),
+                  t.getMonth(),
+                  t.getDate(),
+                );
+                setDraft(c);
+              }}
+              className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest px-2 py-1 rounded-md hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors"
+            >
+              Today
+            </button>
+          </div>
+
+          <div className="flex gap-1 bg-slate-50/50 dark:bg-slate-900/40 rounded-2xl p-1">
+            <WheelColumn
+              items={days}
+              value={draft.d}
+              onChange={(d) => setDraft((s) => ({ ...s, d }))}
+            />
+            <WheelColumn
+              items={months}
+              value={draft.m}
+              onChange={(m) => setDraft((s) => ({ ...s, m }))}
+              format={(m) => MONTH_NAMES[m].slice(0, 3)}
+            />
+            <WheelColumn
+              items={years}
+              value={draft.y}
+              onChange={(y) => setDraft((s) => ({ ...s, y }))}
+            />
+          </div>
+
+          <div className="flex gap-2 mt-3">
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="flex-1 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                commit();
+                setOpen(false);
+              }}
+              className="flex-1 py-2.5 rounded-xl bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all shadow-md"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default Metrics;
