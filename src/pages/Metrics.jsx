@@ -68,6 +68,7 @@ const Metrics = () => {
   const [submitting, setSubmitting] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [visibleCount, setVisibleCount] = useState(4);
+  const [chartRange, setChartRange] = useState("1M"); // 1M | 3M | 6M | 1Y | ALL
 
   const authHeaders = { headers: { Authorization: `Bearer ${token}` } };
 
@@ -100,7 +101,7 @@ const Metrics = () => {
   const latest = sortedDesc[0] || null;
 
   const chartData = useMemo(() => {
-    return [...metrics]
+    const all = [...metrics]
       .sort((a, b) => new Date(a.date) - new Date(b.date))
       .map((m) => ({
         date: fmtShortDate(m.date),
@@ -109,7 +110,17 @@ const Metrics = () => {
         muscleMass: m.muscleMass ?? null,
         weight: m.weight ?? null,
       }));
-  }, [metrics]);
+
+    if (chartRange === "ALL" || all.length === 0) return all;
+
+    const monthsMap = { "1M": 1, "3M": 3, "6M": 6, "1Y": 12 };
+    const months = monthsMap[chartRange] ?? 3;
+    const cutoff = new Date();
+    cutoff.setMonth(cutoff.getMonth() - months);
+    return all.filter((d) => new Date(d.rawDate) >= cutoff);
+  }, [metrics, chartRange]);
+
+  const showDots = chartData.length <= 30;
 
   // --- FORM HANDLING ---
   const openAdd = () => {
@@ -271,7 +282,24 @@ const Metrics = () => {
                 </p>
               </div>
             </div>
-            <div className="h-64 w-full -ml-4 [&_.recharts-surface]:outline-none [&_.recharts-surface]:focus:outline-none [&_*:focus]:outline-none">
+
+            {/* Range selector */}
+            <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-700/50 p-1 rounded-2xl mb-3">
+              {["1M", "3M", "6M", "1Y", "ALL"].map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setChartRange(r)}
+                  className={`flex-1 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${
+                    chartRange === r
+                      ? "bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-sm"
+                      : "text-slate-400 dark:text-slate-500 active:scale-95"
+                  }`}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+            <div className="h-64 w-full [&_.recharts-surface]:outline-none [&_.recharts-surface]:focus:outline-none [&_*:focus]:outline-none">
               {chartData.length >= 2 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
@@ -292,6 +320,8 @@ const Metrics = () => {
                       }}
                       axisLine={false}
                       tickLine={false}
+                      interval="preserveStartEnd"
+                      minTickGap={32}
                     />
                     <YAxis
                       yAxisId="left"
@@ -366,7 +396,7 @@ const Metrics = () => {
                       name="Body Fat %"
                       stroke="#f97316"
                       strokeWidth={3}
-                      dot={{ r: 4, fill: "#f97316" }}
+                      dot={showDots ? { r: 4, fill: "#f97316" } : false}
                       activeDot={{ r: 6 }}
                       connectNulls
                     />
@@ -377,7 +407,7 @@ const Metrics = () => {
                       name="Muscle Mass"
                       stroke="#10b981"
                       strokeWidth={3}
-                      dot={{ r: 4, fill: "#10b981" }}
+                      dot={showDots ? { r: 4, fill: "#10b981" } : false}
                       activeDot={{ r: 6 }}
                       connectNulls
                     />
@@ -388,7 +418,7 @@ const Metrics = () => {
                       name="Weight"
                       stroke="#6366f1"
                       strokeWidth={3}
-                      dot={{ r: 4, fill: "#6366f1" }}
+                      dot={showDots ? { r: 4, fill: "#6366f1" } : false}
                       activeDot={{ r: 6 }}
                       connectNulls
                     />
@@ -396,7 +426,9 @@ const Metrics = () => {
                 </ResponsiveContainer>
               ) : (
                 <div className="h-full flex items-center justify-center text-slate-300 dark:text-slate-600 text-xs italic px-4 text-center">
-                  Log at least 2 entries to see the trend chart
+                  {metrics.length < 2
+                    ? "Log at least 2 entries to see the trend chart"
+                    : `Not enough entries in the last ${chartRange}. Try a wider range.`}
                 </div>
               )}
             </div>
