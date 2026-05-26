@@ -81,7 +81,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col justify-center p-6">
+    <div className="relative min-h-screen flex flex-col justify-center p-6">
       <div className="max-w-sm mx-auto w-full">
         {/* Theme Toggle */}
         <div className="flex justify-end mb-4">
@@ -89,7 +89,7 @@ const Login = () => {
         </div>
         {/* Brand Header */}
         <div className="text-center mb-10">
-          <div className="bg-emerald-600 w-16 h-16 rounded-[22px] flex items-center justify-center mx-auto mb-4 shadow-xl dark:shadow-md shadow-emerald-100">
+          <div className="bg-accent-gradient w-16 h-16 rounded-[22px] flex items-center justify-center mx-auto mb-4 shadow-xl dark:shadow-md shadow-accent-100">
             <Activity size={32} className="text-white" />
           </div>
           <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
@@ -100,7 +100,7 @@ const Login = () => {
           </p>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-[40px] p-8 shadow-2xl shadow-slate-200 dark:shadow-none border border-slate-100 dark:border-slate-700">
+        <div className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl rounded-[40px] p-8 shadow-2xl shadow-slate-200/50 dark:shadow-none border border-white/40 dark:border-white/10">
           {error && (
             <div
               className={`text-xs font-bold p-4 rounded-2xl mb-6 text-center flex items-center justify-center gap-2 ${isNewUser ? "bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400" : "bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400"}`}
@@ -130,7 +130,7 @@ const Login = () => {
                 <input
                   type="email"
                   placeholder="Email Address"
-                  className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-700 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-slate-800 dark:text-slate-200"
+                  className="w-full pl-12 pr-4 py-4 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/50 dark:border-white/10 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-accent-500 transition-all text-slate-800 dark:text-slate-200"
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
@@ -180,7 +180,7 @@ const Login = () => {
                   <input 
                     type="text" 
                     placeholder="Full Name"
-                    className="w-full pl-12 pr-4 py-4 bg-slate-50 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+                    className="w-full pl-12 pr-4 py-4 bg-slate-50 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-accent-500 transition-all"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
@@ -197,7 +197,7 @@ const Login = () => {
                 <input
                   type="password"
                   placeholder="Password"
-                  className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-slate-700 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-slate-800 dark:text-slate-200"
+                  className="w-full pl-12 pr-4 py-4 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/50 dark:border-white/10 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-accent-500 transition-all text-slate-800 dark:text-slate-200"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -206,7 +206,7 @@ const Login = () => {
 
               <button
                 disabled={loading}
-                className="w-full py-4 bg-emerald-600 text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-lg dark:shadow-md shadow-emerald-100 active:scale-95 transition-all"
+                className="w-full py-4 bg-accent-gradient text-white font-bold rounded-2xl flex items-center justify-center gap-2 shadow-lg dark:shadow-md shadow-accent-100 active:scale-95 transition-all"
               >
                 {loading ? <Loader2 className="animate-spin" /> : "Sign In"}
                 {/* {loading ? <Loader2 className="animate-spin" /> : (isNewUser ? "Create Account" : "Sign In")} */}

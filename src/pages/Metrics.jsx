@@ -70,6 +70,17 @@ const Metrics = () => {
   const [visibleCount, setVisibleCount] = useState(4);
   const [chartRange, setChartRange] = useState("1M"); // 1M | 3M | 6M | 1Y | ALL
 
+  // Chart line colors — aligned to the brand gradient stops in `index.css`
+  // (indigo --accent-from → fuchsia --accent-via → orange --accent-to).
+  // Update both these and the CSS variables together if re-theming.
+  const CHART_COLORS = {
+    bodyFat: "#f97316", // accent-to   (orange-500)
+    muscle:  "#cb2d9c", // accent-via  (fuchsia)
+    weight:  "#6366f1", // accent-from (indigo-500)
+    axisMuted: "#94a3b8",
+    axisRight: "#64748b",
+  };
+
   const authHeaders = { headers: { Authorization: `Bearer ${token}` } };
 
   const fetchMetrics = async () => {
@@ -199,7 +210,7 @@ const Metrics = () => {
 
   // --- RENDER ---
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 px-6 pt-8 pb-32">
+    <div className="relative min-h-screen px-6 pt-8 pb-32">
       {loading ? (
         <MetricsLoader />
       ) : (
@@ -209,7 +220,7 @@ const Metrics = () => {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => navigate(-1)}
-                className="p-2 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-300 active:scale-95 transition-all"
+                className="p-2 rounded-2xl bg-white/40 dark:bg-slate-800/40 backdrop-blur-xl border border-white/40 dark:border-white/10 text-slate-500 dark:text-slate-300 active:scale-95 transition-all"
               >
                 <ChevronLeft size={20} />
               </button>
@@ -225,17 +236,17 @@ const Metrics = () => {
             <ThemeToggle />
           </div>
           {/* CURRENT METRICS SUMMARY */}
-          <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 dark:from-emerald-600 dark:to-emerald-900 rounded-[32px] p-6 mb-6 text-white shadow-lg dark:shadow-md relative overflow-hidden">
+          <div className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl border border-white/40 dark:border-white/10 rounded-[32px] p-6 mb-6 shadow-sm relative overflow-hidden">
             <div className="flex justify-between items-start mb-5 relative z-10">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-100/80">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
                   Current
                 </p>
-                <p className="text-sm font-bold text-white/90 mt-1">
+                <p className="text-sm font-bold text-slate-700 dark:text-slate-200 mt-1">
                   {latest ? fmtDate(latest.date) : "No entries yet"}
                 </p>
               </div>
-              <div className="bg-white/20 backdrop-blur-sm p-2 rounded-xl">
+              <div className="bg-accent-50 dark:bg-accent-900/30 p-2 rounded-xl text-accent-500 dark:text-accent-400">
                 <Activity size={18} />
               </div>
             </div>
@@ -267,11 +278,11 @@ const Metrics = () => {
               />
             </div>
 
-            <Activity className="absolute -right-6 -bottom-6 w-32 h-32 text-white/10 rotate-12" />
+            <Activity className="absolute -right-6 -bottom-6 w-32 h-32 text-accent-500/10 dark:text-accent-400/10 rotate-12" />
           </div>
 
           {/* CHART */}
-          <div className="bg-white dark:bg-slate-800 rounded-[32px] p-6 mb-6 shadow-sm border border-slate-100 dark:border-slate-700">
+          <div className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl rounded-[32px] p-6 mb-6 shadow-sm border border-white/40 dark:border-white/10">
             <div className="flex justify-between items-center mb-4">
               <div>
                 <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
@@ -284,14 +295,14 @@ const Metrics = () => {
             </div>
 
             {/* Range selector */}
-            <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-700/50 p-1 rounded-2xl mb-3">
+            <div className="flex items-center gap-1 bg-white/30 dark:bg-white/5 backdrop-blur-md p-1 rounded-2xl mb-3">
               {["1M", "3M", "6M", "1Y", "ALL"].map((r) => (
                 <button
                   key={r}
                   onClick={() => setChartRange(r)}
                   className={`flex-1 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${
                     chartRange === r
-                      ? "bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-sm"
+                      ? "bg-white/70 dark:bg-slate-800/60 backdrop-blur-md text-accent-600 dark:text-accent-400 shadow-sm"
                       : "text-slate-400 dark:text-slate-500 active:scale-95"
                   }`}
                 >
@@ -316,7 +327,7 @@ const Metrics = () => {
                       tick={{
                         fontSize: 10,
                         fontWeight: 700,
-                        fill: "#94a3b8",
+                        fill: CHART_COLORS.axisMuted,
                       }}
                       axisLine={false}
                       tickLine={false}
@@ -328,7 +339,7 @@ const Metrics = () => {
                       tick={{
                         fontSize: 10,
                         fontWeight: 700,
-                        fill: "#f97316",
+                        fill: CHART_COLORS.bodyFat,
                       }}
                       axisLine={false}
                       tickLine={false}
@@ -340,7 +351,7 @@ const Metrics = () => {
                         style: {
                           fontSize: 10,
                           fontWeight: 700,
-                          fill: "#f97316",
+                          fill: CHART_COLORS.bodyFat,
                         },
                       }}
                     />
@@ -350,7 +361,7 @@ const Metrics = () => {
                       tick={{
                         fontSize: 10,
                         fontWeight: 700,
-                        fill: "#64748b",
+                        fill: CHART_COLORS.axisRight,
                       }}
                       axisLine={false}
                       tickLine={false}
@@ -362,7 +373,7 @@ const Metrics = () => {
                         style: {
                           fontSize: 10,
                           fontWeight: 700,
-                          fill: "#64748b",
+                          fill: CHART_COLORS.axisRight,
                         },
                       }}
                     />
@@ -394,9 +405,9 @@ const Metrics = () => {
                       type="monotone"
                       dataKey="bodyFatPct"
                       name="Body Fat %"
-                      stroke="#f97316"
+                      stroke={CHART_COLORS.bodyFat}
                       strokeWidth={3}
-                      dot={showDots ? { r: 4, fill: "#f97316" } : false}
+                      dot={showDots ? { r: 4, fill: CHART_COLORS.bodyFat } : false}
                       activeDot={{ r: 6 }}
                       connectNulls
                     />
@@ -405,9 +416,9 @@ const Metrics = () => {
                       type="monotone"
                       dataKey="muscleMass"
                       name="Muscle Mass"
-                      stroke="#10b981"
+                      stroke={CHART_COLORS.muscle}
                       strokeWidth={3}
-                      dot={showDots ? { r: 4, fill: "#10b981" } : false}
+                      dot={showDots ? { r: 4, fill: CHART_COLORS.muscle } : false}
                       activeDot={{ r: 6 }}
                       connectNulls
                     />
@@ -416,9 +427,9 @@ const Metrics = () => {
                       type="monotone"
                       dataKey="weight"
                       name="Weight"
-                      stroke="#6366f1"
+                      stroke={CHART_COLORS.weight}
                       strokeWidth={3}
-                      dot={showDots ? { r: 4, fill: "#6366f1" } : false}
+                      dot={showDots ? { r: 4, fill: CHART_COLORS.weight } : false}
                       activeDot={{ r: 6 }}
                       connectNulls
                     />
@@ -441,14 +452,14 @@ const Metrics = () => {
             </h2>
             <button
               onClick={openAdd}
-              className="bg-emerald-500 text-white px-4 py-2 rounded-2xl text-xs font-bold uppercase tracking-widest flex items-center gap-2 active:scale-95 transition-all shadow-sm"
+              className="bg-accent-gradient text-white px-4 py-2 rounded-2xl text-xs font-bold uppercase tracking-widest flex items-center gap-2 active:scale-95 transition-all shadow-sm"
             >
               <Plus size={14} strokeWidth={3} /> New
             </button>
           </div>
 
           {sortedDesc.length === 0 ? (
-            <div className="bg-white dark:bg-slate-800 rounded-[32px] p-10 text-center border-2 border-dashed border-slate-200 dark:border-slate-700">
+            <div className="bg-white/30 dark:bg-slate-800/30 backdrop-blur-xl rounded-[32px] p-10 text-center border-2 border-dashed border-white/40 dark:border-white/10">
               <Calendar
                 size={32}
                 className="mx-auto mb-3 text-slate-300 dark:text-slate-600"
@@ -467,11 +478,11 @@ const Metrics = () => {
                 return (
                   <div
                     key={m._id}
-                    className="bg-white dark:bg-slate-800 rounded-[24px] p-5 shadow-sm border border-slate-100 dark:border-slate-700"
+                    className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl rounded-[24px] p-5 shadow-sm border border-white/40 dark:border-white/10"
                   >
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex items-center gap-2">
-                        <div className="bg-emerald-50 dark:bg-emerald-900/30 p-1.5 rounded-lg text-emerald-500 dark:text-emerald-400">
+                        <div className="bg-accent-50 dark:bg-accent-900/30 p-1.5 rounded-lg text-accent-500 dark:text-accent-400">
                           <Calendar size={12} strokeWidth={2.5} />
                         </div>
                         <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
@@ -481,13 +492,13 @@ const Metrics = () => {
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => openEdit(m)}
-                          className="p-2 rounded-xl bg-slate-50 dark:bg-slate-700 text-slate-400 dark:text-slate-300 hover:text-emerald-500 dark:hover:text-emerald-400 active:scale-95 transition-all"
+                          className="p-2 rounded-xl bg-white/40 dark:bg-white/5 backdrop-blur-md text-slate-400 dark:text-slate-300 hover:text-accent-500 dark:hover:text-accent-400 active:scale-95 transition-all"
                         >
                           <Pencil size={14} />
                         </button>
                         <button
                           onClick={() => setConfirmDeleteId(m._id)}
-                          className="p-2 rounded-xl bg-red-50 dark:bg-red-900/30 text-red-400 dark:text-red-400 hover:text-red-600 active:scale-95 transition-all"
+                          className="p-2 rounded-xl bg-red-50/60 dark:bg-red-900/20 backdrop-blur-md text-red-400 dark:text-red-400 hover:text-red-600 active:scale-95 transition-all"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -507,7 +518,7 @@ const Metrics = () => {
                         label="Muscle"
                         value={m.muscleMass}
                         unit="kg"
-                        highlight="emerald"
+                        highlight="accent"
                       />
                     </div>
                   </div>
@@ -517,7 +528,7 @@ const Metrics = () => {
               {visibleCount < sortedDesc.length && (
                 <button
                   onClick={() => setVisibleCount((c) => c + 4)}
-                  className="w-full py-4 mt-1 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-[10px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest active:scale-[0.98] transition-all shadow-sm hover:text-emerald-500 dark:hover:text-emerald-400"
+                  className="w-full py-4 mt-1 rounded-2xl bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl border border-white/40 dark:border-white/10 text-[10px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-widest active:scale-[0.98] transition-all shadow-sm hover:text-accent-500 dark:hover:text-accent-400"
                 >
                   Show More ({sortedDesc.length - visibleCount} remaining)
                 </button>
@@ -526,7 +537,7 @@ const Metrics = () => {
               {visibleCount > 4 && visibleCount >= sortedDesc.length && (
                 <button
                   onClick={() => setVisibleCount(4)}
-                  className="w-full py-4 mt-1 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest active:scale-[0.98] transition-all"
+                  className="w-full py-4 mt-1 rounded-2xl bg-white/30 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/10 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest active:scale-[0.98] transition-all"
                 >
                   Show Less
                 </button>
@@ -541,7 +552,7 @@ const Metrics = () => {
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[500] flex items-end justify-center">
           <form
             onSubmit={handleSubmit}
-            className="bg-white dark:bg-slate-800 w-full max-w-lg rounded-t-[40px] p-8 max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl"
+            className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-lg rounded-t-[40px] p-8 max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl"
           >
             <div className="flex justify-between items-center mb-6">
               <div>
@@ -555,7 +566,7 @@ const Metrics = () => {
               <button
                 type="button"
                 onClick={closeForm}
-                className="bg-slate-100 dark:bg-slate-700 p-2 rounded-full text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+                className="bg-white/50 dark:bg-white/10 backdrop-blur-md p-2 rounded-full text-slate-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-white/20 transition-colors"
               >
                 <X size={20} />
               </button>
@@ -625,14 +636,14 @@ const Metrics = () => {
               <button
                 type="button"
                 onClick={closeForm}
-                className="flex-1 py-4 rounded-2xl bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 font-bold text-sm uppercase tracking-widest active:scale-95 transition-all"
+                className="flex-1 py-4 rounded-2xl bg-white/50 dark:bg-white/10 backdrop-blur-md text-slate-500 dark:text-slate-300 font-bold text-sm uppercase tracking-widest active:scale-95 transition-all"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex-1 py-4 rounded-2xl bg-emerald-500 text-white font-bold text-sm uppercase tracking-widest active:scale-95 transition-all shadow-lg disabled:opacity-50"
+                className="flex-1 py-4 rounded-2xl bg-accent-gradient text-white font-bold text-sm uppercase tracking-widest active:scale-95 transition-all shadow-lg disabled:opacity-50"
               >
                 {submitting ? "Saving..." : editingId ? "Update" : "Save"}
               </button>
@@ -644,7 +655,7 @@ const Metrics = () => {
       {/* DELETE CONFIRM */}
       {confirmDeleteId && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[600] flex items-center justify-center p-6">
-          <div className="bg-white dark:bg-slate-800 w-full max-w-sm rounded-[32px] p-7 text-center shadow-2xl animate-in fade-in zoom-in duration-200">
+          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[32px] p-7 text-center shadow-2xl animate-in fade-in zoom-in duration-200">
             <Trash2 size={36} className="mx-auto mb-3 text-red-500" />
             <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2">
               Delete this entry?
@@ -655,7 +666,7 @@ const Metrics = () => {
             <div className="flex gap-3">
               <button
                 onClick={() => setConfirmDeleteId(null)}
-                className="flex-1 py-3 rounded-2xl bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 font-bold text-xs uppercase tracking-widest active:scale-95 transition-all"
+                className="flex-1 py-3 rounded-2xl bg-white/50 dark:bg-white/10 backdrop-blur-md text-slate-500 dark:text-slate-300 font-bold text-xs uppercase tracking-widest active:scale-95 transition-all"
               >
                 Cancel
               </button>
@@ -675,15 +686,15 @@ const Metrics = () => {
 
 // --- SUB-COMPONENTS ---
 const SummaryStat = ({ icon, label, value, unit }) => (
-  <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-3">
-    <div className="flex items-center gap-1.5 mb-1 text-emerald-100/90">
+  <div className="bg-white/40 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/10 rounded-2xl p-3">
+    <div className="flex items-center gap-1.5 mb-1 text-accent-500 dark:text-accent-400">
       {icon}
       <p className="text-[9px] font-bold uppercase tracking-widest">{label}</p>
     </div>
-    <p className="text-2xl font-bold leading-none">
+    <p className="text-2xl font-bold leading-none text-slate-800 dark:text-slate-100">
       {value != null && value !== "" ? value : "—"}
       {value != null && value !== "" && (
-        <span className="text-xs font-bold text-emerald-100/70 ml-1">
+        <span className="text-xs font-bold text-slate-400 dark:text-slate-500 ml-1">
           {unit}
         </span>
       )}
@@ -694,12 +705,12 @@ const SummaryStat = ({ icon, label, value, unit }) => (
 const HistoryStat = ({ label, value, unit, highlight }) => {
   const colorMap = {
     orange: "text-orange-500 dark:text-orange-400",
-    emerald: "text-emerald-500 dark:text-emerald-400",
+    accent: "text-accent-500 dark:text-accent-400",
     default: "text-slate-700 dark:text-slate-200",
   };
   const valueColor = colorMap[highlight] || colorMap.default;
   return (
-    <div className="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-2.5 text-center">
+    <div className="bg-white/40 dark:bg-white/5 backdrop-blur-md rounded-xl p-2.5 text-center">
       <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">
         {label}
       </p>
@@ -743,7 +754,7 @@ const FormField = ({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       required={required}
-      className="w-full bg-slate-50 dark:bg-slate-700 border border-slate-100 dark:border-slate-600 px-4 py-3 rounded-2xl font-bold text-slate-800 dark:text-slate-100 outline-none focus:border-emerald-500 dark:focus:border-emerald-400 transition-colors"
+      className="w-full bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/50 dark:border-white/10 px-4 py-3 rounded-2xl font-bold text-slate-800 dark:text-slate-100 outline-none focus:border-accent-500 dark:focus:border-accent-400 transition-colors"
     />
   </div>
 );
@@ -764,9 +775,9 @@ const toISO = (d) => {
 const MetricsLoader = () => (
   <div className="flex flex-col items-center justify-center py-24 h-[calc(100vh-80px)]">
     <div className="relative mb-8">
-      <div className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping duration-[2000ms]"></div>
-      <div className="relative bg-white dark:bg-slate-900 p-8 rounded-full shadow-xl dark:shadow-md border border-emerald-100 dark:border-emerald-500/30">
-        <Scale size={48} className="text-emerald-500 animate-pulse" />
+      <div className="absolute inset-0 rounded-full bg-accent-500/20 animate-ping duration-[2000ms]"></div>
+      <div className="relative bg-white dark:bg-slate-900 p-8 rounded-full shadow-xl dark:shadow-md border border-accent-100 dark:border-accent-500/30">
+        <Scale size={48} className="text-accent-500 animate-pulse" />
       </div>
     </div>
     <div className="w-full max-w-[200px] text-center">
@@ -774,7 +785,7 @@ const MetricsLoader = () => (
         Loading Body Metrics
       </h2>
       <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-        <div className="h-full bg-emerald-500 rounded-full animate-progress-loading"></div>
+        <div className="h-full bg-accent-500 rounded-full animate-progress-loading"></div>
       </div>
       <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mt-4 animate-bounce">
         Fetching Your Data...
@@ -851,7 +862,7 @@ const WheelColumn = ({ items, value, onChange, format }) => {
 
       {/* Center selection band */}
       <div
-        className="pointer-events-none absolute left-1 right-1 top-1/2 -translate-y-1/2 rounded-xl border-y border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/40 dark:bg-emerald-500/5"
+        className="pointer-events-none absolute left-1 right-1 top-1/2 -translate-y-1/2 rounded-xl border-y border-accent-200 dark:border-accent-500/30 bg-accent-50/40 dark:bg-accent-500/5"
         style={{ height: ITEM_H }}
       />
 
@@ -958,10 +969,10 @@ const DatePicker = ({ label, value, onChange, max, min }) => {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="w-full bg-slate-50 dark:bg-slate-700 border border-slate-100 dark:border-slate-600 px-4 py-3 rounded-2xl font-bold text-slate-800 dark:text-slate-100 outline-none focus:border-emerald-500 dark:focus:border-emerald-400 transition-colors flex items-center justify-between"
+        className="w-full bg-slate-50 dark:bg-slate-700 border border-slate-100 dark:border-slate-600 px-4 py-3 rounded-2xl font-bold text-slate-800 dark:text-slate-100 outline-none focus:border-accent-500 dark:focus:border-accent-400 transition-colors flex items-center justify-between"
       >
         <span className={value ? "" : "text-slate-400"}>{display}</span>
-        <Calendar size={16} className="text-emerald-500" />
+        <Calendar size={16} className="text-accent-500" />
       </button>
 
       {open && (
@@ -981,7 +992,7 @@ const DatePicker = ({ label, value, onChange, max, min }) => {
                 );
                 setDraft(c);
               }}
-              className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest px-2 py-1 rounded-md hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors"
+              className="text-[10px] font-bold text-accent-600 dark:text-accent-400 uppercase tracking-widest px-2 py-1 rounded-md hover:bg-accent-50 dark:hover:bg-accent-500/10 transition-colors"
             >
               Today
             </button>
@@ -1020,7 +1031,7 @@ const DatePicker = ({ label, value, onChange, max, min }) => {
                 commit();
                 setOpen(false);
               }}
-              className="flex-1 py-2.5 rounded-xl bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all shadow-md"
+              className="flex-1 py-2.5 rounded-xl bg-accent-gradient text-white text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all shadow-md"
             >
               Done
             </button>

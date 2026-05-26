@@ -11,15 +11,15 @@ const Navbar = () => {
 
   // Logic to determine active states
   const isActive = (path) => pathname === path;
-  const activeClass = "text-emerald-600 dark:text-emerald-400";
+  const activeClass = "text-accent-600 dark:text-accent-400";
   const inactiveClass = "text-slate-400 dark:text-slate-500";
 
   return (
     <nav
       className={`fixed bottom-0 left-0 right-0 transition-all duration-300 ease-in-out z-[100] ${
         isMenuOpen
-          ? "h-screen bg-white/40 dark:bg-slate-950/40 backdrop-blur-md"
-          : "h-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-slate-100 dark:border-slate-900 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]"
+          ? "h-screen bg-white/30 dark:bg-slate-950/40 backdrop-blur-2xl"
+          : "h-20 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border-t border-white/40 dark:border-white/10 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]"
       }`}
     >
       <div
@@ -35,9 +35,7 @@ const Navbar = () => {
           } ${isActive("/") ? activeClass : inactiveClass}`}
         >
           <div
-            className={`p-1 rounded-xl transition-all ${
-              isActive("/") ? "bg-emerald-50 dark:bg-emerald-500/10" : "bg-transparent"
-            }`}
+            className="p-1 rounded-xl transition-all bg-transparent"
           >
             <Home size={22} strokeWidth={isActive("/") ? 2.5 : 2} />
           </div>
@@ -53,14 +51,14 @@ const Navbar = () => {
             className="group relative focus:outline-none z-[120]"
           >
             {!isMenuOpen && (
-              <div className="absolute inset-0 bg-emerald-400 rounded-full blur-lg opacity-20 group-active:opacity-40 transition-opacity"></div>
+              <div className="absolute inset-0 bg-accent-400 rounded-full blur-lg opacity-20 group-active:opacity-40 transition-opacity"></div>
             )}
 
             <div
-              className={`relative p-4 rounded-[22px] text-white shadow-xl dark:shadow-md border-[6px] border-slate-50 dark:border-slate-900/90 transition-all duration-400 ease-in-out flex items-center justify-center ${
+              className={`relative p-4 rounded-[22px] text-white shadow-xl dark:shadow-md border-[6px] border-white/60 dark:border-slate-900/90 backdrop-blur-md transition-all duration-400 ease-in-out flex items-center justify-center ${
                 isMenuOpen
                   ? "bg-slate-800 dark:bg-slate-900/90 rotate-[135deg] scale-90"
-                  : "bg-emerald-600 shadow-emerald-200 active:scale-90"
+                  : "bg-accent-gradient shadow-accent-200 active:scale-90"
               }`}
             >
               {isMenuOpen ? (
@@ -74,7 +72,7 @@ const Navbar = () => {
               className={`absolute -bottom-6 left-1/2 -translate-x-1/2 text-[9px] font-bold uppercase tracking-widest transition-all duration-400 ${
                 isMenuOpen
                   ? "text-slate-800 dark:text-slate-100 opacity-100"
-                  : "text-emerald-600 dark:text-emerald-400 opacity-100"
+                  : "text-accent-600 dark:text-accent-400 opacity-100"
               }`}
             >
               {isMenuOpen ? "Close" : "Action"}
@@ -91,9 +89,7 @@ const Navbar = () => {
           } ${isActive("/reports") ? activeClass : inactiveClass}`}
         >
           <div
-            className={`p-1 rounded-xl transition-all ${
-              isActive("/reports") ? "bg-emerald-50 dark:bg-emerald-500/10" : "bg-transparent"
-            }`}
+            className="p-1 rounded-xl transition-all bg-transparent"
           >
             <User size={22} strokeWidth={isActive("/reports") ? 2.5 : 2} />
           </div>
@@ -115,9 +111,9 @@ const Navbar = () => {
             <Link
               to="/add-exercise"
               onClick={() => setIsMenuOpen(false)}
-              className="bg-white dark:bg-slate-900 p-6 rounded-[32px] shadow-2xl shadow-slate-200/50 dark:shadow-black/40 flex items-center gap-5 active:scale-95 transition-all border border-slate-50 dark:border-slate-800 w-full"
+              className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-6 rounded-[32px] shadow-2xl shadow-slate-200/30 dark:shadow-black/40 flex items-center gap-5 active:scale-95 transition-all border border-white/40 dark:border-white/10 w-full"
             >
-              <div className="bg-emerald-500 w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg dark:shadow-md shadow-emerald-100">
+              <div className="bg-accent-gradient w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg dark:shadow-md shadow-accent-100">
                 <Plus size={24} strokeWidth={3} />
               </div>
               <div className="text-left">
@@ -133,7 +129,7 @@ const Navbar = () => {
             <Link
               to="/library"
               onClick={() => setIsMenuOpen(false)}
-              className="bg-white dark:bg-slate-900 p-6 rounded-[32px] shadow-2xl shadow-slate-200/50 dark:shadow-black/40 flex items-center gap-5 active:scale-95 transition-all border border-slate-50 dark:border-slate-800 w-full"
+              className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-6 rounded-[32px] shadow-2xl shadow-slate-200/30 dark:shadow-black/40 flex items-center gap-5 active:scale-95 transition-all border border-white/40 dark:border-white/10 w-full"
             >
               <div className="bg-blue-500 w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg dark:shadow-md shadow-blue-100">
                 <Dumbbell size={24} />
@@ -151,7 +147,7 @@ const Navbar = () => {
             <Link
               to="/metrics"
               onClick={() => setIsMenuOpen(false)}
-              className="bg-white dark:bg-slate-900 p-6 rounded-[32px] shadow-2xl shadow-slate-200/50 dark:shadow-black/40 flex items-center gap-5 active:scale-95 transition-all border border-slate-50 dark:border-slate-800 w-full"
+              className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-6 rounded-[32px] shadow-2xl shadow-slate-200/30 dark:shadow-black/40 flex items-center gap-5 active:scale-95 transition-all border border-white/40 dark:border-white/10 w-full"
             >
               <div className="bg-orange-500 w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg dark:shadow-md shadow-orange-100">
                 <Activity size={24} />

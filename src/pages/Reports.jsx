@@ -189,7 +189,7 @@ const Reports = () => {
     if (count < 5) return { label: 'Amateur', color: 'bg-slate-400', icon: <Activity size={14}/> };
     if (count < 12) return { label: 'Beginner', color: 'bg-blue-500', icon: <Target size={14}/> };
     if (count <= 21) return { label: 'Advanced', color: 'bg-purple-600', icon: <TrendingUp size={14}/> };
-    return { label: 'Pro Athlete', color: 'bg-emerald-500', icon: <Trophy size={14}/> };
+    return { label: 'Pro Athlete', color: 'bg-accent-500', icon: <Trophy size={14}/> };
   };
 
   const tier = getUserTier();
@@ -299,11 +299,11 @@ const Reports = () => {
   }, [fullscreenImage, allWorkouts]);
 
   if (loading) return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 transition-colors duration-300">
+    <div className="relative min-h-screen flex flex-col items-center justify-center p-6">
       <div className="relative mb-8">
-        <div className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping duration-[2000ms]"></div>
-        <div className="relative bg-white dark:bg-slate-900 p-8 rounded-full shadow-xl dark:shadow-md border border-emerald-100 dark:border-emerald-500/30">
-          <Activity size={48} className="text-emerald-500 animate-pulse" />
+        <div className="absolute inset-0 rounded-full bg-accent-500/20 animate-ping duration-[2000ms]"></div>
+        <div className="relative bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-8 rounded-full shadow-xl dark:shadow-md border border-white/40 dark:border-white/10">
+          <Activity size={48} className="text-accent-500 animate-pulse" />
         </div>
       </div>
       <div className="w-full max-w-[200px] text-center">
@@ -311,7 +311,7 @@ const Reports = () => {
           Analyzing Gains
         </h2>
         <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-          <div className="h-full bg-emerald-500 rounded-full animate-progress-loading"></div>
+          <div className="h-full bg-accent-500 rounded-full animate-progress-loading"></div>
         </div>
         <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mt-4 animate-bounce">
           Generating Report...
@@ -323,7 +323,7 @@ const Reports = () => {
   const galleryImages = allWorkouts.filter(w => w.imageUrl).map(w => w.imageUrl);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-6 pb-40 transition-colors duration-300">
+    <div className="relative min-h-screen p-6 pb-40">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
@@ -341,33 +341,33 @@ const Reports = () => {
       {/* Body Metrics Nav */}
       <button
         onClick={() => navigate('/metrics')}
-        className="w-full bg-gradient-to-br from-orange-500 to-orange-600 dark:from-orange-600 dark:to-orange-800 text-white p-5 rounded-[32px] shadow-lg dark:shadow-md mb-6 flex items-center justify-between active:scale-[0.98] transition-all relative overflow-hidden"
+        className="w-full bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl border border-white/40 dark:border-white/10 text-slate-800 dark:text-slate-100 p-5 rounded-[32px] shadow-sm mb-6 flex items-center justify-between active:scale-[0.98] transition-all relative overflow-hidden"
       >
         <div className="flex items-center gap-4 relative z-10">
-          <div className="bg-white/20 backdrop-blur-sm w-12 h-12 rounded-2xl flex items-center justify-center">
+          <div className="bg-gradient-to-br from-orange-500 to-orange-600 dark:from-orange-600 dark:to-orange-800 w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-md shadow-orange-200 dark:shadow-orange-900/30">
             <Activity size={22} strokeWidth={2.5} />
           </div>
           <div className="text-left">
             <p className="font-bold text-base leading-tight">Body Metrics</p>
-            <p className="text-[10px] font-bold text-orange-50/80 uppercase tracking-widest mt-1">
+            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">
               Weight, fat % &amp; muscle trends
             </p>
           </div>
         </div>
-        <ChevronRight size={20} className="text-white/80 relative z-10" />
-        <Activity className="absolute -right-4 -bottom-4 w-24 h-24 text-white/10 rotate-12" />
+        <ChevronRight size={20} className="text-slate-400 dark:text-slate-500 relative z-10" />
+        <Activity className="absolute -right-4 -bottom-4 w-24 h-24 text-orange-500/10 dark:text-orange-400/10 rotate-12" />
       </button>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 gap-4 mb-8">
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-[32px] shadow-sm border border-slate-100 dark:border-slate-800">
-          <div className="bg-emerald-100 dark:bg-emerald-500/15 w-10 h-10 rounded-2xl flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-3">
+        <div className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-5 rounded-[32px] shadow-sm border border-white/40 dark:border-white/10">
+          <div className="bg-accent-100 dark:bg-accent-500/15 w-10 h-10 rounded-2xl flex items-center justify-center text-accent-600 dark:text-accent-400 mb-3">
             <Activity size={20} />
           </div>
           <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Total Sessions</p>
           <p className="text-xl font-bold text-slate-800 dark:text-slate-100">{stats.totalWorkouts}</p>
         </div>
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-[32px] shadow-sm border border-slate-100 dark:border-slate-800">
+        <div className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-5 rounded-[32px] shadow-sm border border-white/40 dark:border-white/10">
           <div className="bg-blue-100 dark:bg-blue-500/15 w-10 h-10 rounded-2xl flex items-center justify-center text-blue-600 dark:text-blue-400 mb-3">
             <Clock size={20} />
           </div>
@@ -384,7 +384,7 @@ const Reports = () => {
               isPaused ? 'bg-slate-200 dark:bg-slate-700' : 'bg-gradient-to-r from-amber-400 via-orange-500 to-amber-400 bg-[length:200%_auto] animate-gradient-x'
             }`}
           >
-            <div className="bg-white dark:bg-slate-900 rounded-[24px] px-5 py-4 flex items-center justify-between">
+            <div className="bg-white/60 dark:bg-slate-800/50 backdrop-blur-xl rounded-[24px] px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="relative">
                   {!isPaused && (
@@ -427,7 +427,7 @@ const Reports = () => {
               key={muscle}
               onClick={() => setActivePrTab(muscle)}
               className={`px-6 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${
-                activePrTab === muscle ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-md' : 'bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-800'
+                activePrTab === muscle ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-md' : 'bg-white/40 dark:bg-slate-800/30 backdrop-blur-md text-slate-400 dark:text-slate-500 border border-white/40 dark:border-white/10'
               }`}
             >
               {muscle}
@@ -441,7 +441,7 @@ const Reports = () => {
                 .sort(([, a], [, b]) => b.weight - a.weight)
                 .slice(0, showAllPrs ? undefined : 5)
                 .map(([name, data]) => (
-                <div key={name} onClick={() => handlePrClick(name)} className="group bg-white dark:bg-slate-900 p-5 rounded-[28px] shadow-sm border border-slate-100 dark:border-slate-800 flex justify-between items-center active:scale-[0.98] transition-all cursor-pointer relative overflow-hidden">
+                <div key={name} onClick={() => handlePrClick(name)} className="group bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-5 rounded-[28px] shadow-sm border border-white/40 dark:border-white/10 flex justify-between items-center active:scale-[0.98] transition-all cursor-pointer relative overflow-hidden">
                   <div>
                     <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm mb-1 capitalize">{name}</h4>
                     <div className="flex items-center gap-3">
@@ -458,22 +458,22 @@ const Reports = () => {
                       )}
                     </div>
                   </div>
-                  <div className="bg-emerald-50 dark:bg-emerald-500/10 px-4 py-2 rounded-2xl border border-emerald-100 dark:border-emerald-500/30 text-right">
-                    <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400 leading-none">{data.weight}<span className="text-[10px] ml-0.5">kg</span></p>
+                  <div className="bg-accent-50 dark:bg-accent-500/10 px-4 py-2 rounded-2xl border border-accent-100 dark:border-accent-500/30 text-right">
+                    <p className="text-xl font-bold text-accent-600 dark:text-accent-400 leading-none">{data.weight}<span className="text-[10px] ml-0.5">kg</span></p>
                   </div>
                 </div>
               ))}
               {Object.keys(personalRecords[activePrTab]).length > 5 && (
                 <button
                   onClick={() => setShowAllPrs(!showAllPrs)}
-                  className="mt-2 py-3 w-full flex items-center justify-center gap-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 active:scale-95 transition-all shadow-sm"
+                  className="mt-2 py-3 w-full flex items-center justify-center gap-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-white/10 active:scale-95 transition-all shadow-sm"
                 >
                   {showAllPrs ? <>{'Show Less'} <ChevronUp size={14}/></> : <>{'View All'} {Object.keys(personalRecords[activePrTab]).length} {activePrTab} {'PRs'} <ChevronDown size={14}/></>}
                 </button>
               )}
             </div>
           ) : (
-            <div className="bg-white dark:bg-slate-900 p-10 rounded-[32px] text-center border-2 border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center">
+            <div className="bg-white/30 dark:bg-slate-800/30 backdrop-blur-xl p-10 rounded-[32px] text-center border-2 border-dashed border-white/40 dark:border-white/10 flex flex-col items-center">
                 <Dumbbell size={24} className="text-slate-200 dark:text-slate-700 mb-3"/>
                 <p className="text-slate-400 dark:text-slate-500 text-[10px] font-bold uppercase tracking-widest italic">No {activePrTab} PRs recorded</p>
             </div>
@@ -489,7 +489,7 @@ const Reports = () => {
         </div>
         
         {galleryImages.length > 0 ? (
-          <div className="bg-white dark:bg-slate-900 p-4 rounded-[32px] shadow-sm border border-slate-100 dark:border-slate-800">
+          <div className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-4 rounded-[32px] shadow-sm border border-white/40 dark:border-white/10">
             <div className="grid grid-cols-4 gap-2">
               {galleryImages.slice(0, 8).map((img, idx) => (
                 <div 
@@ -511,7 +511,7 @@ const Reports = () => {
             )}
           </div>
         ) : (
-          <div className="bg-white dark:bg-slate-900 p-10 rounded-[32px] text-center border-2 border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center">
+          <div className="bg-white/30 dark:bg-slate-800/30 backdrop-blur-xl p-10 rounded-[32px] text-center border-2 border-dashed border-white/40 dark:border-white/10 flex flex-col items-center">
             <ImageIcon size={24} className="text-slate-200 dark:text-slate-700 mb-3"/>
             <p className="text-slate-400 dark:text-slate-500 text-[10px] font-bold uppercase tracking-widest italic">No progress photos yet</p>
           </div>
@@ -519,16 +519,16 @@ const Reports = () => {
       </div>
 
       {/* Intensity Trend */}
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-[32px] shadow-sm border border-slate-100 dark:border-slate-800 mb-6">
+      <div className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-6 rounded-[32px] shadow-sm border border-white/40 dark:border-white/10 mb-6">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2">
-            <TrendingUp size={18} className="text-emerald-500" />
+            <TrendingUp size={18} className="text-accent-500" />
             <h3 className="font-bold text-slate-700 dark:text-slate-200 uppercase text-[10px] tracking-widest">Intensity trend</h3>
           </div>
-          <div className="flex items-center bg-slate-50 dark:bg-slate-800 p-1 rounded-xl border border-slate-100 dark:border-slate-700 gap-1">
-            <button onClick={() => {setCurrentWeekOffset(prev => prev - 1); setClickedIntensity(true)}} className="p-1.5 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm rounded-lg transition-all text-slate-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400"><ChevronLeft size={16}/></button>
+          <div className="flex items-center bg-white/30 dark:bg-white/5 backdrop-blur-md p-1 rounded-xl border border-white/40 dark:border-white/10 gap-1">
+            <button onClick={() => {setCurrentWeekOffset(prev => prev - 1); setClickedIntensity(true)}} className="p-1.5 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm rounded-lg transition-all text-slate-400 dark:text-slate-500 hover:text-accent-600 dark:hover:text-accent-400"><ChevronLeft size={16}/></button>
             <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 px-2 uppercase">{currentWeekOffset === 0 ? "This Week" : currentWeekOffset === -1 ? "Last Week" : `${Math.abs(currentWeekOffset)}w ago`}</span>
-            <button onClick={() => {setCurrentWeekOffset(prev => prev + 1); setClickedIntensity(true)}} className="p-1.5 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm rounded-lg transition-all text-slate-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400"><ChevronRight size={16}/></button>
+            <button onClick={() => {setCurrentWeekOffset(prev => prev + 1); setClickedIntensity(true)}} className="p-1.5 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm rounded-lg transition-all text-slate-400 dark:text-slate-500 hover:text-accent-600 dark:hover:text-accent-400"><ChevronRight size={16}/></button>
           </div>
         </div>
         <div className="h-44 w-full">
@@ -550,9 +550,9 @@ const Reports = () => {
       </div>
 
       {/* Muscle Focus */}
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-[32px] shadow-sm border border-slate-100 dark:border-slate-800 mb-10">
+      <div className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-6 rounded-[32px] shadow-sm border border-white/40 dark:border-white/10 mb-10">
         <div className="flex items-center gap-2 mb-6">
-          <Target size={18} className="text-emerald-500" />
+          <Target size={18} className="text-accent-500" />
           <h3 className="font-bold text-slate-700 dark:text-slate-200 uppercase text-[10px] tracking-widest">Muscle Volume (%)</h3>
         </div>
         <div className="space-y-5">
@@ -580,20 +580,20 @@ const Reports = () => {
             <p className="text-slate-400 text-xs mb-4">
               Averaging {stats.totalWorkouts > 0 ? Math.round(stats.totalMinutes / stats.totalWorkouts) : 0} mins per session. 
             </p>
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-lg text-[10px] font-bold uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent-500/20 text-accent-400 rounded-lg text-[10px] font-bold uppercase tracking-widest">
                 <TrendingUp size={12}/> {stats.monthlyWorkouts} sessions (Last 30d)
             </div>
         </div>
-        <Activity className="absolute -right-8 -bottom-8 w-32 h-32 text-emerald-500/40 rotate-12" />
+        <Activity className="absolute -right-8 -bottom-8 w-32 h-32 text-accent-500/40 rotate-12" />
       </div>
 
       {/* Change Password */}
       <div className="mt-8">
         <button 
           onClick={() => setShowPasswordModal(true)}
-          className="w-full py-4 flex items-center justify-center gap-2 text-slate-500 dark:text-slate-300 font-bold text-[10px] uppercase tracking-[0.2em] bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-all mb-4"
+          className="w-full py-4 flex items-center justify-center gap-2 text-slate-500 dark:text-slate-300 font-bold text-[10px] uppercase tracking-[0.2em] bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-white/10 shadow-sm hover:bg-white/60 dark:hover:bg-slate-800/50 transition-all mb-4"
         >
-          <Key size={16} className="text-emerald-500" /> Change Password
+          <Key size={16} className="text-accent-500" /> Change Password
         </button>
       </div>
       <hr className="mb-3 border-slate-200 dark:border-slate-800" />
@@ -609,13 +609,13 @@ const Reports = () => {
       {/* Modals & Popups */}
       {showFullGallery && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[500] flex items-end justify-center">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-t-[40px] p-8 max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
+          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-lg rounded-t-[40px] p-8 max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
             <div className="flex justify-between items-center mb-8">
               <div>
                 <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">Full Gallery</h2>
                 <p className="text-blue-500 dark:text-blue-400 font-bold text-[10px] uppercase tracking-[0.2em]">All Progress Photos</p>
               </div>
-              <button onClick={() => setShowFullGallery(false)} className="bg-slate-100 dark:bg-slate-800 p-2 rounded-full text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+              <button onClick={() => setShowFullGallery(false)} className="bg-white/50 dark:bg-white/10 backdrop-blur-md p-2 rounded-full text-slate-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-white/20 transition-colors">
                 <X size={20} />
               </button>
             </div>
@@ -707,7 +707,7 @@ const Reports = () => {
 
       {showDeletePrompt && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6 text-center">
-          <div className="bg-white dark:bg-slate-900 dark:border dark:border-slate-800 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
+          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
             <div className="bg-red-100 dark:bg-red-500/15 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600 dark:text-red-400">
               <AlertTriangle size={32} />
             </div>
@@ -726,7 +726,7 @@ const Reports = () => {
 
       {showPasswordModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[400] flex items-center justify-center p-6">
-          <div className="bg-white dark:bg-slate-900 dark:border dark:border-slate-800 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
+          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
             <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
               {passwordStep === 1 ? 'Verify Identity' : 'Set New Password'}
             </h2>
@@ -739,13 +739,13 @@ const Reports = () => {
                 <>
                   <input 
                     type="email" placeholder="Email Address"
-                    className="w-full p-4 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-2xl font-bold outline-none border border-slate-100 dark:border-slate-700 focus:border-emerald-500 dark:focus:border-emerald-400"
+                    className="w-full p-4 bg-white/50 dark:bg-white/5 backdrop-blur-md text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-2xl font-bold outline-none border border-white/50 dark:border-white/10 focus:border-accent-500 dark:focus:border-accent-400"
                     value={passwordData.email}
                     onChange={(e) => setPasswordData({...passwordData, email: e.target.value})}
                   />
                   <input 
                     type="password" placeholder="Current Password"
-                    className="w-full p-4 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-2xl font-bold outline-none border border-slate-100 dark:border-slate-700 focus:border-emerald-500 dark:focus:border-emerald-400"
+                    className="w-full p-4 bg-white/50 dark:bg-white/5 backdrop-blur-md text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-2xl font-bold outline-none border border-white/50 dark:border-white/10 focus:border-accent-500 dark:focus:border-accent-400"
                     value={passwordData.currentPassword}
                     onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
                   />
@@ -754,13 +754,13 @@ const Reports = () => {
                 <>
                   <input 
                     type="password" placeholder="New Password"
-                    className="w-full p-4 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-2xl font-bold outline-none border border-slate-100 dark:border-slate-700 focus:border-emerald-500 dark:focus:border-emerald-400"
+                    className="w-full p-4 bg-white/50 dark:bg-white/5 backdrop-blur-md text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-2xl font-bold outline-none border border-white/50 dark:border-white/10 focus:border-accent-500 dark:focus:border-accent-400"
                     value={passwordData.newPassword}
                     onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
                   />
                   <input 
                     type="password" placeholder="Repeat New Password"
-                    className="w-full p-4 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-2xl font-bold outline-none border border-slate-100 dark:border-slate-700 focus:border-emerald-500 dark:focus:border-emerald-400"
+                    className="w-full p-4 bg-white/50 dark:bg-white/5 backdrop-blur-md text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-2xl font-bold outline-none border border-white/50 dark:border-white/10 focus:border-accent-500 dark:focus:border-accent-400"
                     value={passwordData.confirmPassword}
                     onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
                   />
@@ -801,7 +801,7 @@ const Reports = () => {
 
       {showSuccessOverlay && (
         <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[600] flex flex-col items-center justify-center p-6 text-center">
-          <div className="bg-white dark:bg-slate-900 dark:border dark:border-slate-800 rounded-[40px] p-10 w-full max-w-sm shadow-2xl relative overflow-hidden animate-in zoom-in duration-300">
+          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 rounded-[40px] p-10 w-full max-w-sm shadow-2xl relative overflow-hidden animate-in zoom-in duration-300">
             
             {/* Circular Timer Animation */}
             <div className="relative w-24 h-24 mx-auto mb-6 flex items-center justify-center">
@@ -824,13 +824,13 @@ const Reports = () => {
                   fill="transparent"
                   strokeDasharray="251.2"
                   strokeDashoffset={251.2 - (251.2 * countdown) / 3}
-                  className="text-emerald-500 transition-all duration-1000 ease-linear"
+                  className="text-accent-500 transition-all duration-1000 ease-linear"
                 />
               </svg>
               <span className="absolute text-2xl font-bold text-slate-800 dark:text-slate-100">{countdown}</span>
             </div>
 
-            <div className="bg-emerald-100 dark:bg-emerald-500/15 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-600 dark:text-emerald-400">
+            <div className="bg-accent-100 dark:bg-accent-500/15 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-accent-600 dark:text-accent-400">
               <Activity size={32} />
             </div>
             
@@ -842,7 +842,7 @@ const Reports = () => {
 
             <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
               <div 
-                className="h-full bg-emerald-500 transition-all duration-1000 ease-linear" 
+                className="h-full bg-accent-500 transition-all duration-1000 ease-linear" 
                 style={{ width: `${(countdown / 3) * 100}%` }}
               ></div>
             </div>
@@ -857,15 +857,15 @@ const Reports = () => {
       {/* PR HISTORY BOTTOM SHEET */}
       {selectedPrHistory && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[500] flex items-end justify-center">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-t-[40px] p-8 max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
+          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-lg rounded-t-[40px] p-8 max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
             
             {/* Modal Header */}
             <div className="flex justify-between items-start mb-8">
               <div>
                 <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight capitalize">{selectedPrHistory.name}</h2>
-                <p className="text-emerald-500 dark:text-emerald-400 font-bold text-[10px] uppercase tracking-[0.2em]">Full History</p>
+                <p className="text-accent-500 dark:text-accent-400 font-bold text-[10px] uppercase tracking-[0.2em]">Full History</p>
               </div>
-              <button onClick={() => setSelectedPrHistory(null)} className="bg-slate-100 dark:bg-slate-800 p-2 rounded-full text-slate-400 dark:text-slate-500">
+              <button onClick={() => setSelectedPrHistory(null)} className="bg-white/50 dark:bg-white/10 backdrop-blur-md p-2 rounded-full text-slate-400 dark:text-slate-500">
                 <X size={20} />
               </button>
             </div>
@@ -873,8 +873,8 @@ const Reports = () => {
             {/* History List */}
             <div className="space-y-6">
               {selectedPrHistory.history.slice(0, historyLimit).map((entry, idx) => (
-                <div key={idx} className="relative pl-6 border-l-2 border-slate-100 dark:border-slate-800 pb-2">
-                  <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-white dark:bg-slate-900 border-4 border-emerald-500" />
+                <div key={idx} className="relative pl-6 border-l-2 border-white/40 dark:border-white/10 pb-2">
+                  <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-white dark:bg-slate-900 border-4 border-accent-500" />
                   
                   <div className="flex justify-between items-start mb-2">
                     <div>
@@ -908,7 +908,7 @@ const Reports = () => {
 
                   <div className="grid grid-cols-2 gap-2">
                     {entry.sets.map((set, sIdx) => (
-                      <div key={sIdx} className="bg-slate-50 dark:bg-slate-800 px-3 py-2 rounded-xl border border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                      <div key={sIdx} className="bg-white/40 dark:bg-white/5 backdrop-blur-md px-3 py-2 rounded-xl border border-white/40 dark:border-white/10 flex justify-between items-center">
                         <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500">SET {sIdx + 1}</span>
                         <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
                           {entry.type === 'Strength' ? `${set.weight}kg x ${set.reps}` : `${set.time}s`}
@@ -923,7 +923,7 @@ const Reports = () => {
               {historyLimit < selectedPrHistory.history.length && (
                 <button
                   onClick={() => setHistoryLimit(prev => prev + 5)}
-                  className="w-full py-4 mt-4 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-[0.2em] bg-white dark:bg-slate-900 rounded-2xl border border-emerald-100 dark:border-emerald-500/30 active:scale-95 transition-all flex items-center justify-center gap-2"
+                  className="w-full py-4 mt-4 text-[10px] font-bold text-accent-600 dark:text-accent-400 uppercase tracking-[0.2em] bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl rounded-2xl border border-accent-100 dark:border-accent-500/30 active:scale-95 transition-all flex items-center justify-center gap-2"
                 >
                   {/* <Activity size={14} /> */}
                   Show 5 More Sessions

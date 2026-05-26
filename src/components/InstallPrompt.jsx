@@ -51,7 +51,7 @@ const InstallPrompt = () => {
     <div className="fixed bottom-24 left-4 right-4 z-[100] animate-in slide-in-from-bottom-10 duration-500">
       <div className="bg-slate-900 text-white p-5 rounded-[32px] shadow-2xl border border-white/10 flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="bg-emerald-500 p-3 rounded-2xl shadow-lg dark:shadow-md shadow-emerald-500/20">
+          <div className="bg-accent-500 p-3 rounded-2xl shadow-lg dark:shadow-md shadow-accent-500/20">
             <Smartphone size={24} />
           </div>
           <div>
@@ -63,7 +63,7 @@ const InstallPrompt = () => {
         <div className="flex items-center gap-2">
           <button 
             onClick={handleInstallClick}
-            className="bg-emerald-500 text-white px-5 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg dark:shadow-md shadow-emerald-500/20 active:scale-95 transition-all"
+            className="bg-accent-500 text-white px-5 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg dark:shadow-md shadow-accent-500/20 active:scale-95 transition-all"
           >
             Install
           </button>

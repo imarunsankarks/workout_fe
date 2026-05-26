@@ -25,6 +25,13 @@ const AppContent = () => {
 
   return (
     <div className="pb-20 select-none">
+      {/* Animated gradient blobs — global background */}
+      <div className="fixed inset-0 -z-10 overflow-hidden bg-slate-50 dark:bg-slate-950 pointer-events-none">
+        <div className="absolute -top-32 -left-24 w-96 h-96 rounded-full bg-emerald-400/40 dark:bg-emerald-500/20 blur-3xl animate-blob" />
+        <div className="absolute top-1/3 -right-32 w-[28rem] h-[28rem] rounded-full bg-indigo-400/40 dark:bg-indigo-500/20 blur-3xl animate-blob animation-delay-2000" />
+        <div className="absolute bottom-0 left-1/4 w-96 h-96 rounded-full bg-orange-400/30 dark:bg-orange-500/15 blur-3xl animate-blob animation-delay-4000" />
+        <div className="absolute top-1/2 left-1/2 w-80 h-80 rounded-full bg-fuchsia-400/30 dark:bg-fuchsia-500/15 blur-3xl animate-blob animation-delay-6000" />
+      </div>
       <InstallPrompt />
       <ScrollToTop />
       <Routes>

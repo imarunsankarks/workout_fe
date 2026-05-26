@@ -249,7 +249,7 @@ const onFileChange = async (e, workoutId) => {
 };
 
   return (
-    <div className="p-6 bg-slate-50 dark:bg-slate-950 min-h-screen pb-24 transition-colors duration-300">
+    <div className="relative p-6 min-h-screen pb-24">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
@@ -280,38 +280,37 @@ const onFileChange = async (e, workoutId) => {
       </div>
 
       {/* Start / Resume Workout Card */}
-      <div
-        className={`relative mb-8 rounded-[28px] overflow-hidden transition-all duration-500 shadow-xl ${
-          hasActiveSession
-            ? isPaused
-              ? "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900"
-              : "bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500"
-            : "bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700"
-        }`}
-      >
-        {/* Decorative blobs */}
-        <div className="absolute -top-12 -right-12 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-        <div className="absolute -bottom-14 -left-8 w-36 h-36 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-
+      <div className="relative mb-8 rounded-[28px] overflow-hidden transition-all duration-500 shadow-sm bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl border border-white/40 dark:border-white/10">
         {/* Decorative dumbbell silhouette */}
         <Dumbbell
-          className={`absolute -right-6 -bottom-8 w-32 h-32 text-white/[0.07] rotate-12 pointer-events-none ${
-            !isPaused && hasActiveSession ? "animate-spin-slow" : ""
-          }`}
+          className={`absolute -right-6 -bottom-8 w-32 h-32 rotate-12 pointer-events-none ${
+            hasActiveSession
+              ? isPaused
+                ? "text-slate-500/10 dark:text-slate-400/10"
+                : "text-orange-500/10 dark:text-orange-400/10"
+              : "text-accent-500/10 dark:text-accent-400/10"
+          } ${!isPaused && hasActiveSession ? "animate-spin-slow" : ""}`}
         />
 
-
-        <div className="relative z-10 p-5 text-white">
+        <div className="relative z-10 p-5">
           {/* Status pill */}
           <div className="flex items-center justify-between mb-3.5">
-            <div className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/20">
+            <div
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-white shadow-sm ${
+                hasActiveSession
+                  ? isPaused
+                    ? "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900"
+                    : "bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500"
+                  : "bg-accent-gradient"
+              }`}
+            >
               <span
                 className={`w-1 h-1 rounded-full ${
                   hasActiveSession && !isPaused
                     ? "bg-white animate-pulse"
                     : isPaused
                       ? "bg-slate-300"
-                      : "bg-emerald-200"
+                      : "bg-accent-200"
                 }`}
               />
               <span className="text-[8px] font-bold uppercase tracking-[0.2em]">
@@ -323,7 +322,7 @@ const onFileChange = async (e, workoutId) => {
               </span>
             </div>
 
-            <div className="bg-white/15 backdrop-blur-md w-7 h-7 rounded-full flex items-center justify-center border border-white/20">
+            <div className="bg-white/50 dark:bg-white/10 backdrop-blur-md w-7 h-7 rounded-full flex items-center justify-center border border-white/40 dark:border-white/10 text-slate-500 dark:text-slate-300">
               {hasActiveSession ? (
                 isPaused ? (
                   <PauseCircle size={13} />
@@ -337,7 +336,7 @@ const onFileChange = async (e, workoutId) => {
           </div>
 
           {/* Heading + subtext */}
-          <h2 className="text-xl font-black mb-1 tracking-tight leading-tight">
+          <h2 className="text-xl font-black mb-1 tracking-tight leading-tight text-slate-800 dark:text-slate-100">
             {hasActiveSession
               ? isPaused
                 ? "Workout Paused"
@@ -346,13 +345,13 @@ const onFileChange = async (e, workoutId) => {
           </h2>
           {hasActiveSession ? (
             <div className="flex items-baseline gap-2 mb-4">
-              <SessionLiveTime className="text-md font-mono font-bold text-white leading-none tracking-tight" />
-              <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/70">
+              <SessionLiveTime className="text-md font-mono font-bold text-slate-700 dark:text-slate-200 leading-none tracking-tight" />
+              <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
                 {isPaused ? "On hold" : "Elapsed"}
               </span>
             </div>
           ) : (
-            <p className="text-white/75 text-xs font-medium mb-4 leading-snug">
+            <p className="text-slate-500 dark:text-slate-400 text-xs font-medium mb-4 leading-snug">
               {history[0]
                 ? `Last session ${new Date(history[0].date).toLocaleDateString(
                     "en-GB",
@@ -362,10 +361,16 @@ const onFileChange = async (e, workoutId) => {
             </p>
           )}
 
-          {/* CTA Button - Glass effect */}
+          {/* CTA Button */}
           <button
             onClick={handleMainButtonClick}
-            className="group w-auto py-3 px-4 rounded-[2rem] flex items-center justify-between active:scale-[0.98] transition-all text-white font-bold bg-white/20 backdrop-blur-lg hover:bg-white/20]"
+            className={`group w-auto py-3 px-4 rounded-[2rem] flex items-center justify-between active:scale-[0.98] transition-all text-white font-bold shadow-lg ${
+              hasActiveSession
+                ? isPaused
+                  ? "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900"
+                  : "bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500"
+                : "bg-accent-gradient"
+            }`}
           >
             <span className="flex items-center gap-2">
               <span className="w-6 h-6 rounded-2xl bg-white/25 border border-white/30 flex items-center justify-center">
@@ -394,7 +399,7 @@ const onFileChange = async (e, workoutId) => {
       {/* Logout Confirmation Modal */}
       {showLogoutPrompt && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6 text-center">
-          <div className="bg-white dark:bg-slate-900 dark:border dark:border-slate-800 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
+          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
             <div className="bg-red-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-red-600">
               <LogOut size={32} />
             </div>
@@ -426,7 +431,7 @@ const onFileChange = async (e, workoutId) => {
       {/* Delete Confirmation Modal */}
       {workoutToDelete && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6 text-center">
-          <div className="bg-white dark:bg-slate-900 dark:border dark:border-slate-800 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
+          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
             <div className="bg-orange-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-orange-600">
               <Trash2 size={32} />
             </div>
@@ -458,8 +463,8 @@ const onFileChange = async (e, workoutId) => {
       {/* Confirmation Start Prompt Modal */}
       {showStartPrompt && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[250] flex items-center justify-center p-6 text-center">
-          <div className="bg-white dark:bg-slate-900 dark:border dark:border-slate-800 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div className="bg-emerald-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-emerald-600">
+          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="bg-accent-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-accent-600">
               <Play size={32} fill="currentColor" />
             </div>
             <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
@@ -478,7 +483,7 @@ const onFileChange = async (e, workoutId) => {
               </button>
               <button
                 onClick={confirmStartWorkout}
-                className="flex-1 bg-emerald-600 text-white font-bold py-4 rounded-2xl shadow-lg dark:shadow-md shadow-emerald-100 active:scale-95 transition-all"
+                className="flex-1 bg-accent-gradient text-white font-bold py-4 rounded-2xl shadow-lg dark:shadow-md shadow-accent-100 active:scale-95 transition-all"
               >
                 Let's Go!
               </button>
@@ -490,7 +495,7 @@ const onFileChange = async (e, workoutId) => {
       {/* History List */}
       <div className="flex justify-between items-center mb-4">
         <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg flex items-center gap-2">
-          <Activity size={20} className="text-emerald-500" /> Recent Workouts
+          <Activity size={20} className="text-accent-500" /> Recent Workouts
         </h3>
         {history.length > 0 && (
           <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 bg-slate-200 dark:bg-slate-800 px-2 py-1 rounded-md uppercase">
@@ -504,7 +509,7 @@ const onFileChange = async (e, workoutId) => {
           {[1, 2, 3].map((item) => (
             <div
               key={item}
-              className="bg-white dark:bg-slate-900 p-5 rounded-[24px] flex justify-between items-center border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden"
+              className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-5 rounded-[24px] flex justify-between items-center border border-white/40 dark:border-white/10 shadow-sm relative overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-50/60 dark:via-slate-800/60 to-transparent -translate-x-full animate-shimmer"></div>
               <div className="flex items-center gap-4 w-full">
@@ -530,13 +535,13 @@ const onFileChange = async (e, workoutId) => {
                   <div
                     key={workout._id}
                     onClick={() => setSelectedWorkout(workout)}
-                    className="group bg-white dark:bg-slate-900 p-3 rounded-[24px] flex justify-between items-center border border-slate-100 dark:border-slate-800 shadow-sm active:scale-[0.98] transition-all cursor-pointer relative"
+                    className="group bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-3 rounded-[24px] flex justify-between items-center border border-white/40 dark:border-white/10 shadow-sm active:scale-[0.98] transition-all cursor-pointer relative"
                   >
                     <div className="flex items-center gap-4">
                       <div
                         className={`p-3 rounded-2xl flex flex-col items-center justify-center min-w-[52px] ${
                           progress.type === "up"
-                            ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                            ? "bg-accent-50 dark:bg-accent-500/10 text-accent-600 dark:text-accent-400"
                             : progress.type === "down"
                               ? "bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400"
                               : progress.type === "neutral"
@@ -594,15 +599,15 @@ const onFileChange = async (e, workoutId) => {
               {visibleLimit < history.length && (
                 <button
                   onClick={() => setVisibleLimit((prev) => prev + 8)}
-                  className="w-full py-4 mt-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2"
+                  className="w-full py-4 mt-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-white/10 shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2"
                 >
-                  <Activity size={14} className="text-emerald-500" />
+                  <Activity size={14} className="text-accent-500" />
                   Load Older Workouts
                 </button>
               )}
             </>
           ) : (
-            <div className="bg-white dark:bg-slate-900 p-12 rounded-[32px] border-2 border-dashed border-slate-200 dark:border-slate-700 text-center">
+            <div className="bg-white/30 dark:bg-slate-800/30 backdrop-blur-xl p-12 rounded-[32px] border-2 border-dashed border-white/40 dark:border-white/10 text-center">
               <Dumbbell size={24} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
               <p className="text-slate-400 dark:text-slate-500 text-sm italic">
                 No workouts recorded yet.
@@ -615,7 +620,7 @@ const onFileChange = async (e, workoutId) => {
       {/* Detail Modal */}
       {selectedWorkout && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[200] flex items-end justify-center">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-t-[40px] p-8 max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
+          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-lg rounded-t-[40px] p-8 max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 capitalize">
@@ -630,7 +635,7 @@ const onFileChange = async (e, workoutId) => {
               </div>
               <button
                 onClick={() => setSelectedWorkout(null)}
-                className="bg-slate-100 dark:bg-slate-800 p-2 rounded-full text-slate-400 dark:text-slate-500"
+                className="bg-white/50 dark:bg-white/10 backdrop-blur-md p-2 rounded-full text-slate-400 dark:text-slate-500"
               >
                 <X size={20} />
               </button>
@@ -674,7 +679,7 @@ const onFileChange = async (e, workoutId) => {
 
                   {selectedWorkout.notes && (
                     <div className="absolute bottom-0 left-0 right-0 p-6 pointer-events-none">
-                      <span className="text-[8px] block font-black uppercase tracking-[0.2em] text-emerald-400 mb-1">
+                      <span className="text-[8px] block font-black uppercase tracking-[0.2em] text-accent-400 mb-1">
                         Session Note
                       </span>
                       <p className="text-white text-sm font-medium leading-relaxed drop-shadow-md line-clamp-3">
@@ -693,7 +698,7 @@ const onFileChange = async (e, workoutId) => {
                         Uploading...
                       </p>
                       <div className="w-32 h-1 bg-white/20 rounded-full overflow-hidden">
-                        <div className="h-full bg-emerald-400 rounded-full animate-progress-loading" />
+                        <div className="h-full bg-accent-400 rounded-full animate-progress-loading" />
                       </div>
                     </div>
                   )}
@@ -703,25 +708,25 @@ const onFileChange = async (e, workoutId) => {
                 <label
                   className={`relative overflow-hidden flex flex-col items-center justify-center w-full h-[120px] border-2 border-dashed rounded-[32px] transition-all group ${
                     isUploading
-                      ? "border-emerald-300 bg-emerald-50/40 dark:bg-emerald-500/10 cursor-wait pointer-events-none"
-                      : "border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-emerald-300"
+                      ? "border-accent-300 bg-accent-50/40 dark:bg-accent-500/10 cursor-wait pointer-events-none"
+                      : "border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-accent-300"
                   }`}
                 >
                   {isUploading ? (
                     <div className="flex flex-col items-center justify-center w-full px-8 animate-in fade-in duration-200">
-                      <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-500 mb-2">
+                      <div className="p-3 bg-accent-50 rounded-2xl text-accent-500 mb-2">
                         <Loader2 size={20} strokeWidth={3} className="animate-spin" />
                       </div>
-                      <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-2">
+                      <p className="text-[10px] font-black text-accent-500 uppercase tracking-widest mb-2">
                         Uploading...
                       </p>
-                      <div className="w-32 h-1 bg-emerald-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-emerald-500 rounded-full animate-progress-loading" />
+                      <div className="w-32 h-1 bg-accent-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-accent-500 rounded-full animate-progress-loading" />
                       </div>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-slate-400 dark:text-slate-500 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-500/10 group-hover:text-emerald-500 transition-colors mb-2">
+                      <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-slate-400 dark:text-slate-500 group-hover:bg-accent-50 dark:group-hover:bg-accent-500/10 group-hover:text-accent-500 transition-colors mb-2">
                         <Plus size={20} strokeWidth={3} />
                       </div>
                       <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Add Session Photo</p>
@@ -740,7 +745,7 @@ const onFileChange = async (e, workoutId) => {
 
             {showImageDeleteConfirm && (
               <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[700] flex items-center justify-center p-6 text-center">
-                <div className="bg-white dark:bg-slate-900 dark:border dark:border-slate-800 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
+                <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
                   <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
                     <AlertTriangle size={32} />
                   </div>
@@ -772,7 +777,7 @@ const onFileChange = async (e, workoutId) => {
               {selectedWorkout.details?.map((ex, idx) => (
                 <div
                   key={idx}
-                  className="bg-slate-50/50 dark:bg-slate-800/40 p-4 rounded-3xl border border-slate-100 dark:border-slate-800"
+                  className="bg-white/30 dark:bg-white/5 backdrop-blur-md p-4 rounded-3xl border border-white/40 dark:border-white/10"
                 >
                   <div className="flex items-center gap-3 mb-4">
                     {ex.type === "Warmup" ? (
@@ -780,7 +785,7 @@ const onFileChange = async (e, workoutId) => {
                     ) : ex.type === "Stretching" ? (
                       <Move className="text-blue-500" size={18} />
                     ) : (
-                      <Dumbbell className="text-emerald-500" size={18} />
+                      <Dumbbell className="text-accent-500" size={18} />
                     )}
                     <div className="flex flex-row gap-2 items-center">
                       <h5 className="font-bold text-slate-800 dark:text-slate-100 capitalize leading-tight">
@@ -812,7 +817,7 @@ const onFileChange = async (e, workoutId) => {
                     {ex.sets.map((set, sIdx) => (
                       <div
                         key={sIdx}
-                        className="flex justify-between text-sm bg-white dark:bg-slate-900 px-4 py-2 rounded-xl border border-slate-50 dark:border-slate-800"
+                        className="flex justify-between text-sm bg-white/50 dark:bg-white/5 backdrop-blur-md px-4 py-2 rounded-xl border border-white/40 dark:border-white/10"
                       >
                         <span className="font-bold text-slate-400 dark:text-slate-500 text-[10px] uppercase tracking-widest">
                           Set {sIdx + 1}
@@ -840,7 +845,7 @@ const onFileChange = async (e, workoutId) => {
 
       {isWarming && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[600] flex items-center justify-center p-6 text-center">
-          <div className="bg-white dark:bg-slate-900 dark:border dark:border-slate-800 w-full max-w-sm rounded-[40px] p-10 shadow-2xl animate-in zoom-in duration-300">
+          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-10 shadow-2xl animate-in zoom-in duration-300">
             <div className="relative w-24 h-24 mx-auto mb-8">
               {warmupStatus === "loading" ? (
                 <>
@@ -850,7 +855,7 @@ const onFileChange = async (e, workoutId) => {
                   </div>
                 </>
               ) : (
-                <div className="relative bg-emerald-500 w-24 h-24 rounded-full flex items-center justify-center text-white shadow-xl dark:shadow-md shadow-emerald-200 animate-in zoom-in">
+                <div className="relative bg-accent-gradient w-24 h-24 rounded-full flex items-center justify-center text-white shadow-xl dark:shadow-md shadow-accent-200 animate-in zoom-in">
                   <CheckCircle2 size={48} />
                 </div>
               )}
@@ -865,7 +870,7 @@ const onFileChange = async (e, workoutId) => {
             </p>
             <div className="mt-8 h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
               <div
-                className={`h-full transition-all duration-[3000ms] ${warmupStatus === "loading" ? "w-full bg-amber-500" : "w-full bg-emerald-500"}`}
+                className={`h-full transition-all duration-[3000ms] ${warmupStatus === "loading" ? "w-full bg-amber-500" : "w-full bg-accent-500"}`}
               ></div>
             </div>
             <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-[0.2em] mt-4">

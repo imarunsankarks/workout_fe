@@ -2,6 +2,78 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+  ============================================================
+   APP ACCENT THEME
+  ============================================================
+  The app brand is a 3-stop gradient that mirrors the
+  animated background blobs (indigo → fuchsia → orange).
+
+  - Solid palette (--accent-50..900) drives borders, text,
+    rings, soft tints. Defaults to indigo (the "anchor" hue
+    of the gradient).
+  - Gradient stops (--accent-from/via/to) drive primary CTAs
+    via the `.bg-accent-gradient` / `.text-accent-gradient`
+    utilities defined below.
+
+  To re-skin the app, change the RGB triplets here.
+  Values are space-separated RGB (no commas / no rgb()) so
+  Tailwind's `<alpha-value>` modifier works.
+  ============================================================
+*/
+:root {
+  /* Solid palette — indigo */
+  --accent-50:  238 242 255;
+  --accent-100: 224 231 255;
+  --accent-200: 199 210 254;
+  --accent-300: 165 180 252;
+  --accent-400: 129 140 248;
+  --accent-500: 99 102 241;
+  --accent-600: 79 70 229;
+  --accent-700: 67 56 202;
+  --accent-800: 55 48 163;
+  --accent-900: 49 46 129;
+
+  /* Brand gradient stops — indigo → fuchsia → orange */
+  --accent-from: 99 102 241;   /* indigo-500 */
+  --accent-via:  203 45 156;   
+  --accent-to:   249 115 22;   /* orange-500 */
+  --accent-gradient-angle: 135deg;
+}
+
+@layer utilities {
+  .bg-accent-gradient {
+    background-image: linear-gradient(
+      var(--accent-gradient-angle),
+      rgb(var(--accent-from)),
+      rgb(var(--accent-via)),
+      rgb(var(--accent-to))
+    );
+  }
+  .bg-accent-gradient-soft {
+    background-image: linear-gradient(
+      var(--accent-gradient-angle),
+      rgb(var(--accent-from) / 0.15),
+      rgb(var(--accent-via) / 0.15),
+      rgb(var(--accent-to) / 0.15)
+    );
+  }
+  .text-accent-gradient {
+    background-image: linear-gradient(
+      var(--accent-gradient-angle),
+      rgb(var(--accent-from)),
+      rgb(var(--accent-via)),
+      rgb(var(--accent-to))
+    );
+    -webkit-background-clip: text;
+            background-clip: text;
+    color: transparent;
+  }
+  .ring-accent-gradient {
+    box-shadow: 0 0 0 2px rgb(var(--accent-via) / 0.4);
+  }
+}
+
 /* Your custom styles */
 html, body {
   min-height: 100vh;
@@ -78,3 +150,16 @@ html.dark {
 .animate-gradient-x {
   animation: gradient-x 3s ease infinite;
 }
+
+@keyframes blob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%      { transform: translate(40px, -60px) scale(1.1); }
+  66%      { transform: translate(-30px, 40px) scale(0.9); }
+}
+.animate-blob {
+  animation: blob 14s ease-in-out infinite;
+  will-change: transform;
+}
+.animation-delay-2000 { animation-delay: 2s; }
+.animation-delay-4000 { animation-delay: 4s; }
+.animation-delay-6000 { animation-delay: 6s; }

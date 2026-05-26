@@ -88,7 +88,7 @@ const Library = () => {
     .sort((a, b) => a.name.localeCompare(b.name));
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-6 pb-40">
+    <div className="relative min-h-screen p-6 pb-40">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
@@ -106,7 +106,7 @@ const Library = () => {
           <ThemeToggle />
           <Link
             to="/add-exercise"
-            className="bg-emerald-500 text-white p-3 rounded-2xl shadow-lg dark:shadow-md shadow-emerald-200 active:scale-95 transition-all"
+            className="bg-accent-gradient text-white p-3 rounded-2xl shadow-lg dark:shadow-md shadow-accent-200 active:scale-95 transition-all"
           >
             <Plus size={24} strokeWidth={3} />
           </Link>
@@ -122,7 +122,7 @@ const Library = () => {
         <input
           type="text"
           placeholder="Search exercise..."
-          className="w-full pl-12 pr-4 py-4 bg-white dark:bg-slate-800 rounded-2xl font-bold outline-none border border-slate-100 dark:border-slate-700 shadow-sm focus:ring-2 focus:ring-emerald-500 transition-all text-sm text-slate-800 dark:text-slate-200"
+          className="w-full pl-12 pr-4 py-4 bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl rounded-2xl font-bold outline-none border border-white/40 dark:border-white/10 shadow-sm focus:ring-2 focus:ring-accent-500 transition-all text-sm text-slate-800 dark:text-slate-200"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -137,7 +137,7 @@ const Library = () => {
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
-            className={`px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${activeCategory === cat ? "bg-slate-900 dark:bg-slate-700 text-white shadow-lg dark:shadow-md" : "bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-700"}`}
+            className={`px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${activeCategory === cat ? "bg-slate-900 dark:bg-slate-700 text-white shadow-lg dark:shadow-md" : "bg-white/40 dark:bg-slate-800/30 backdrop-blur-md text-slate-400 dark:text-slate-500 border border-white/40 dark:border-white/10"}`}
           >
             {cat}
           </button>
@@ -146,7 +146,7 @@ const Library = () => {
 
       {/* Muscle Tabs */}
       <div
-        className="flex gap-2 overflow-x-auto py-4 mb-6 no-scrollbar scroll-smooth border-b border-slate-200 dark:border-slate-700"
+        className="flex gap-2 overflow-x-auto py-4 mb-6 no-scrollbar scroll-smooth border-b border-white/40 dark:border-white/10"
         style={{ scrollbarWidth: "none" }}
       >
         {[
@@ -162,7 +162,7 @@ const Library = () => {
           <button
             key={muscle}
             onClick={() => setActiveMuscle(muscle)}
-            className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${activeMuscle === muscle ? "bg-emerald-500 text-white shadow-md" : "bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-700"}`}
+            className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${activeMuscle === muscle ? "bg-accent-500 text-white shadow-md" : "bg-white/40 dark:bg-slate-800/30 backdrop-blur-md text-slate-400 dark:text-slate-500 border border-white/40 dark:border-white/10"}`}
           >
             {muscle}
           </button>
@@ -176,7 +176,7 @@ const Library = () => {
             Loading Library...
           </div>
         ) : filteredLibrary.length === 0 ? (
-          <div className="py-20 text-center bg-white dark:bg-slate-800 rounded-[32px] border-2 border-dashed border-slate-100 dark:border-slate-700">
+          <div className="py-20 text-center bg-white/30 dark:bg-slate-800/30 backdrop-blur-xl rounded-[32px] border-2 border-dashed border-white/40 dark:border-white/10">
             <Dumbbell size={40} className="mx-auto text-slate-200 dark:text-slate-600 mb-4" />
             <p className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-widest">
               No exercises found
@@ -186,11 +186,11 @@ const Library = () => {
           filteredLibrary.map((ex) => (
             <div
               key={ex._id}
-              className="bg-white dark:bg-slate-800 p-4 rounded-[28px] shadow-sm border border-slate-100 dark:border-slate-700 flex justify-between items-center group"
+              className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-4 rounded-[28px] shadow-sm border border-white/40 dark:border-white/10 flex justify-between items-center group"
             >
               <div className="flex items-center gap-4">
                 <div
-                  className={`p-3 rounded-2xl ${ex.type === "Warmup" ? "text-amber-500 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-400" : ex.type === "Stretching" ? "text-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400" : "text-emerald-500 bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-400"}`}
+                  className={`p-3 rounded-2xl ${ex.type === "Warmup" ? "text-amber-500 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-400" : ex.type === "Stretching" ? "text-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400" : "text-accent-500 bg-accent-50 dark:bg-accent-900/30 dark:text-accent-400"}`}
                 >
                   {ex.type === "Warmup" ? (
                     <Flame size={18} />
@@ -215,13 +215,13 @@ const Library = () => {
               <div className="flex gap-2">
                 <button
                   onClick={() => setEditingExercise(ex)}
-                  className="p-2 bg-slate-50 dark:bg-slate-700 rounded-xl text-slate-400 dark:text-slate-500 hover:text-emerald-500 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-all"
+                  className="p-2 bg-white/40 dark:bg-white/5 backdrop-blur-md rounded-xl text-slate-400 dark:text-slate-500 hover:text-accent-500 dark:hover:text-accent-400 hover:bg-accent-50 dark:hover:bg-accent-900/30 transition-all"
                 >
                   <Edit3 size={15} />
                 </button>
                 <button
                   onClick={() => setShowDeleteConfirm(ex._id)}
-                  className="p-2 bg-slate-50 dark:bg-slate-700 rounded-xl text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all"
+                  className="p-2 bg-white/40 dark:bg-white/5 backdrop-blur-md rounded-xl text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all"
                 >
                   <Trash2 size={15} />
                 </button>
@@ -234,7 +234,7 @@ const Library = () => {
       {/* Edit Modal */}
       {editingExercise && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6">
-          <div className="bg-white dark:bg-slate-800 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-6">
               Edit Exercise
             </h2>
@@ -252,7 +252,7 @@ const Library = () => {
                       name: e.target.value,
                     })
                   }
-                  className="w-full p-4 bg-slate-50 dark:bg-slate-700 rounded-xl font-bold outline-none focus:ring-2 focus:ring-emerald-500 text-slate-800 dark:text-slate-200"
+                  className="w-full p-4 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/50 dark:border-white/10 rounded-xl font-bold outline-none focus:ring-2 focus:ring-accent-500 text-slate-800 dark:text-slate-200"
                 />
               </div>
 
@@ -276,7 +276,7 @@ const Library = () => {
                       className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border-2 transition-all ${
                         editingExercise.type === t.id
                           ? `border-slate-900 dark:border-slate-600 bg-slate-900 dark:bg-slate-700 text-white shadow-md`
-                          : "border-slate-50 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-400 dark:text-slate-500"
+                          : "border-white/40 dark:border-white/10 bg-white/40 dark:bg-white/5 backdrop-blur-md text-slate-400 dark:text-slate-500"
                       }`}
                     >
                       {t.icon}
@@ -315,8 +315,8 @@ const Library = () => {
                       }
                       className={`whitespace-nowrap px-4 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider border transition-all ${
                         editingExercise.muscle === m
-                          ? "bg-emerald-600 border-emerald-600 text-white"
-                          : "bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-600 text-slate-400 dark:text-slate-500"
+                          ? "bg-accent-600 border-accent-600 text-white"
+                          : "bg-white/40 dark:bg-white/5 backdrop-blur-md border-white/40 dark:border-white/10 text-slate-400 dark:text-slate-500"
                       }`}
                     >
                       {m}
@@ -330,13 +330,13 @@ const Library = () => {
             <div className="flex gap-3 mt-8">
               <button
                 onClick={() => setEditingExercise(null)}
-                className="flex-1 py-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 rounded-2xl transition-colors"
+                className="flex-1 py-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-white/40 dark:hover:bg-white/5 rounded-2xl transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={updateLibraryItem}
-                className="flex-1 py-4 bg-emerald-600 text-white font-bold rounded-2xl shadow-lg dark:shadow-md active:scale-95 transition-all"
+                className="flex-1 py-4 bg-accent-gradient text-white font-bold rounded-2xl shadow-lg dark:shadow-md active:scale-95 transition-all"
               >
                 Save
               </button>
@@ -348,7 +348,7 @@ const Library = () => {
       {/* Delete Confirmation */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6 text-center">
-          <div className="bg-white dark:bg-slate-800 w-full max-w-sm rounded-[40px] p-8 shadow-2xl">
+          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl">
             <div className="bg-red-50 dark:bg-red-900/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500 dark:text-red-400">
               <AlertTriangle size={32} />
             </div>

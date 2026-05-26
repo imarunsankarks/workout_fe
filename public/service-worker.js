@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gains-ai-v6';
+const CACHE_NAME = 'gains-ai-v7';
 const OFFLINE_URL = '/offline.html';
 const PRECACHE_URLS = ['/offline.html', '/manifest.json'];
 const WORKOUT_NOTIF_TAG = 'active-workout';
@@ -57,10 +57,10 @@ self.addEventListener('message', (event) => {
             icon: '/logo192.png',
             badge: '/logo192.png',
             data: { url: '/' },
-            actions: [
-                { action: 'toggle', title: isActive ? 'Pause' : 'Resume' },
-                { action: 'open', title: 'Open' },
-            ],
+            // actions: [
+            //     { action: 'toggle', title: isActive ? 'Pause' : 'Resume' },
+            //     { action: 'open', title: 'Open' },
+            // ],
         });
         if (event.waitUntil) event.waitUntil(showPromise);
         return;
