@@ -134,9 +134,12 @@ const Reports = () => {
         setWeeklyHistogram(histogram);
 
         // --- 5. MUSCLE DISTRIBUTION ---
+        // Only count strength work; warmups & stretching shouldn't skew the
+        // muscle-group volume breakdown.
         const muscleCounts = {};
         weekWorkouts.forEach(w => {
           w.details?.forEach(ex => {
+            if (ex.type === 'Warmup' || ex.type === 'Stretching') return;
             const muscle = ex.muscle || 'Other';
             const setVol = ex.sets?.length || 0;
             muscleCounts[muscle] = (muscleCounts[muscle] || 0) + setVol;
@@ -148,7 +151,8 @@ const Reports = () => {
           .map(([name, count], i) => ({
             name,
             percentage: totalSets > 0 ? Math.round((count / totalSets) * 100) : 0,
-            color: ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#ecfdf5'][i % 5]
+            // Brand gradient palette — mirrors --accent-from → --accent-via → --accent-to in index.css
+            color: ['#cb2d9c', '#a855f7', '#6366f1', '#ec4899', '#f97316'][i % 5]
           }))
           .sort((a, b) => b.percentage - a.percentage);
 
@@ -538,7 +542,7 @@ const Reports = () => {
                 <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 800, fill: '#cbd5e1'}} />
                 <Bar dataKey="minutes" radius={[6, 6, 6, 6]} barSize={22}>
                   {weeklyHistogram.map((entry, index) => (
-                    <Cell key={index} fill={entry.minutes > 45 ? '#10b981' : entry.minutes > 0 ? '#6ee7b7' : '#f1f5f9'} />
+                    <Cell key={index} fill={entry.minutes > 45 ? '#cb2d9c' : entry.minutes > 0 ? '#f9a8d4' : '#f1f5f9'} />
                   ))}
                 </Bar>
               </BarChart>
