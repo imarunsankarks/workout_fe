@@ -5,7 +5,7 @@ import axios from 'axios';
 import { BarChart, Bar, XAxis, ResponsiveContainer, Cell } from 'recharts';
 import { 
   Activity, ChevronLeft, ChevronRight, Clock, Trophy, 
-  Target, TrendingUp, AlertTriangle, Trash2, Dumbbell, Calendar, ChevronDown, ChevronUp, Key, X, PauseCircle, Play, Image as ImageIcon
+  Target, TrendingUp, AlertTriangle, Trash2, Dumbbell, Calendar, ChevronDown, ChevronUp, Key, X, PauseCircle, Play, Image as ImageIcon, LogOut
 } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 
@@ -26,6 +26,7 @@ const Reports = () => {
   const [showAllPrs, setShowAllPrs] = useState(false); 
   const [loading, setLoading] = useState(true);
   const [showDeletePrompt, setShowDeletePrompt] = useState(false);
+  const [showLogoutPrompt, setShowLogoutPrompt] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordData, setPasswordData] = useState({
     email: '',
@@ -191,7 +192,7 @@ const Reports = () => {
   const getUserTier = () => {
     const count = stats.monthlyWorkouts;
     if (count < 5) return { label: 'Amateur', color: 'bg-slate-400', icon: <Activity size={14}/> };
-    if (count < 12) return { label: 'Beginner', color: 'bg-blue-500', icon: <Target size={14}/> };
+    if (count < 12) return { label: 'Beginner', color: 'bg-fuchsia-700', icon: <Target size={14}/> };
     if (count <= 21) return { label: 'Advanced', color: 'bg-purple-600', icon: <TrendingUp size={14}/> };
     return { label: 'Pro Athlete', color: 'bg-accent-500', icon: <Trophy size={14}/> };
   };
@@ -372,7 +373,7 @@ const Reports = () => {
           <p className="text-xl font-bold text-slate-800 dark:text-slate-100">{stats.totalWorkouts}</p>
         </div>
         <div className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-5 rounded-[32px] shadow-sm border border-white/40 dark:border-white/10">
-          <div className="bg-blue-100 dark:bg-blue-500/15 w-10 h-10 rounded-2xl flex items-center justify-center text-blue-600 dark:text-blue-400 mb-3">
+          <div className="bg-fuchsia-100 dark:bg-fuchsia-700/15 w-10 h-10 rounded-2xl flex items-center justify-center text-fuchsia-600 dark:text-fuchsia-400 mb-3">
             <Clock size={20} />
           </div>
           <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">Time Invested</p>
@@ -488,7 +489,7 @@ const Reports = () => {
       {/* --- NEW: PROGRESS GALLERY SECTION --- */}
       <div className="mb-10">
         <div className="flex items-center gap-2 mb-4 px-2">
-          <ImageIcon size={18} className="text-blue-500" />
+          <ImageIcon size={18} className="text-fuchsia-500" />
           <h3 className="font-bold text-slate-700 dark:text-slate-200 uppercase text-[10px] tracking-widest">Progress Gallery</h3>
         </div>
         
@@ -508,7 +509,7 @@ const Reports = () => {
             {galleryImages.length > 0 && (
               <button 
                 onClick={() => setShowFullGallery(true)}
-                className="w-full mt-4 py-3 text-[10px] font-bold text-blue-500 dark:text-blue-400 uppercase tracking-widest bg-blue-50/50 dark:bg-blue-500/10 rounded-2xl border border-blue-100 dark:border-blue-500/30 active:scale-95 transition-all"
+                className="w-full mt-4 py-3 text-[10px] font-bold text-fuchsia-600 dark:text-fuchsia-500 uppercase tracking-widest bg-fuchsia-50/50 dark:bg-fuchsia-700/10 rounded-2xl border border-fuchsia-100 dark:border-fuchsia-500/30 active:scale-95 transition-all"
               >
                 View Full Gallery ({galleryImages.length})
               </button>
@@ -591,13 +592,19 @@ const Reports = () => {
         <Activity className="absolute -right-8 -bottom-8 w-32 h-32 text-accent-500/40 rotate-12" />
       </div>
 
-      {/* Change Password */}
-      <div className="mt-8">
-        <button 
+      {/* Account Actions */}
+      <div className="mt-8 flex flex-row gap-3 mb-4">
+        <button
           onClick={() => setShowPasswordModal(true)}
-          className="w-full py-4 flex items-center justify-center gap-2 text-slate-500 dark:text-slate-300 font-bold text-[10px] uppercase tracking-[0.2em] bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-white/10 shadow-sm hover:bg-white/60 dark:hover:bg-slate-800/50 transition-all mb-4"
+          className="flex-1 py-4 flex items-center justify-center gap-2 text-slate-500 dark:text-slate-300 font-bold text-[10px] uppercase tracking-[0.2em] bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-white/10 shadow-sm hover:bg-white/60 dark:hover:bg-slate-800/50 transition-all"
         >
           <Key size={16} className="text-accent-500" /> Change Password
+        </button>
+        <button
+          onClick={() => setShowLogoutPrompt(true)}
+          className="flex-1 py-4 flex items-center justify-center gap-2 text-red-500 dark:text-red-300 font-bold text-[10px] uppercase tracking-[0.2em] bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-white/10 shadow-sm hover:bg-white/60 dark:hover:bg-slate-800/50 transition-all"
+        >
+          <LogOut size={16} /> Logout
         </button>
       </div>
       <hr className="mb-3 border-slate-200 dark:border-slate-800" />
@@ -617,7 +624,7 @@ const Reports = () => {
             <div className="flex justify-between items-center mb-8">
               <div>
                 <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">Full Gallery</h2>
-                <p className="text-blue-500 dark:text-blue-400 font-bold text-[10px] uppercase tracking-[0.2em]">All Progress Photos</p>
+                <p className="text-fuchsia-500 dark:text-fuchsia-400 font-bold text-[10px] uppercase tracking-[0.2em]">All Progress Photos</p>
               </div>
               <button onClick={() => setShowFullGallery(false)} className="bg-white/50 dark:bg-white/10 backdrop-blur-md p-2 rounded-full text-slate-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-white/20 transition-colors">
                 <X size={20} />
@@ -708,6 +715,37 @@ const Reports = () => {
           </div>
         );
       })()}
+
+      {showLogoutPrompt && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6 text-center">
+          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="bg-red-100 dark:bg-red-500/15 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-red-600 dark:text-red-400">
+              <LogOut size={32} />
+            </div>
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
+              Logging out?
+            </h2>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 leading-relaxed">
+              Are you sure you want to sign out? <br />
+              Your active session (if any) will stay saved on this device.
+            </p>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={logout}
+                className="w-full py-4 bg-red-500 text-white font-bold rounded-2xl shadow-lg dark:shadow-md active:scale-95 transition-all"
+              >
+                Yes, Sign Out
+              </button>
+              <button
+                onClick={() => setShowLogoutPrompt(false)}
+                className="w-full py-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-colors"
+              >
+                Stay Logged In
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showDeletePrompt && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6 text-center">
@@ -895,8 +933,8 @@ const Reports = () => {
                         )}
 
                         {entry.execution === 'Unilateral' && (
-                          <span className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-300 border border-blue-100 dark:border-blue-400/20 rounded-lg text-[9px] font-bold uppercase tracking-wider">
-                            <div className="w-1 h-1 rounded-full bg-blue-400" />
+                          <span className="flex items-center gap-1 px-2 py-0.5 bg-fuchsia-50 dark:bg-fuchsia-700/10 text-fuchsia-600 dark:text-fuchsia-300 border border-fuchsia-100 dark:border-fuchsia-400/20 rounded-lg text-[9px] font-bold uppercase tracking-wider">
+                            <div className="w-1 h-1 rounded-full bg-fuchsia-400" />
                             Unilateral
                           </span>
                         )}

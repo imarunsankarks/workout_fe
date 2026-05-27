@@ -190,7 +190,7 @@ const Library = () => {
             >
               <div className="flex items-center gap-4">
                 <div
-                  className={`p-3 rounded-2xl ${ex.type === "Warmup" ? "text-amber-500 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-400" : ex.type === "Stretching" ? "text-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400" : "text-accent-500 bg-accent-50 dark:bg-accent-900/30 dark:text-accent-400"}`}
+                  className={`p-3 rounded-2xl ${ex.type === "Warmup" ? "text-amber-500 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-400" : ex.type === "Stretching" ? "text-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-900/30 dark:text-fuchsia-400" : "text-accent-500 bg-accent-50 dark:bg-accent-900/30 dark:text-accent-400"}`}
                 >
                   {ex.type === "Warmup" ? (
                     <Flame size={18} />

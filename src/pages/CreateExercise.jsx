@@ -21,7 +21,7 @@ const CreateExercise = () => {
   const types = [
     { id: 'Strength', icon: <Dumbbell size={18}/>, color: 'accent' },
     { id: 'Warmup', icon: <Flame size={18}/>, color: 'amber' },
-    { id: 'Stretching', icon: <Move size={18}/>, color: 'blue' }
+    { id: 'Stretching', icon: <Move size={18}/>, color: 'fuchsia' }
   ];
 
   const handleSubmit = async (e) => {

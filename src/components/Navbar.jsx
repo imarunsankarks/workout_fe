@@ -131,7 +131,7 @@ const Navbar = () => {
               onClick={() => setIsMenuOpen(false)}
               className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-6 rounded-[32px] shadow-2xl shadow-slate-200/30 dark:shadow-black/40 flex items-center gap-5 active:scale-95 transition-all border border-white/40 dark:border-white/10 w-full"
             >
-              <div className="bg-blue-500 w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg dark:shadow-md shadow-blue-100">
+              <div className="bg-fuchsia-500 w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-lg dark:shadow-md shadow-fuchsia-100">
                 <Dumbbell size={24} />
               </div>
               <div className="text-left">

@@ -3,7 +3,6 @@ import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
-  LogOut,
   Play,
   ChevronRight,
   X,
@@ -49,7 +48,7 @@ const SessionLiveTime = React.memo(({ className }) => {
 });
 
 const Home = () => {
-  const { user, token, logout } = useContext(AuthContext);
+  const { user, token } = useContext(AuthContext);
   const navigate = useNavigate();
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -57,7 +56,6 @@ const Home = () => {
   const [hasActiveSession, setHasActiveSession] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [showStartPrompt, setShowStartPrompt] = useState(false);
-  const [showLogoutPrompt, setShowLogoutPrompt] = useState(false);
   const [workoutToDelete, setWorkoutToDelete] = useState(null);
   const [visibleLimit, setVisibleLimit] = useState(8);
   const [isWarming, setIsWarming] = useState(false);
@@ -269,13 +267,6 @@ const onFileChange = async (e, workoutId) => {
           >
             <Zap size={20} strokeWidth={1.5} />
           </button>
-
-          <button
-            onClick={() => setShowLogoutPrompt(true)}
-            className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors p-2"
-          >
-            <LogOut size={22} />
-          </button>
         </div>
       </div>
 
@@ -396,37 +387,6 @@ const onFileChange = async (e, workoutId) => {
         </div>
       </div>
 
-      {/* Logout Confirmation Modal */}
-      {showLogoutPrompt && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6 text-center">
-          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div className="bg-red-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-red-600">
-              <LogOut size={32} />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
-              Logging out?
-            </h2>
-            <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 leading-relaxed">
-              Are you sure you want to sign out? <br />
-              Your active session (if any) will stay saved on this device.
-            </p>
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={logout}
-                className="w-full py-4 bg-red-500 text-white font-bold rounded-2xl shadow-lg dark:shadow-md active:scale-95 transition-all"
-              >
-                Yes, Sign Out
-              </button>
-              <button
-                onClick={() => setShowLogoutPrompt(false)}
-                className="w-full py-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-colors"
-              >
-                Stay Logged In
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Delete Confirmation Modal */}
       {workoutToDelete && (
@@ -545,7 +505,7 @@ const onFileChange = async (e, workoutId) => {
                             : progress.type === "down"
                               ? "bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400"
                               : progress.type === "neutral"
-                                ? "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                                ? "bg-fuchsia-50 dark:bg-fuchsia-700/10 text-fuchsia-600 dark:text-fuchsia-400"
                                 : "bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500"
                         }`}
                       >
@@ -783,7 +743,7 @@ const onFileChange = async (e, workoutId) => {
                     {ex.type === "Warmup" ? (
                       <Flame className="text-amber-500" size={18} />
                     ) : ex.type === "Stretching" ? (
-                      <Move className="text-blue-500" size={18} />
+                      <Move className="text-fuchsia-500" size={18} />
                     ) : (
                       <Dumbbell className="text-accent-500" size={18} />
                     )}
@@ -800,8 +760,8 @@ const onFileChange = async (e, workoutId) => {
                       )}
 
                       {ex.execution === 'Unilateral' && (
-                        <span className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-300 border border-blue-100 dark:border-blue-400/20 rounded-lg text-[9px] font-bold uppercase tracking-wider">
-                          <div className="w-1 h-1 rounded-full bg-blue-400" />
+                        <span className="flex items-center gap-1 px-2 py-0.5 bg-fuchsia-50 dark:bg-fuchsia-700/10 text-fuchsia-600 dark:text-fuchsia-300 border border-fuchsia-100 dark:border-fuchsia-400/20 rounded-lg text-[9px] font-bold uppercase tracking-wider">
+                          <div className="w-1 h-1 rounded-full bg-fuchsia-400" />
                           Unilateral
                         </span>
                       )}

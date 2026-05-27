@@ -740,7 +740,7 @@ const ActiveWorkout = () => {
                 }}
               >
                 <div
-                  className={`p-2 rounded-xl ${ex.type === "Warmup" ? "text-amber-500 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-400" : ex.type === "Stretching" ? "text-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400" : "text-accent-500 bg-accent-50 dark:bg-accent-900/30 dark:text-accent-400"}`}
+                  className={`p-2 rounded-xl ${ex.type === "Warmup" ? "text-amber-500 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-400" : ex.type === "Stretching" ? "text-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-900/30 dark:text-fuchsia-400" : "text-accent-500 bg-accent-50 dark:bg-accent-900/30 dark:text-accent-400"}`}
                 >
                   {ex.type === "Warmup" ? (
                     <Flame size={18} />
@@ -813,7 +813,7 @@ const ActiveWorkout = () => {
                       onClick={() => setExercises(exercises.map(item => item.instanceId === ex.instanceId ? { ...item, execution: ex.execution === "Unilateral" ? "Bilateral" : "Unilateral" } : item))}
                       className="flex items-center gap-1 px-3 py-1.5 bg-white/60 dark:bg-slate-800/50 backdrop-blur-md rounded-xl shadow-sm border border-white/40 dark:border-white/10 active:scale-95 transition-all"
                     >
-                      <div className="w-1 h-1 rounded-full bg-blue-500"></div>
+                      <div className="w-1 h-1 rounded-full bg-fuchsia-700"></div>
                       <span className="text-[10px] font-bold text-slate-700 dark:text-slate-200">
                         {ex.execution === "Unilateral" ? "Unilateral" : "Bilateral"}
                       </span>
@@ -1019,7 +1019,7 @@ const ActiveWorkout = () => {
                     activeDraggingExercise.type === "Warmup"
                       ? "text-amber-500 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-400"
                       : activeDraggingExercise.type === "Stretching"
-                        ? "text-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400"
+                        ? "text-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-900/30 dark:text-fuchsia-400"
                         : "text-accent-500 bg-accent-50 dark:bg-accent-900/30 dark:text-accent-400"
                   }`}
                 >
@@ -1454,7 +1454,7 @@ const ActiveWorkout = () => {
                       >
                         <div className="flex items-center gap-4 text-left">
                           <div
-                            className={`p-2 rounded-xl ${ex.type === "Warmup" ? "text-amber-500 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-400" : ex.type === "Stretching" ? "text-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400" : "text-accent-500 bg-accent-50 dark:bg-accent-900/30 dark:text-accent-400"}`}
+                            className={`p-2 rounded-xl ${ex.type === "Warmup" ? "text-amber-500 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-400" : ex.type === "Stretching" ? "text-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-900/30 dark:text-fuchsia-400" : "text-accent-500 bg-accent-50 dark:bg-accent-900/30 dark:text-accent-400"}`}
                           >
                             {ex.type === "Warmup" ? (
                               <Flame size={18} />
@@ -1685,8 +1685,8 @@ const ActiveWorkout = () => {
                             )}
 
                             {entry.execution === 'Unilateral' && (
-                              <span className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-700/50 rounded-lg text-[9px] font-bold uppercase tracking-wider">
-                                <div className="w-1 h-1 rounded-full bg-blue-400" />
+                              <span className="flex items-center gap-1 px-2 py-0.5 bg-fuchsia-50 dark:bg-fuchsia-900/30 text-fuchsia-600 dark:text-fuchsia-400 border border-fuchsia-100 dark:border-fuchsia-700/50 rounded-lg text-[9px] font-bold uppercase tracking-wider">
+                                <div className="w-1 h-1 rounded-full bg-fuchsia-400" />
                                 Unilateral
                               </span>
                             )}
