@@ -191,9 +191,9 @@ const Reports = () => {
 
   const getUserTier = () => {
     const count = stats.monthlyWorkouts;
-    if (count < 10)  return { label: 'Amateur',     color: 'bg-gradient-to-br from-slate-500 via-slate-300 to-slate-600',           icon: <Activity size={14}/> };
-    if (count < 8) return { label: 'Beginner',    color: 'bg-gradient-to-br from-[#7a3f1d] via-[#e89a4d] to-[#5e2f15]',           icon: <Target size={14}/> };
-    if (count <= 8) return { label: 'Advanced',   color: 'bg-gradient-to-br from-[#6b6d70] via-[#e5e7eb] to-[#4b4d50]',           icon: <TrendingUp size={14}/> };
+    if (count < 5)  return { label: 'Amateur',     color: 'bg-gradient-to-br from-slate-500 via-slate-300 to-slate-600',           icon: <Activity size={14}/> };
+    if (count < 12) return { label: 'Beginner',    color: 'bg-gradient-to-br from-[#7a3f1d] via-[#e89a4d] to-[#5e2f15]',           icon: <Target size={14}/> };
+    if (count <= 19) return { label: 'Advanced',   color: 'bg-gradient-to-br from-[#6b6d70] via-[#e5e7eb] to-[#4b4d50]',           icon: <TrendingUp size={14}/> };
     return { label: 'Pro Athlete', color: 'bg-gradient-to-br from-[#8b6914] via-[#fde17a] to-[#7a5e0f]', icon: <Trophy size={14}/> };
   };
 
