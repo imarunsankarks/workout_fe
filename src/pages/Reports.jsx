@@ -191,10 +191,10 @@ const Reports = () => {
 
   const getUserTier = () => {
     const count = stats.monthlyWorkouts;
-    if (count < 5) return { label: 'Amateur', color: 'bg-slate-400', icon: <Activity size={14}/> };
-    if (count < 12) return { label: 'Beginner', color: 'bg-fuchsia-700', icon: <Target size={14}/> };
-    if (count <= 21) return { label: 'Advanced', color: 'bg-purple-600', icon: <TrendingUp size={14}/> };
-    return { label: 'Pro Athlete', color: 'bg-accent-500', icon: <Trophy size={14}/> };
+    if (count < 10)  return { label: 'Amateur',     color: 'bg-gradient-to-br from-slate-500 via-slate-300 to-slate-600',           icon: <Activity size={14}/> };
+    if (count < 8) return { label: 'Beginner',    color: 'bg-gradient-to-br from-[#7a3f1d] via-[#e89a4d] to-[#5e2f15]',           icon: <Target size={14}/> };
+    if (count <= 8) return { label: 'Advanced',   color: 'bg-gradient-to-br from-[#6b6d70] via-[#e5e7eb] to-[#4b4d50]',           icon: <TrendingUp size={14}/> };
+    return { label: 'Pro Athlete', color: 'bg-gradient-to-br from-[#8b6914] via-[#fde17a] to-[#7a5e0f]', icon: <Trophy size={14}/> };
   };
 
   const tier = getUserTier();
@@ -337,8 +337,11 @@ const Reports = () => {
         </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <div className={`${tier.color} text-white px-4 py-2 rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-lg dark:shadow-md flex items-center gap-2 transition-all duration-500`}>
-             {tier.icon} {tier.label}
+          <div className="bg-transparent border border-white/40 dark:border-white/15 px-2 py-1.5 rounded-2xl flex items-center gap-2 text-white text-[10px] font-bold uppercase tracking-widest transition-all duration-500">
+            <div className={`${tier.color} w-7 h-7 rounded-[10px] flex items-center justify-center text-white shadow-md`}>
+              {tier.icon}
+            </div>
+            <span className="pr-2">{tier.label}</span>
           </div>
         </div>
       </div>
@@ -533,15 +536,19 @@ const Reports = () => {
           <div className="flex items-center bg-white/30 dark:bg-white/5 backdrop-blur-md p-1 rounded-xl border border-white/40 dark:border-white/10 gap-1">
             <button onClick={() => {setCurrentWeekOffset(prev => prev - 1); setClickedIntensity(true)}} className="p-1.5 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm rounded-lg transition-all text-slate-400 dark:text-slate-500 hover:text-accent-600 dark:hover:text-accent-400"><ChevronLeft size={16}/></button>
             <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 px-2 uppercase">{currentWeekOffset === 0 ? "This Week" : currentWeekOffset === -1 ? "Last Week" : `${Math.abs(currentWeekOffset)}w ago`}</span>
-            <button onClick={() => {setCurrentWeekOffset(prev => prev + 1); setClickedIntensity(true)}} className="p-1.5 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm rounded-lg transition-all text-slate-400 dark:text-slate-500 hover:text-accent-600 dark:hover:text-accent-400"><ChevronRight size={16}/></button>
+            <button
+              onClick={() => {setCurrentWeekOffset(prev => prev + 1); setClickedIntensity(true)}}
+              disabled={currentWeekOffset >= 0}
+              className="p-1.5 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm rounded-lg transition-all text-slate-400 dark:text-slate-500 hover:text-accent-600 dark:hover:text-accent-400 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:shadow-none disabled:hover:text-slate-400 dark:disabled:hover:text-slate-500"
+            ><ChevronRight size={16}/></button>
           </div>
         </div>
-        <div className="h-44 w-full">
+        <div className="h-44 w-full [&_*:focus]:outline-none [&_*]:outline-none">
           {weeklyHistogram.some(d => d.minutes > 0) ? (
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={weeklyHistogram}>
+              <BarChart data={weeklyHistogram} style={{ outline: 'none' }}>
                 <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 800, fill: '#cbd5e1'}} />
-                <Bar dataKey="minutes" radius={[6, 6, 6, 6]} barSize={22}>
+                <Bar dataKey="minutes" radius={[6, 6, 6, 6]} barSize={22} activeBar={false} style={{ outline: 'none' }}>
                   {weeklyHistogram.map((entry, index) => (
                     <Cell key={index} fill={entry.minutes > 45 ? '#7c3aed' : entry.minutes > 0 ? '#c4b5fd' : '#f1f5f9'} />
                   ))}

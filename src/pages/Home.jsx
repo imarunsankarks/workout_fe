@@ -579,8 +579,8 @@ const onFileChange = async (e, workoutId) => {
 
       {/* Detail Modal */}
       {selectedWorkout && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[200] flex items-end justify-center">
-          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-lg rounded-t-[40px] p-8 max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
+        <div className="fixed inset-0 bg-slate-900/30  backdrop-blur-2xl z-[200] flex items-end justify-center">
+          <div className="bg-white/70 dark:bg-slate-800/30 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-lg rounded-t-[40px] p-8 max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 capitalize">
@@ -666,10 +666,10 @@ const onFileChange = async (e, workoutId) => {
               ) : (
                 /* --- ADD IMAGE STATE (Empty State) --- */
                 <label
-                  className={`relative overflow-hidden flex flex-col items-center justify-center w-full h-[120px] border-2 border-dashed rounded-[32px] transition-all group ${
+                  className={`relative overflow-hidden flex flex-col items-center justify-center w-full h-[120px] border-2 border-dashed rounded-[32px] backdrop-blur-md transition-all group ${
                     isUploading
                       ? "border-accent-300 bg-accent-50/40 dark:bg-accent-500/10 cursor-wait pointer-events-none"
-                      : "border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-accent-300"
+                      : "border-white/50 dark:border-white/10 bg-white/30 dark:bg-white/5 cursor-pointer hover:bg-white/50 dark:hover:bg-white/10 hover:border-accent-300"
                   }`}
                 >
                   {isUploading ? (
@@ -686,7 +686,7 @@ const onFileChange = async (e, workoutId) => {
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl text-slate-400 dark:text-slate-500 group-hover:bg-accent-50 dark:group-hover:bg-accent-500/10 group-hover:text-accent-500 transition-colors mb-2">
+                      <div className="p-3 bg-white/50 dark:bg-white/10 backdrop-blur-md border border-white/40 dark:border-white/10 rounded-2xl text-slate-400 dark:text-slate-500 group-hover:bg-accent-50 dark:group-hover:bg-accent-500/10 group-hover:text-accent-500 transition-colors mb-2">
                         <Plus size={20} strokeWidth={3} />
                       </div>
                       <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Add Session Photo</p>
@@ -773,18 +773,18 @@ const onFileChange = async (e, workoutId) => {
                       )}
                     </div>
                   </div>
-                  <div className="space-y-2">
+                  <div className="flex flex-wrap gap-2">
                     {ex.sets.map((set, sIdx) => (
                       <div
                         key={sIdx}
-                        className="flex justify-between text-sm bg-white/50 dark:bg-white/5 backdrop-blur-md px-4 py-2 rounded-xl border border-white/40 dark:border-white/10"
+                        className="flex-1 basis-[calc(33.333%-0.5rem)] flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl border border-white/60 dark:border-white/15"
                       >
-                        <span className="font-bold text-slate-400 dark:text-slate-500 text-[10px] uppercase tracking-widest">
+                        {/* <span className="font-bold text-slate-400 dark:text-slate-500 text-[9px] uppercase tracking-widest">
                           Set {sIdx + 1}
-                        </span>
-                        <span className="font-bold text-slate-600 dark:text-slate-300">
+                        </span> */}
+                        <span className="font-medium text-slate-700 dark:text-slate-200 text-sm">
                           {ex.type === "Strength"
-                            ? `${set.weight}kg x ${set.reps}`
+                            ? `${set.weight} × ${set.reps}`
                             : formatTime(set.time)}
                         </span>
                       </div>
@@ -795,7 +795,7 @@ const onFileChange = async (e, workoutId) => {
             </div>
             <button
               onClick={() => setSelectedWorkout(null)}
-              className="w-full mt-8 bg-slate-900 dark:bg-slate-700 text-white font-bold py-4 rounded-2xl"
+              className="w-full mt-8 bg-white/50 dark:bg-white/10 backdrop-blur-md border border-white/50 dark:border-white/10 shadow-sm text-slate-700 dark:text-slate-100 font-bold py-4 rounded-2xl hover:bg-white/70 dark:hover:bg-white/20 active:scale-[0.98] transition-all"
             >
               CLOSE
             </button>
