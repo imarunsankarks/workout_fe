@@ -737,7 +737,7 @@ const onFileChange = async (e, workoutId) => {
               {selectedWorkout.details?.map((ex, idx) => (
                 <div
                   key={idx}
-                  className="bg-white/30 dark:bg-white/5 backdrop-blur-md p-4 rounded-3xl border border-white/40 dark:border-white/10"
+                  className="bg-white/30 dark:bg-gray-300/5 backdrop-blur-md p-4 rounded-3xl border border-white/40 dark:border-white/10"
                 >
                   <div className="flex items-center gap-3 mb-4">
                     {ex.type === "Warmup" ? (
@@ -777,11 +777,11 @@ const onFileChange = async (e, workoutId) => {
                     {ex.sets.map((set, sIdx) => (
                       <div
                         key={sIdx}
-                        className="flex-1 basis-[calc(33.333%-0.5rem)] flex flex-col items-center justify-center gap-0.5 px-3 py-2 rounded-xl border border-white/60 dark:border-white/15"
+                        className="flex-1 basis-[calc(50%-0.25rem)] flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-slate-50 dark:bg-black/15"
                       >
-                        {/* <span className="font-bold text-slate-400 dark:text-slate-500 text-[9px] uppercase tracking-widest">
-                          Set {sIdx + 1}
-                        </span> */}
+                        <span className="flex items-center justify-center px-2 py-1 rounded-full text-slate-400 dark:text-slate-500 text-[9px] font-bold leading-none">
+                          SET {sIdx + 1}
+                        </span>
                         <span className="font-medium text-slate-700 dark:text-slate-200 text-sm">
                           {ex.type === "Strength"
                             ? `${set.weight} × ${set.reps}`

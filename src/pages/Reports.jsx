@@ -191,7 +191,7 @@ const Reports = () => {
 
   const getUserTier = () => {
     const count = stats.monthlyWorkouts;
-    if (count < 5)  return { label: 'Amateur',     color: 'bg-gradient-to-br from-slate-500 via-slate-300 to-slate-600',           icon: <Activity size={14}/> };
+    if (count < 5)  return { label: 'Amateur',     color: 'bg-gradient-to-br from-[#4c1d95] via-[#a78bfa] to-[#2e1065]',           icon: <Activity size={14}/> };
     if (count < 12) return { label: 'Beginner',    color: 'bg-gradient-to-br from-[#7a3f1d] via-[#e89a4d] to-[#5e2f15]',           icon: <Target size={14}/> };
     if (count <= 19) return { label: 'Advanced',   color: 'bg-gradient-to-br from-[#6b6d70] via-[#e5e7eb] to-[#4b4d50]',           icon: <TrendingUp size={14}/> };
     return { label: 'Pro Athlete', color: 'bg-gradient-to-br from-[#8b6914] via-[#fde17a] to-[#7a5e0f]', icon: <Trophy size={14}/> };
@@ -337,8 +337,8 @@ const Reports = () => {
         </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <div className="bg-transparent border border-white/40 dark:border-white/15 px-2 py-1.5 rounded-2xl flex items-center gap-2 text-white text-[10px] font-bold uppercase tracking-widest transition-all duration-500">
-            <div className={`${tier.color} w-7 h-7 rounded-[10px] flex items-center justify-center text-white shadow-md`}>
+          <div className="bg-transparent border border-slate-300 dark:border-white/15 px-1.5 py-1.5 rounded-2xl flex items-center gap-2 text-slate-700 dark:text-white text-[10px] font-bold uppercase tracking-widest transition-all duration-500">
+            <div className={`${tier.color} w-7 h-7 rounded-[10px] flex items-center justify-center text-slate-700 dark:text-black shadow-md`}>
               {tier.icon}
             </div>
             <span className="pr-2">{tier.label}</span>
