@@ -152,8 +152,8 @@ const Reports = () => {
           .map(([name, count], i) => ({
             name,
             percentage: totalSets > 0 ? Math.round((count / totalSets) * 100) : 0,
-            // Brand gradient palette — mirrors --accent-from → --accent-via → --accent-to in index.css
-            color: ['#cb2d9c', '#a855f7', '#6366f1', '#ec4899', '#f97316'][i % 5]
+            // Violet-led palette walking from violet → indigo → orange
+            color: ['#7c3aed', '#8b5cf6', '#6366f1', '#a78bfa', '#f97316'][i % 5]
           }))
           .sort((a, b) => b.percentage - a.percentage);
 
@@ -509,7 +509,7 @@ const Reports = () => {
             {galleryImages.length > 0 && (
               <button 
                 onClick={() => setShowFullGallery(true)}
-                className="w-full mt-4 py-3 text-[10px] font-bold text-fuchsia-600 dark:text-fuchsia-500 uppercase tracking-widest bg-fuchsia-50/50 dark:bg-fuchsia-700/10 rounded-2xl border border-fuchsia-100 dark:border-fuchsia-500/30 active:scale-95 transition-all"
+                className="w-full mt-4 py-3 text-[10px] font-bold text-slate-600 dark:text-slate-200 uppercase tracking-widest bg-white/60 dark:bg-white/10 backdrop-blur-md rounded-2xl border border-white/60 dark:border-white/10 shadow-sm hover:bg-white/80 dark:hover:bg-white/20 active:scale-95 transition-all"
               >
                 View Full Gallery ({galleryImages.length})
               </button>
@@ -543,7 +543,7 @@ const Reports = () => {
                 <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 800, fill: '#cbd5e1'}} />
                 <Bar dataKey="minutes" radius={[6, 6, 6, 6]} barSize={22}>
                   {weeklyHistogram.map((entry, index) => (
-                    <Cell key={index} fill={entry.minutes > 45 ? '#cb2d9c' : entry.minutes > 0 ? '#f9a8d4' : '#f1f5f9'} />
+                    <Cell key={index} fill={entry.minutes > 45 ? '#7c3aed' : entry.minutes > 0 ? '#c4b5fd' : '#f1f5f9'} />
                   ))}
                 </Bar>
               </BarChart>

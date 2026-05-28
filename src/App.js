@@ -12,6 +12,7 @@ import Navbar from './components/Navbar';
 import InstallPrompt from './components/InstallPrompt';
 import ScrollToTop from './components/ScrollToTop';
 import Metrics from './pages/Metrics';
+import NotFound from './pages/NotFound';
 
 import useKeepAlive from './hooks/KeepAlive';
 import useControlledBack from './hooks/useControlledBack';
@@ -42,6 +43,8 @@ const AppContent = () => {
         <Route path="/add-exercise" element={user ? <CreateExercise /> : <Navigate to="/login" replace />} />
         <Route path="/library" element={user ? <Library /> : <Navigate to="/login" replace />} />
         <Route path="/metrics" element={user ? <Metrics /> : <Navigate to="/login" replace />} />
+        {/* Catch-all 404 — must remain last */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
       {user && <Navbar />}
     </div>
