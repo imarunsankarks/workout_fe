@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gains-ai-v8';
+const CACHE_NAME = 'gains-ai-v9';
 const OFFLINE_URL = '/offline.html';
 const PRECACHE_URLS = ['/offline.html', '/manifest.json'];
 const WORKOUT_NOTIF_TAG = 'active-workout';
