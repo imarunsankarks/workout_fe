@@ -55,7 +55,7 @@ const Navbar = () => {
             )}
 
             <div
-              className={`relative p-4 rounded-[22px] text-white shadow-xl dark:shadow-md border-[6px] border-white/60 dark:border-slate-900/90 backdrop-blur-md transition-all duration-400 ease-in-out flex items-center justify-center ${
+              className={`relative p-4 rounded-[18px] text-white shadow-xl dark:shadow-md outline outline-[4px] outline-white/40 dark:outline-white/10 backdrop-blur-md transition-all duration-400 ease-in-out flex items-center justify-center ${
                 isMenuOpen
                   ? "bg-slate-800 dark:bg-slate-900/90 rotate-[135deg] scale-90"
                   : "bg-accent-gradient shadow-accent-200 active:scale-90"
