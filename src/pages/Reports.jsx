@@ -3,6 +3,7 @@ import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { BarChart, Bar, XAxis, ResponsiveContainer, Cell } from 'recharts';
+import useEmblaCarousel from 'embla-carousel-react';
 import {
   Activity, ChevronLeft, ChevronRight, Clock, Trophy, Flame,
   Target, TrendingUp, AlertTriangle, Trash2, Dumbbell, Calendar, ChevronDown, ChevronUp, Key, X, PauseCircle, Image as ImageIcon, LogOut
@@ -46,7 +47,11 @@ const Reports = () => {
 
   // --- NEW GALLERY STATES ---
   const [showFullGallery, setShowFullGallery] = useState(false);
-  const [fullscreenImage, setFullscreenImage] = useState(null);
+  const [fullscreenIdx, setFullscreenIdx] = useState(null);
+
+  // Embla carousel for fullscreen image viewer — supports touch/drag
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false, align: 'center' });
+  const [emblaSelected, setEmblaSelected] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -290,23 +295,61 @@ const Reports = () => {
     setSelectedPrHistory({ name: exerciseName, history: exerciseHistory });
   };
 
-  // --- Keyboard navigation for fullscreen image carousel ---
+  const galleryImages = allWorkouts.filter(w => w.imageUrl).map(w => w.imageUrl);
+
+  // Sync Embla's selected index back into React state for counter / button disabled state.
   useEffect(() => {
-    if (!fullscreenImage) return undefined;
-    const imgs = allWorkouts.filter(w => w.imageUrl).map(w => w.imageUrl);
-    const handleKey = (e) => {
-      const idx = imgs.indexOf(fullscreenImage);
-      if (e.key === "ArrowLeft" && idx > 0) {
-        setFullscreenImage(imgs[idx - 1]);
-      } else if (e.key === "ArrowRight" && idx >= 0 && idx < imgs.length - 1) {
-        setFullscreenImage(imgs[idx + 1]);
-      } else if (e.key === "Escape") {
-        setFullscreenImage(null);
-      }
+    if (!emblaApi) return undefined;
+    const onSelect = () => setEmblaSelected(emblaApi.selectedScrollSnap());
+    onSelect();
+    emblaApi.on('select', onSelect);
+    emblaApi.on('reInit', onSelect);
+    return () => {
+      emblaApi.off('select', onSelect);
+      emblaApi.off('reInit', onSelect);
     };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [fullscreenImage, allWorkouts]);
+  }, [emblaApi]);
+
+  // When the fullscreen viewer opens, jump Embla to the tapped image.
+  useEffect(() => {
+    if (fullscreenIdx === null || !emblaApi) return;
+    emblaApi.scrollTo(fullscreenIdx, true);
+  }, [fullscreenIdx, emblaApi]);
+
+  // Keyboard navigation + Escape to close.
+  useEffect(() => {
+    if (fullscreenIdx === null) return undefined;
+    const handleKey = (e) => {
+      if (e.key === 'ArrowLeft') emblaApi?.scrollPrev();
+      else if (e.key === 'ArrowRight') emblaApi?.scrollNext();
+      else if (e.key === 'Escape') setFullscreenIdx(null);
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [fullscreenIdx, emblaApi]);
+
+  // Back-button behavior: when an overlay is open, pressing the system back
+  // button should close the overlay instead of leaving the page. We push a
+  // sentinel history entry while the overlay is open; the popstate handler
+  // closes the overlay and stops propagation so the global `useControlledBack`
+  // hook (registered higher in the tree) doesn't also navigate away.
+  // Listener is registered in the capture phase so it always runs before the
+  // global one regardless of mount order.
+  useEffect(() => {
+    const overlayOpen = fullscreenIdx !== null || showFullGallery;
+    if (!overlayOpen) return undefined;
+
+    window.history.pushState({ reportsOverlay: true }, '');
+    const handlePop = (e) => {
+      e.stopImmediatePropagation();
+      if (fullscreenIdx !== null) setFullscreenIdx(null);
+      else if (showFullGallery) setShowFullGallery(false);
+    };
+    window.addEventListener('popstate', handlePop, { capture: true });
+    return () => {
+      window.removeEventListener('popstate', handlePop, { capture: true });
+    };
+  }, [fullscreenIdx, showFullGallery]);
 
   if (loading) return (
     <div className="relative min-h-screen flex flex-col items-center justify-center p-6">
@@ -329,8 +372,6 @@ const Reports = () => {
       </div>
     </div>
   );
-
-  const galleryImages = allWorkouts.filter(w => w.imageUrl).map(w => w.imageUrl);
 
   return (
     <div className="relative min-h-screen p-6 pb-40">
@@ -495,7 +536,7 @@ const Reports = () => {
               {galleryImages.slice(0, 8).map((img, idx) => (
                 <div
                   key={idx}
-                  onClick={() => setFullscreenImage(img)}
+                  onClick={() => setFullscreenIdx(idx)}
                   className="aspect-square rounded-xl overflow-hidden border border-slate-100 dark:border-slate-800 cursor-pointer active:scale-95 transition-transform"
                 >
                   <img src={img} alt="progress" className="w-full h-full object-cover" />
@@ -669,7 +710,7 @@ const Reports = () => {
             </div>
             <div className="grid grid-cols-4 gap-2 mb-8">
               {galleryImages.map((img, idx) => (
-                <div key={idx} onClick={() => setFullscreenImage(img)} className="aspect-square rounded-xl overflow-hidden border border-slate-100 dark:border-slate-800 cursor-pointer active:scale-95 transition-all">
+                <div key={idx} onClick={() => setFullscreenIdx(idx)} className="aspect-square rounded-xl overflow-hidden border border-slate-100 dark:border-slate-800 cursor-pointer active:scale-95 transition-all">
                   <img src={img} alt="progress" className="w-full h-full object-cover" />
                 </div>
               ))}
@@ -679,72 +720,73 @@ const Reports = () => {
         </div>
       )}
 
-      {fullscreenImage && (() => {
-        const currentIdx = galleryImages.indexOf(fullscreenImage);
-        const hasPrev = currentIdx > 0;
-        const hasNext = currentIdx >= 0 && currentIdx < galleryImages.length - 1;
-        const goPrev = (e) => {
-          e.stopPropagation();
-          if (hasPrev) setFullscreenImage(galleryImages[currentIdx - 1]);
-        };
-        const goNext = (e) => {
-          e.stopPropagation();
-          if (hasNext) setFullscreenImage(galleryImages[currentIdx + 1]);
-        };
+      {fullscreenIdx !== null && (() => {
+        const hasPrev = emblaSelected > 0;
+        const hasNext = emblaSelected < galleryImages.length - 1;
         return (
           <div
-            className="fixed inset-0 bg-slate-900/95 backdrop-blur-xl z-[600] flex items-center justify-center p-4 animate-in fade-in duration-200"
-            onClick={() => setFullscreenImage(null)}
+            className="fixed inset-0 bg-slate-900/95 backdrop-blur-xl z-[600] flex items-center justify-center animate-in fade-in duration-200"
+            onClick={() => setFullscreenIdx(null)}
           >
             <button
-              onClick={(e) => { e.stopPropagation(); setFullscreenImage(null); }}
+              onClick={(e) => { e.stopPropagation(); setFullscreenIdx(null); }}
               className="absolute top-6 right-6 bg-white/10 hover:bg-white/20 p-3 rounded-full text-white transition-colors z-10"
+              aria-label="Close"
             >
               <X size={24} />
             </button>
 
             {/* Prev */}
             <button
-              onClick={goPrev}
+              onClick={(e) => { e.stopPropagation(); emblaApi?.scrollPrev(); }}
               disabled={!hasPrev}
-              className={`absolute left-4 md:left-8 top-1/2 -translate-y-1/2 p-3 rounded-full text-white transition-all z-10 ${hasPrev
-                  ? "bg-black/10 hover:bg-black/20 active:scale-90"
-                  : "bg-black/5 text-black/30 cursor-not-allowed"
-                }`}
+              className={`absolute left-4 md:left-8 top-1/2 -translate-y-1/2 p-3 rounded-full text-white transition-all z-10 ${
+                hasPrev ? 'bg-white/10 hover:bg-white/20 active:scale-90' : 'bg-white/5 text-white/30 cursor-not-allowed'
+              }`}
               aria-label="Previous image"
             >
               <ChevronLeft size={24} />
             </button>
 
-            {/* Image */}
-            <img
-              key={fullscreenImage}
-              src={fullscreenImage}
+            {/* Embla carousel — supports touch/drag */}
+            <div
+              className="overflow-hidden w-full h-full flex items-center"
+              ref={emblaRef}
               onClick={(e) => e.stopPropagation()}
-              className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain animate-in zoom-in duration-300"
-              alt="Full Progress"
-            />
+            >
+              <div className="flex w-full h-full">
+                {galleryImages.map((img, idx) => (
+                  <div key={idx} className="flex-[0_0_100%] min-w-0 h-full flex items-center justify-center px-4">
+                    <img
+                      src={img}
+                      className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain select-none pointer-events-none"
+                      alt={`Progress ${idx + 1}`}
+                      draggable={false}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
 
             {/* Next */}
             <button
-              onClick={goNext}
+              onClick={(e) => { e.stopPropagation(); emblaApi?.scrollNext(); }}
               disabled={!hasNext}
-              className={`absolute right-4 md:right-8 top-1/2 -translate-y-1/2 p-3 rounded-full text-white transition-all z-10 ${hasNext
-                  ? "bg-black/10 hover:bg-black/20 active:scale-90"
-                  : "bg-black/5 text-black/30 cursor-not-allowed"
-                }`}
+              className={`absolute right-4 md:right-8 top-1/2 -translate-y-1/2 p-3 rounded-full text-white transition-all z-10 ${
+                hasNext ? 'bg-white/10 hover:bg-white/20 active:scale-90' : 'bg-white/5 text-white/30 cursor-not-allowed'
+              }`}
               aria-label="Next image"
             >
               <ChevronRight size={24} />
             </button>
 
             {/* Counter */}
-            {currentIdx >= 0 && galleryImages.length > 1 && (
+            {galleryImages.length > 1 && (
               <div
                 onClick={(e) => e.stopPropagation()}
                 className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full text-white text-[10px] font-bold uppercase tracking-widest border border-white/10"
               >
-                {currentIdx + 1} / {galleryImages.length}
+                {emblaSelected + 1} / {galleryImages.length}
               </div>
             )}
           </div>
