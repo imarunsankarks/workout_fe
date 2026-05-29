@@ -11,7 +11,6 @@ import {
   Activity,
   AlertCircle,
 } from "lucide-react";
-import ThemeToggle from "../components/ThemeToggle";
 
 const Login = () => {
   const { login } = useContext(AuthContext);
@@ -83,10 +82,6 @@ const Login = () => {
   return (
     <div className="relative min-h-screen flex flex-col justify-center p-6">
       <div className="max-w-sm mx-auto w-full">
-        {/* Theme Toggle */}
-        <div className="flex justify-end mb-4">
-          <ThemeToggle />
-        </div>
         {/* Brand Header */}
         <div className="text-center mb-10">
           <div className="bg-accent-gradient w-16 h-16 rounded-[22px] flex items-center justify-center mx-auto mb-4 shadow-xl dark:shadow-md shadow-accent-100">

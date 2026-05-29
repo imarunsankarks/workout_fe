@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Save, Dumbbell, Flame, Move, CheckCircle2, Info } from 'lucide-react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-import ThemeToggle from '../components/ThemeToggle';
 
 const CreateExercise = () => {
   const { user, token } = useContext(AuthContext);
@@ -69,7 +68,6 @@ const CreateExercise = () => {
           </button>
           <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">Add Movement</h1>
         </div>
-        <ThemeToggle />
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">

@@ -28,7 +28,6 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
-import ThemeToggle from "../components/ThemeToggle";
 
 // --- NEW DND IMPORTS ---
 import {
@@ -683,10 +682,8 @@ const ActiveWorkout = () => {
 
   return (
     <div className="relative min-h-screen p-4 pb-40">
-      {/* Header with Theme Toggle */}
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">Active Workout</h1>
-        <ThemeToggle />
       </div>
       {/* Timer Card */}
       <SessionTimer

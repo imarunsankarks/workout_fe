@@ -15,7 +15,6 @@ import {
   Info,
 } from "lucide-react";
 import { AuthContext } from "../context/AuthContext";
-import ThemeToggle from "../components/ThemeToggle";
 
 const Library = () => {
   const { user, token } = useContext(AuthContext);
@@ -103,7 +102,6 @@ const Library = () => {
           </h1>
         </div>
         <div className="flex items-center gap-3">
-          <ThemeToggle />
           <Link
             to="/add-exercise"
             className="bg-accent-gradient text-white p-3 rounded-2xl shadow-lg dark:shadow-md shadow-accent-200 active:scale-95 transition-all"

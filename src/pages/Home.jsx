@@ -23,7 +23,6 @@ import {
   AlertTriangle,
   Plus
 } from "lucide-react";
-import ThemeToggle from "../components/ThemeToggle";
 import { subscribeWorkoutTimer } from "../utils/workoutTimer";
 
 const formatSessionTime = (s) => {
@@ -399,7 +398,6 @@ const onFileChange = async (e, workoutId) => {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <ThemeToggle />
           <button
             onClick={handleWarmup}
             className="p-2.5 bg-amber-50 text-amber-500 rounded-xl hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-300 dark:hover:bg-amber-500/20 transition-all active:scale-90 shadow-sm border border-amber-100 dark:border-amber-400/20"

@@ -26,7 +26,6 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { AuthContext } from "../context/AuthContext";
-import ThemeToggle from "../components/ThemeToggle";
 
 const API = process.env.REACT_APP_API_URL;
 
@@ -233,7 +232,6 @@ const Metrics = () => {
                 </p>
               </div>
             </div>
-            <ThemeToggle />
           </div>
           {/* CURRENT METRICS SUMMARY */}
           <div className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl border border-white/40 dark:border-white/10 rounded-[32px] p-6 mb-6 shadow-sm relative overflow-hidden">

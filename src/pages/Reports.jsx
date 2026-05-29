@@ -7,7 +7,6 @@ import {
   Activity, ChevronLeft, ChevronRight, Clock, Trophy, 
   Target, TrendingUp, AlertTriangle, Trash2, Dumbbell, Calendar, ChevronDown, ChevronUp, Key, X, PauseCircle, Play, Image as ImageIcon, LogOut
 } from 'lucide-react';
-import ThemeToggle from '../components/ThemeToggle';
 
 const Reports = () => {
   const { user, token, logout } = useContext(AuthContext); 
@@ -336,7 +335,6 @@ const Reports = () => {
           <p className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">Growth Tracking</p>
         </div>
         <div className="flex items-center gap-2">
-          <ThemeToggle />
           <div className="bg-transparent border border-slate-300 dark:border-white/15 px-1.5 py-1.5 rounded-2xl flex items-center gap-2 text-slate-700 dark:text-white text-[10px] font-bold uppercase tracking-widest transition-all duration-500">
             <div className={`${tier.color} w-7 h-7 rounded-[10px] flex items-center justify-center text-slate-700 dark:text-black shadow-md`}>
               {tier.icon}
