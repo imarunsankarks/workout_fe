@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { BarChart, Bar, XAxis, ResponsiveContainer, Cell } from 'recharts';
 import {
-  Activity, ChevronLeft, ChevronRight, Clock, Trophy,
-  Target, TrendingUp, AlertTriangle, Trash2, Dumbbell, Calendar, ChevronDown, ChevronUp, Key, X, PauseCircle, Play, Image as ImageIcon, LogOut
+  Activity, ChevronLeft, ChevronRight, Clock, Trophy, Flame,
+  Target, TrendingUp, AlertTriangle, Trash2, Dumbbell, Calendar, ChevronDown, ChevronUp, Key, X, PauseCircle, Image as ImageIcon, LogOut
 } from 'lucide-react';
 
 const Reports = () => {
@@ -42,6 +42,7 @@ const Reports = () => {
   const [historyLimit, setHistoryLimit] = useState(5);
   const [hasActiveSession, setHasActiveSession] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [activeDayIdx, setActiveDayIdx] = useState(null);
 
   // --- NEW GALLERY STATES ---
   const [showFullGallery, setShowFullGallery] = useState(false);
@@ -126,10 +127,11 @@ const Reports = () => {
         // --- 4. WEEKLY HISTOGRAM ---
         const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
         const histogram = days.map((day, idx) => {
-          const dayTotal = weekWorkouts
+          const dayWorkouts = weekWorkouts
             .filter(w => new Date(w.date).getDay() === idx)
-            .reduce((sum, w) => sum + (w.duration || 0), 0);
-          return { day, minutes: dayTotal };
+            .map(w => ({ name: w.name || 'Workout', duration: w.duration || 0 }));
+          const dayTotal = dayWorkouts.reduce((sum, w) => sum + w.duration, 0);
+          return { day, minutes: dayTotal, sessions: dayWorkouts };
         });
         setWeeklyHistogram(histogram);
 
@@ -172,6 +174,10 @@ const Reports = () => {
   }, [activePrTab]);
 
   useEffect(() => {
+    setActiveDayIdx(null);
+  }, [currentWeekOffset]);
+
+  useEffect(() => {
     const activeData = localStorage.getItem('active_session_exercises');
     const activeSeconds = localStorage.getItem('active_session_seconds');
     const pausedStatus = localStorage.getItem('active_session_is_active');
@@ -192,7 +198,7 @@ const Reports = () => {
     const count = stats.monthlyWorkouts;
     if (count < 5) return { label: 'Amateur', color: 'bg-gradient-to-br from-[#4c1d95] via-[#a78bfa] to-[#2e1065]', Icon: Activity };
     if (count < 12) return { label: 'Beginner', color: 'bg-gradient-to-br from-[#7a3f1d] via-[#e89a4d] to-[#5e2f15]', Icon: Target };
-    if (count <= 19) return { label: 'Advanced', color: 'bg-gradient-to-br from-[#6b6d70] via-[#e5e7eb] to-[#4b4d50]', Icon: TrendingUp };
+    if (count <= 19) return { label: 'Advanced', color: 'bg-gradient-to-br from-[#6b6d70] via-[#e5e7eb] to-[#4b4d50]', Icon: Flame };
     return { label: 'Pro Athlete', color: 'bg-gradient-to-br from-[#8b6914] via-[#fde17a] to-[#7a5e0f]', Icon: Trophy };
   };
 
@@ -535,9 +541,23 @@ const Reports = () => {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={weeklyHistogram} style={{ outline: 'none' }}>
                 <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 800, fill: '#cbd5e1' }} />
-                <Bar dataKey="minutes" radius={[6, 6, 6, 6]} barSize={22} activeBar={false} style={{ outline: 'none' }}>
+                <Bar
+                  dataKey="minutes"
+                  radius={[6, 6, 6, 6]}
+                  barSize={22}
+                  style={{ outline: 'none', cursor: 'pointer' }}
+                  onClick={(_, index) => {
+                    const entry = weeklyHistogram[index];
+                    if (!entry || !entry.sessions?.length) return;
+                    setActiveDayIdx((prev) => (prev === index ? null : index));
+                  }}
+                >
                   {weeklyHistogram.map((entry, index) => (
-                    <Cell key={index} fill={entry.minutes > 45 ? '#7c3aed' : entry.minutes > 0 ? '#c4b5fd' : '#f1f5f9'} />
+                    <Cell
+                      key={index}
+                      fill={entry.minutes > 45 ? '#7c3aed' : entry.minutes > 0 ? '#c4b5fd' : '#f1f5f9'}
+                      opacity={activeDayIdx === null || activeDayIdx === index ? 1 : 0.4}
+                    />
                   ))}
                 </Bar>
               </BarChart>
@@ -546,6 +566,26 @@ const Reports = () => {
             <div className="h-full flex items-center justify-center text-slate-300 dark:text-slate-600 text-xs italic">No activity recorded for this period</div>
           )}
         </div>
+        {activeDayIdx !== null && weeklyHistogram[activeDayIdx]?.sessions?.length > 0 && (
+          <div className="relative mt-1 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl px-4 py-3 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="flex items-center justify-between mb-2 pb-2 border-b border-white/10">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                {weeklyHistogram[activeDayIdx].day}
+              </span>
+              <span className="text-[10px] font-bold text-accent-400 uppercase tracking-widest">
+                {formatMins(weeklyHistogram[activeDayIdx].minutes)}
+              </span>
+            </div>
+            <div className="space-y-1.5">
+              {weeklyHistogram[activeDayIdx].sessions.map((s, i) => (
+                <div key={i} className="flex items-center justify-between gap-3">
+                  <span className="text-xs text-slate-200 font-bold capitalize truncate">{s.name}</span>
+                  <span className="text-[10px] text-slate-400 font-bold whitespace-nowrap">{formatMins(s.duration)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Muscle Focus */}
@@ -573,9 +613,9 @@ const Reports = () => {
       </div>
 
       {/* Efficiency Banner */}
-      <div className="bg-slate-900 rounded-[32px] p-6 text-white relative overflow-hidden mb-12">
+      <div className="bg-black/50 rounded-[32px] p-6 text-white relative overflow-hidden mb-12 backdrop-blur-xl">
         <div className="relative z-10">
-          <span className={`px-2.5 pt-1 pb-1.5 rounded-full border border-white/15 text-[8px] font-medium uppercase tracking-widest`}>
+          <span className={`px-2.5 py-1 rounded-full border border-white/15 text-[8px] font-medium uppercase tracking-widest`}>
             {tier.label}
           </span>
           <h3 className="font-bold text-lg mt-2">Session Efficiency</h3>
@@ -586,7 +626,7 @@ const Reports = () => {
             <TrendingUp size={12} /> {stats.monthlyWorkouts} sessions (Last 30d)
           </div>
         </div>
-        <tier.Icon className={`absolute -right-8 -bottom-8 w-32 h-32 rotate-12 text-[#323c53]`} strokeWidth={2} />
+        <tier.Icon className={`absolute -right-7 -bottom-5 w-32 h-32 rotate-12 text-[#4b3d3d]`} strokeWidth={2} />
       </div>
 
       {/* Account Actions */}
