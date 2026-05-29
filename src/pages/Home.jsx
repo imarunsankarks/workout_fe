@@ -25,6 +25,23 @@ import {
 } from "lucide-react";
 import { subscribeWorkoutTimer } from "../utils/workoutTimer";
 
+// Returns "Today", "Yesterday", or "DD Mon" depending on how far back `date` is.
+const formatLastSessionLabel = (date) => {
+  const d = new Date(date);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  const sameDay = (a, b) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+
+  if (sameDay(d, today)) return "Today";
+  if (sameDay(d, yesterday)) return "Yesterday";
+  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+};
+
 const formatSessionTime = (s) => {
   const total = Math.max(0, Math.floor(s));
   const h = Math.floor(total / 3600);
@@ -482,10 +499,7 @@ const onFileChange = async (e, workoutId) => {
           ) : (
             <p className="text-slate-500 dark:text-slate-400 text-xs font-medium mb-4 leading-snug">
               {history[0]
-                ? `Last session ${new Date(history[0].date).toLocaleDateString(
-                    "en-GB",
-                    { day: "2-digit", month: "short" },
-                  )}`
+                ? <><span>Last session</span> <b>{formatLastSessionLabel(history[0].date)}</b></>
                 : "Start your first workout!"}
             </p>
           )}
