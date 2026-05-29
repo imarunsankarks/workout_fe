@@ -72,7 +72,7 @@ const Navbar = () => {
               className={`absolute -bottom-6 left-1/2 -translate-x-1/2 text-[9px] font-bold uppercase tracking-widest transition-all duration-400 ${
                 isMenuOpen
                   ? "text-slate-800 dark:text-slate-100 opacity-100"
-                  : "text-accent-600 dark:text-accent-400 opacity-100"
+                  : "text-slate-800 dark:text-slate-500 opacity-100"
               }`}
             >
               {isMenuOpen ? "Close" : "Action"}

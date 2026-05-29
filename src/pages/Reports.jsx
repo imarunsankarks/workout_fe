@@ -9,6 +9,108 @@ import {
   Target, TrendingUp, AlertTriangle, Trash2, Dumbbell, Calendar, ChevronDown, ChevronUp, Key, X, PauseCircle, Image as ImageIcon, LogOut
 } from 'lucide-react';
 
+// Mount-only-when-open fullscreen image carousel. Mounting fresh on every
+// open means useEmblaCarousel initializes once with the correct startIndex,
+// so the first paint is already on the tapped image (no flash of slide 0).
+const FullscreenCarousel = ({ images, startIdx, onClose }) => {
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    loop: false,
+    align: 'center',
+    startIndex: startIdx,
+  });
+  const [selected, setSelected] = useState(startIdx);
+
+  useEffect(() => {
+    if (!emblaApi) return undefined;
+    const onSelect = () => setSelected(emblaApi.selectedScrollSnap());
+    onSelect();
+    emblaApi.on('select', onSelect);
+    emblaApi.on('reInit', onSelect);
+    return () => {
+      emblaApi.off('select', onSelect);
+      emblaApi.off('reInit', onSelect);
+    };
+  }, [emblaApi]);
+
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === 'ArrowLeft') emblaApi?.scrollPrev();
+      else if (e.key === 'ArrowRight') emblaApi?.scrollNext();
+      else if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [emblaApi, onClose]);
+
+  const hasPrev = selected > 0;
+  const hasNext = selected < images.length - 1;
+
+  return (
+    <div
+      className="fixed inset-0 bg-slate-900/95 backdrop-blur-xl z-[600] flex items-center justify-center animate-in fade-in duration-200"
+      onClick={onClose}
+    >
+      <button
+        onClick={(e) => { e.stopPropagation(); onClose(); }}
+        className="absolute top-6 right-6 bg-white/10 hover:bg-white/20 p-3 rounded-full text-white transition-colors z-10"
+        aria-label="Close"
+      >
+        <X size={24} />
+      </button>
+
+      <button
+        onClick={(e) => { e.stopPropagation(); emblaApi?.scrollPrev(); }}
+        disabled={!hasPrev}
+        className={`absolute left-4 md:left-8 top-1/2 -translate-y-1/2 p-3 rounded-full text-white transition-all z-10 ${
+          hasPrev ? 'bg-white/10 hover:bg-white/20 active:scale-90' : 'bg-white/5 text-white/30 cursor-not-allowed'
+        }`}
+        aria-label="Previous image"
+      >
+        <ChevronLeft size={24} />
+      </button>
+
+      <div
+        className="overflow-hidden w-full h-full flex items-center"
+        ref={emblaRef}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex w-full h-full">
+          {images.map((img, idx) => (
+            <div key={idx} className="flex-[0_0_100%] min-w-0 h-full flex items-center justify-center px-4">
+              <img
+                src={img}
+                className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain select-none pointer-events-none"
+                alt={`Progress ${idx + 1}`}
+                draggable={false}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <button
+        onClick={(e) => { e.stopPropagation(); emblaApi?.scrollNext(); }}
+        disabled={!hasNext}
+        className={`absolute right-4 md:right-8 top-1/2 -translate-y-1/2 p-3 rounded-full text-white transition-all z-10 ${
+          hasNext ? 'bg-white/10 hover:bg-white/20 active:scale-90' : 'bg-white/5 text-white/30 cursor-not-allowed'
+        }`}
+        aria-label="Next image"
+      >
+        <ChevronRight size={24} />
+      </button>
+
+      {images.length > 1 && (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full text-white text-[10px] font-bold uppercase tracking-widest border border-white/10"
+        >
+          {selected + 1} / {images.length}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const Reports = () => {
   const { user, token, logout } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -48,10 +150,6 @@ const Reports = () => {
   // --- NEW GALLERY STATES ---
   const [showFullGallery, setShowFullGallery] = useState(false);
   const [fullscreenIdx, setFullscreenIdx] = useState(null);
-
-  // Embla carousel for fullscreen image viewer — supports touch/drag
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false, align: 'center' });
-  const [emblaSelected, setEmblaSelected] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -297,57 +395,25 @@ const Reports = () => {
 
   const galleryImages = allWorkouts.filter(w => w.imageUrl).map(w => w.imageUrl);
 
-  // Sync Embla's selected index back into React state for counter / button disabled state.
-  useEffect(() => {
-    if (!emblaApi) return undefined;
-    const onSelect = () => setEmblaSelected(emblaApi.selectedScrollSnap());
-    onSelect();
-    emblaApi.on('select', onSelect);
-    emblaApi.on('reInit', onSelect);
-    return () => {
-      emblaApi.off('select', onSelect);
-      emblaApi.off('reInit', onSelect);
-    };
-  }, [emblaApi]);
-
-  // When the fullscreen viewer opens, jump Embla to the tapped image.
-  useEffect(() => {
-    if (fullscreenIdx === null || !emblaApi) return;
-    emblaApi.scrollTo(fullscreenIdx, true);
-  }, [fullscreenIdx, emblaApi]);
-
-  // Keyboard navigation + Escape to close.
-  useEffect(() => {
-    if (fullscreenIdx === null) return undefined;
-    const handleKey = (e) => {
-      if (e.key === 'ArrowLeft') emblaApi?.scrollPrev();
-      else if (e.key === 'ArrowRight') emblaApi?.scrollNext();
-      else if (e.key === 'Escape') setFullscreenIdx(null);
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [fullscreenIdx, emblaApi]);
-
   // Back-button behavior: when an overlay is open, pressing the system back
   // button should close the overlay instead of leaving the page. We push a
-  // sentinel history entry while the overlay is open; the popstate handler
-  // closes the overlay and stops propagation so the global `useControlledBack`
-  // hook (registered higher in the tree) doesn't also navigate away.
-  // Listener is registered in the capture phase so it always runs before the
-  // global one regardless of mount order.
+  // sentinel history entry on open and set window.__overlayOpen so the global
+  // `useControlledBack` hook skips its "back -> home" redirect. Our local
+  // popstate listener then closes the overlay.
   useEffect(() => {
     const overlayOpen = fullscreenIdx !== null || showFullGallery;
     if (!overlayOpen) return undefined;
 
+    window.__overlayOpen = true;
     window.history.pushState({ reportsOverlay: true }, '');
-    const handlePop = (e) => {
-      e.stopImmediatePropagation();
+    const handlePop = () => {
       if (fullscreenIdx !== null) setFullscreenIdx(null);
       else if (showFullGallery) setShowFullGallery(false);
     };
-    window.addEventListener('popstate', handlePop, { capture: true });
+    window.addEventListener('popstate', handlePop);
     return () => {
-      window.removeEventListener('popstate', handlePop, { capture: true });
+      window.removeEventListener('popstate', handlePop);
+      window.__overlayOpen = false;
     };
   }, [fullscreenIdx, showFullGallery]);
 
@@ -720,78 +786,13 @@ const Reports = () => {
         </div>
       )}
 
-      {fullscreenIdx !== null && (() => {
-        const hasPrev = emblaSelected > 0;
-        const hasNext = emblaSelected < galleryImages.length - 1;
-        return (
-          <div
-            className="fixed inset-0 bg-slate-900/95 backdrop-blur-xl z-[600] flex items-center justify-center animate-in fade-in duration-200"
-            onClick={() => setFullscreenIdx(null)}
-          >
-            <button
-              onClick={(e) => { e.stopPropagation(); setFullscreenIdx(null); }}
-              className="absolute top-6 right-6 bg-white/10 hover:bg-white/20 p-3 rounded-full text-white transition-colors z-10"
-              aria-label="Close"
-            >
-              <X size={24} />
-            </button>
-
-            {/* Prev */}
-            <button
-              onClick={(e) => { e.stopPropagation(); emblaApi?.scrollPrev(); }}
-              disabled={!hasPrev}
-              className={`absolute left-4 md:left-8 top-1/2 -translate-y-1/2 p-3 rounded-full text-white transition-all z-10 ${
-                hasPrev ? 'bg-white/10 hover:bg-white/20 active:scale-90' : 'bg-white/5 text-white/30 cursor-not-allowed'
-              }`}
-              aria-label="Previous image"
-            >
-              <ChevronLeft size={24} />
-            </button>
-
-            {/* Embla carousel — supports touch/drag */}
-            <div
-              className="overflow-hidden w-full h-full flex items-center"
-              ref={emblaRef}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex w-full h-full">
-                {galleryImages.map((img, idx) => (
-                  <div key={idx} className="flex-[0_0_100%] min-w-0 h-full flex items-center justify-center px-4">
-                    <img
-                      src={img}
-                      className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl object-contain select-none pointer-events-none"
-                      alt={`Progress ${idx + 1}`}
-                      draggable={false}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Next */}
-            <button
-              onClick={(e) => { e.stopPropagation(); emblaApi?.scrollNext(); }}
-              disabled={!hasNext}
-              className={`absolute right-4 md:right-8 top-1/2 -translate-y-1/2 p-3 rounded-full text-white transition-all z-10 ${
-                hasNext ? 'bg-white/10 hover:bg-white/20 active:scale-90' : 'bg-white/5 text-white/30 cursor-not-allowed'
-              }`}
-              aria-label="Next image"
-            >
-              <ChevronRight size={24} />
-            </button>
-
-            {/* Counter */}
-            {galleryImages.length > 1 && (
-              <div
-                onClick={(e) => e.stopPropagation()}
-                className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full text-white text-[10px] font-bold uppercase tracking-widest border border-white/10"
-              >
-                {emblaSelected + 1} / {galleryImages.length}
-              </div>
-            )}
-          </div>
-        );
-      })()}
+      {fullscreenIdx !== null && (
+        <FullscreenCarousel
+          images={galleryImages}
+          startIdx={fullscreenIdx}
+          onClose={() => setFullscreenIdx(null)}
+        />
+      )}
 
       {showLogoutPrompt && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6 text-center">

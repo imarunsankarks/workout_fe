@@ -15,6 +15,10 @@ const useControlledBack = () => {
     }
 
     const handlePopState = () => {
+      // Pages can opt out of the "back -> home" behavior by setting
+      // window.__overlayOpen while a modal/overlay is open. The page is
+      // responsible for clearing the flag and closing the overlay itself.
+      if (window.__overlayOpen) return;
       if (blockedPaths.includes(location.pathname)) {
         navigate("/", { replace: true });
       }
