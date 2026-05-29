@@ -233,6 +233,7 @@ const ActiveWorkout = () => {
   const [workoutName, setWorkoutName] = useState("");
   const [library, setLibrary] = useState([]);
   const [loadingSave, setLoadingSave] = useState(false);
+  const [saveError, setSaveError] = useState(null);
   const [activeMuscle, setActiveMuscle] = useState("Legs");
   const [nullData, setNullData] = useState(false);
   const [exerciseToDelete, setExerciseToDelete] = useState(null);
@@ -635,9 +636,13 @@ const ActiveWorkout = () => {
         navigate("/");
       } catch (err) {
         console.error("Save Error:", err);
-        alert("Could not save to database. Image upload or network error.");
+        const serverMsg =
+          err?.response?.data?.message ||
+          err?.response?.data?.error ||
+          err?.message ||
+          "Unknown error";
+        setSaveError(serverMsg);
         setLoadingSave(false);
-        setShowFinishPrompt(true);
       }
     };
 
@@ -1133,6 +1138,39 @@ const ActiveWorkout = () => {
                 className="w-full py-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 rounded-2xl transition-colors"
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {saveError && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[800] flex items-center justify-center p-6 text-center">
+          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="bg-red-100 dark:bg-red-900/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600 dark:text-red-400">
+              <AlertTriangle size={32} />
+            </div>
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
+              Could not save workout
+            </h2>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-6 leading-relaxed break-words">
+              {saveError}
+            </p>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => {
+                  setSaveError(null);
+                  setShowFinishPrompt(true);
+                }}
+                className="w-full py-4 bg-accent-gradient text-white font-bold rounded-2xl shadow-lg dark:shadow-md active:scale-95 transition-all"
+              >
+                Try Again
+              </button>
+              <button
+                onClick={() => setSaveError(null)}
+                className="w-full py-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 rounded-2xl transition-colors"
+              >
+                Dismiss
               </button>
             </div>
           </div>

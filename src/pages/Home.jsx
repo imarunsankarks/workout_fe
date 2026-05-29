@@ -63,6 +63,14 @@ const Home = () => {
   const [fullscreenImage, setFullscreenImage] = useState(null);
   const [showImageDeleteConfirm, setShowImageDeleteConfirm] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  // --- Edit completed workout state ---
+  const [editingWorkout, setEditingWorkout] = useState(null);
+  const [editLibrary, setEditLibrary] = useState([]);
+  const [showExercisePicker, setShowExercisePicker] = useState(false);
+  const [pickerMuscle, setPickerMuscle] = useState("Legs");
+  const [pickerSearch, setPickerSearch] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState(null);
 
   const calculateIntensity = (workout) => {
     if (!workout.duration || workout.duration === 0) return 0;
@@ -199,6 +207,138 @@ const Home = () => {
         setIsWarming(false);
         setWarmupStatus("idle");
       }, 2000);
+    }
+  };
+
+  // --- EDIT WORKOUT HELPERS ---
+  const openEditWorkout = async (workout) => {
+    // Deep clone to avoid mutating the displayed workout while editing
+    setEditingWorkout(JSON.parse(JSON.stringify(workout)));
+    try {
+      const res = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/exercises/${user.id}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setEditLibrary(res.data || []);
+    } catch (err) {
+      console.error("Failed to fetch library for edit:", err);
+      setEditLibrary([]);
+    }
+  };
+
+  const updateEditingDetails = (mutator) => {
+    setEditingWorkout((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, details: prev.details.map((d) => ({ ...d, sets: d.sets.map((s) => ({ ...s })) })) };
+      mutator(next);
+      return next;
+    });
+  };
+
+  const editUpdateSet = (exIdx, setIdx, field, value) => {
+    updateEditingDetails((draft) => {
+      draft.details[exIdx].sets[setIdx][field] = value;
+    });
+  };
+
+  const editAddSet = (exIdx) => {
+    updateEditingDetails((draft) => {
+      const ex = draft.details[exIdx];
+      ex.sets.push(ex.type === "Strength" ? { weight: "", reps: "" } : { time: 0 });
+    });
+  };
+
+  const editRemoveSet = (exIdx, setIdx) => {
+    updateEditingDetails((draft) => {
+      draft.details[exIdx].sets.splice(setIdx, 1);
+    });
+  };
+
+  const editRemoveExercise = (exIdx) => {
+    updateEditingDetails((draft) => {
+      draft.details.splice(exIdx, 1);
+    });
+  };
+
+  const editToggleExecution = (exIdx) => {
+    updateEditingDetails((draft) => {
+      draft.details[exIdx].execution =
+        draft.details[exIdx].execution === "Unilateral" ? "Bilateral" : "Unilateral";
+    });
+  };
+
+  const editUpdateResistance = (exIdx, value) => {
+    updateEditingDetails((draft) => {
+      draft.details[exIdx].resistance = value;
+    });
+  };
+
+  const editAddExerciseFromLibrary = (libEx) => {
+    updateEditingDetails((draft) => {
+      draft.details.push({
+        name: libEx.name,
+        type: libEx.type,
+        muscle: libEx.muscle,
+        execution: "Bilateral",
+        resistance: 0,
+        sets: libEx.type === "Strength" ? [{ weight: "", reps: "" }] : [{ time: 0 }],
+      });
+    });
+    setShowExercisePicker(false);
+    setPickerSearch("");
+  };
+
+  const saveEditedWorkout = async () => {
+    if (!editingWorkout) return;
+    setEditSaving(true);
+    setEditError(null);
+    try {
+      // Drop empty sets so we don't persist garbage
+      const cleanedDetails = editingWorkout.details
+        .map((ex) => ({
+          ...ex,
+          sets: ex.sets.filter((s) =>
+            ex.type === "Strength"
+              ? s.weight !== "" && s.reps !== "" && Number(s.reps) > 0
+              : s.time && Number(s.time) > 0,
+          ),
+        }))
+        .filter((ex) => ex.sets.length > 0);
+
+      if (cleanedDetails.length === 0) {
+        setEditError("At least one exercise with valid sets is required.");
+        setEditSaving(false);
+        return;
+      }
+
+      const payload = {
+        name: (editingWorkout.name || "").trim() || "Daily Session",
+        notes: editingWorkout.notes || "",
+        duration: editingWorkout.duration,
+        muscles: [...new Set(cleanedDetails.map((d) => d.muscle))],
+        details: cleanedDetails,
+      };
+
+      const res = await axios.patch(
+        `${process.env.REACT_APP_API_URL}/api/workouts/${editingWorkout._id}`,
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      // Sync local lists
+      setHistory((prev) => prev.map((w) => (w._id === res.data._id ? res.data : w)));
+      setSelectedWorkout(res.data);
+      setEditingWorkout(null);
+    } catch (err) {
+      console.error("Edit save failed:", err);
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        "Unknown error";
+      setEditError(msg);
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -593,12 +733,21 @@ const onFileChange = async (e, workoutId) => {
                   })}
                 </p>
               </div>
-              <button
-                onClick={() => setSelectedWorkout(null)}
-                className="bg-white/50 dark:bg-white/10 backdrop-blur-md p-2 rounded-full text-slate-400 dark:text-slate-500"
-              >
-                <X size={20} />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => openEditWorkout(selectedWorkout)}
+                  className="bg-white/50 dark:bg-white/10 backdrop-blur-md p-2 rounded-full text-slate-500 dark:text-slate-300 hover:text-accent-500 dark:hover:text-accent-400 transition-colors"
+                  title="Edit workout"
+                >
+                  <Edit3 size={18} />
+                </button>
+                <button
+                  onClick={() => setSelectedWorkout(null)}
+                  className="bg-white/50 dark:bg-white/10 backdrop-blur-md p-2 rounded-full text-slate-400 dark:text-slate-500"
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </div>
             {/* --- NEW: IMAGE & NOTE SECTION --- */}
             <div className="mb-6">
@@ -799,6 +948,282 @@ const onFileChange = async (e, workoutId) => {
             >
               CLOSE
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* === EDIT WORKOUT MODAL === */}
+      {editingWorkout && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-2xl z-[300] flex items-end justify-center">
+          <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-lg rounded-t-[40px] p-6 max-h-[92vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-5">
+              <div>
+                <p className="text-[10px] font-bold text-accent-500 dark:text-accent-400 uppercase tracking-[0.2em] mb-1">Edit Session</p>
+                <input
+                  type="text"
+                  value={editingWorkout.name}
+                  onChange={(e) => setEditingWorkout({ ...editingWorkout, name: e.target.value })}
+                  placeholder="Workout name"
+                  className="text-2xl font-bold text-slate-800 dark:text-slate-100 bg-transparent border-b border-slate-300 dark:border-slate-600 focus:border-accent-500 focus:outline-none w-full pb-1"
+                />
+              </div>
+              <button
+                onClick={() => { setEditingWorkout(null); setEditError(null); }}
+                className="bg-white/50 dark:bg-white/10 backdrop-blur-md p-2 rounded-full text-slate-400 dark:text-slate-500 ml-3 shrink-0"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Duration + Notes */}
+            <div className="mb-5 space-y-3">
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Duration</label>
+                <div className="mt-1 flex items-center gap-2 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/60 dark:border-white/10 rounded-2xl px-4 py-3">
+                  <Clock size={16} className="text-slate-400 dark:text-slate-500 shrink-0" />
+                  <input
+                    type="number"
+                    min="0"
+                    value={editingWorkout.duration ?? 0}
+                    onChange={(e) =>
+                      setEditingWorkout({
+                        ...editingWorkout,
+                        duration: e.target.value === "" ? 0 : Math.max(0, parseInt(e.target.value, 10) || 0),
+                      })
+                    }
+                    className="flex-1 min-w-0 bg-transparent text-sm font-bold text-slate-700 dark:text-slate-200 focus:outline-none"
+                  />
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest shrink-0">
+                    min
+                    {editingWorkout.duration >= 60 && (
+                      <span className="ml-1 normal-case tracking-normal text-slate-300 dark:text-slate-600">
+                        ({Math.floor(editingWorkout.duration / 60)}h {editingWorkout.duration % 60}m)
+                      </span>
+                    )}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Notes</label>
+                <textarea
+                  value={editingWorkout.notes || ""}
+                  onChange={(e) => setEditingWorkout({ ...editingWorkout, notes: e.target.value })}
+                  placeholder="How did it feel?"
+                  rows={2}
+                  className="w-full mt-1 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/60 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-accent-400 resize-none"
+                />
+              </div>
+            </div>
+
+            {/* Exercises list */}
+            <div className="space-y-4 mb-4">
+              {editingWorkout.details.map((ex, exIdx) => (
+                <div
+                  key={exIdx}
+                  className="bg-white/40 dark:bg-white/5 backdrop-blur-md p-4 rounded-3xl border border-white/60 dark:border-white/10"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className={`p-1.5 rounded-lg shrink-0 ${ex.type === "Warmup" ? "text-amber-500 bg-amber-50 dark:bg-amber-900/30" : ex.type === "Stretching" ? "text-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-900/30" : "text-accent-500 bg-accent-50 dark:bg-accent-900/30"}`}>
+                        {ex.type === "Warmup" ? <Flame size={14} /> : ex.type === "Stretching" ? <Move size={14} /> : <Dumbbell size={14} />}
+                      </div>
+                      <h5 className="font-bold text-slate-800 dark:text-slate-100 capitalize text-sm truncate">{ex.name}</h5>
+                    </div>
+                    <button
+                      onClick={() => editRemoveExercise(exIdx)}
+                      className="p-1.5 bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 rounded-lg active:scale-90 transition-all shrink-0 ml-2"
+                      title="Remove exercise"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+
+                  {/* Resistance + execution chips (Strength only) */}
+                  {ex.type === "Strength" && (
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="flex items-center gap-1 px-2.5 py-1 bg-white/60 dark:bg-white/5 rounded-xl border border-white/60 dark:border-white/10">
+                        <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase">Band</span>
+                        <input
+                          type="number"
+                          value={ex.resistance || 0}
+                          onChange={(e) => editUpdateResistance(exIdx, e.target.value)}
+                          className="w-10 bg-transparent text-sm font-bold text-slate-700 dark:text-slate-200 text-center focus:outline-none"
+                        />
+                        <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase">kg</span>
+                      </div>
+                      <button
+                        onClick={() => editToggleExecution(exIdx)}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-white/60 dark:bg-white/5 rounded-xl border border-white/60 dark:border-white/10 active:scale-95 transition-all"
+                      >
+                        <div className="w-1 h-1 rounded-full bg-fuchsia-500" />
+                        <span className="text-[10px] font-bold text-slate-700 dark:text-slate-200">
+                          {ex.execution === "Unilateral" ? "Unilateral" : "Bilateral"}
+                        </span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Sets */}
+                  <div className="space-y-2">
+                    {ex.sets.map((set, sIdx) => (
+                      <div
+                        key={sIdx}
+                        className="flex items-center gap-2 bg-white/60 dark:bg-white/5 rounded-xl border border-white/60 dark:border-white/10 px-3 py-2"
+                      >
+                        <span className="flex items-center justify-center w-5 h-5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 text-[10px] font-bold shrink-0">
+                          {sIdx + 1}
+                        </span>
+                        {ex.type === "Strength" ? (
+                          <>
+                            <input
+                              type="number"
+                              placeholder="kg"
+                              value={set.weight ?? ""}
+                              onChange={(e) => editUpdateSet(exIdx, sIdx, "weight", e.target.value)}
+                              className="flex-1 min-w-0 bg-transparent text-sm font-bold text-slate-700 dark:text-slate-200 text-center focus:outline-none"
+                            />
+                            <span className="text-slate-300 dark:text-slate-600 text-xs">×</span>
+                            <input
+                              type="number"
+                              placeholder="reps"
+                              value={set.reps ?? ""}
+                              onChange={(e) => editUpdateSet(exIdx, sIdx, "reps", e.target.value)}
+                              className="flex-1 min-w-0 bg-transparent text-sm font-bold text-slate-700 dark:text-slate-200 text-center focus:outline-none"
+                            />
+                          </>
+                        ) : (
+                          <input
+                            type="number"
+                            placeholder="seconds"
+                            value={set.time ?? 0}
+                            onChange={(e) => editUpdateSet(exIdx, sIdx, "time", Number(e.target.value))}
+                            className="flex-1 min-w-0 bg-transparent text-sm font-bold text-slate-700 dark:text-slate-200 text-center focus:outline-none"
+                          />
+                        )}
+                        <button
+                          onClick={() => editRemoveSet(exIdx, sIdx)}
+                          className="p-1 text-slate-400 dark:text-slate-500 hover:text-red-500 transition-colors shrink-0"
+                          title="Remove set"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => editAddSet(exIdx)}
+                      className="w-full py-2 border border-dashed border-white/60 dark:border-white/15 rounded-xl text-[10px] font-bold text-slate-400 dark:text-slate-500 hover:text-accent-500 hover:border-accent-300 uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      <Plus size={12} /> Add Set
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Add exercise button */}
+            <button
+              onClick={() => setShowExercisePicker(true)}
+              className="w-full py-3.5 border-2 border-dashed border-accent-300 dark:border-accent-700 rounded-2xl text-[11px] font-bold text-accent-600 dark:text-accent-400 uppercase tracking-widest hover:bg-accent-50 dark:hover:bg-accent-900/20 transition-colors flex items-center justify-center gap-2 mb-4"
+            >
+              <Plus size={16} /> Add Missed Exercise
+            </button>
+
+            {/* Error inline */}
+            {editError && (
+              <div className="flex items-start gap-2 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/40 rounded-2xl mb-3">
+                <AlertTriangle size={16} className="text-red-500 dark:text-red-400 shrink-0 mt-0.5" />
+                <p className="text-xs text-red-600 dark:text-red-300 leading-relaxed break-words">{editError}</p>
+              </div>
+            )}
+
+            {/* Action buttons */}
+            <div className="flex gap-2 sticky bottom-0 -mx-6 -mb-6 px-6 py-4 bg-gradient-to-t from-white/90 dark:from-slate-800/80 via-white/80 dark:via-slate-800/60 to-transparent backdrop-blur-xl">
+              <button
+                onClick={() => { setEditingWorkout(null); setEditError(null); }}
+                disabled={editSaving}
+                className="flex-1 py-4 text-slate-500 dark:text-slate-400 font-bold rounded-2xl border border-white/60 dark:border-white/10 hover:bg-white/50 dark:hover:bg-white/5 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveEditedWorkout}
+                disabled={editSaving}
+                className="flex-1 py-4 bg-accent-gradient text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {editSaving ? (<><Loader2 size={16} className="animate-spin" /> Saving</>) : ("Save Changes")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* === EXERCISE PICKER (for edit modal) === */}
+      {showExercisePicker && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-2xl z-[400] flex items-end justify-center">
+          <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-lg rounded-t-[40px] p-6 max-h-[80vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Pick Exercise</h3>
+              <button
+                onClick={() => setShowExercisePicker(false)}
+                className="bg-white/50 dark:bg-white/10 p-2 rounded-full text-slate-400 dark:text-slate-500"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Search */}
+            <input
+              type="text"
+              value={pickerSearch}
+              onChange={(e) => setPickerSearch(e.target.value)}
+              placeholder="Search exercises..."
+              className="w-full bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-accent-400 mb-3"
+            />
+
+            {/* Muscle filter */}
+            <div className="flex gap-2 overflow-x-auto pb-2 mb-3 no-scrollbar" style={{ scrollbarWidth: "none" }}>
+              {["Chest", "Back", "Shoulders", "Biceps", "Triceps", "Legs", "Abs", "Full Body"].map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setPickerMuscle(m)}
+                  className={`whitespace-nowrap px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all ${
+                    pickerMuscle === m
+                      ? "bg-accent-600 border-accent-600 text-white"
+                      : "bg-white/40 dark:bg-white/5 border-white/60 dark:border-white/10 text-slate-400 dark:text-slate-500"
+                  }`}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+
+            {/* Library list */}
+            <div className="space-y-2">
+              {editLibrary
+                .filter((ex) => ex.muscle?.toLowerCase() === pickerMuscle.toLowerCase())
+                .filter((ex) => ex.name?.toLowerCase().includes(pickerSearch.toLowerCase()))
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map((ex) => (
+                  <button
+                    key={ex._id}
+                    onClick={() => editAddExerciseFromLibrary(ex)}
+                    className="w-full flex items-center gap-3 bg-white/50 dark:bg-white/5 backdrop-blur-md p-3 rounded-2xl border border-white/60 dark:border-white/10 active:bg-accent-50 dark:active:bg-accent-900/30 transition-colors text-left"
+                  >
+                    <div className={`p-2 rounded-xl shrink-0 ${ex.type === "Warmup" ? "text-amber-500 bg-amber-50 dark:bg-amber-900/30" : ex.type === "Stretching" ? "text-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-900/30" : "text-accent-500 bg-accent-50 dark:bg-accent-900/30"}`}>
+                      {ex.type === "Warmup" ? <Flame size={16} /> : ex.type === "Stretching" ? <Move size={16} /> : <Dumbbell size={16} />}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-slate-800 dark:text-slate-100 text-sm capitalize truncate">{ex.name}</p>
+                      <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{ex.muscle} · {ex.type}</p>
+                    </div>
+                    <Plus size={16} className="text-accent-500 shrink-0" />
+                  </button>
+                ))}
+              {editLibrary.filter((ex) => ex.muscle?.toLowerCase() === pickerMuscle.toLowerCase() && ex.name?.toLowerCase().includes(pickerSearch.toLowerCase())).length === 0 && (
+                <p className="text-center text-slate-400 dark:text-slate-500 text-xs italic py-8">No exercises in this category</p>
+              )}
+            </div>
           </div>
         </div>
       )}
