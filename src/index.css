@@ -93,9 +93,13 @@ html.dark body {
   @apply bg-black text-slate-100;
 }
 
-/* Dark mode color-scheme hint so native form controls / scrollbars adapt */
+/* Dark mode color-scheme hint so native form controls / scrollbars adapt.
+   Also paint the html element itself black so the safe-area-inset region
+   (which renders the html background, not the body's) doesn't show a hairline
+   seam against the surrounding pure-black UI chrome. */
 html.dark {
   color-scheme: dark;
+  background-color: #000;
 }
 
 @keyframes progress-loading {

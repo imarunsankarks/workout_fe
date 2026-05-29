@@ -28,7 +28,7 @@ const AppContent = () => {
     <div className="pb-20 select-none">
       {/* Animated gradient blobs — global background (dark mode only) */}
       <div className="fixed inset-0 -z-10 overflow-hidden bg-slate-50 dark:bg-black pointer-events-none">
-        <div className="hidden dark:block absolute top-40 -left-24 w-80 h-80 rounded-full bg-purple-500/10 blur-3xl animate-blob" />
+        <div className="hidden dark:block absolute top-40 -left-24 w-80 h-80 rounded-full bg-purple-500/20 blur-3xl animate-blob" />
         <div className="hidden dark:block absolute top-1/3 -right-32 w-[28rem] h-[28rem] rounded-full bg-indigo-500/20 blur-3xl animate-blob animation-delay-2000" />
         <div className="hidden dark:block absolute bottom-0 left-1/4 w-96 h-96 rounded-full bg-orange-500/15 blur-3xl animate-blob animation-delay-4000" />
         <div className="hidden dark:block absolute top-1/2 left-1/2 w-80 h-80 rounded-full bg-fuchsia-500/15 blur-3xl animate-blob animation-delay-6000" />
