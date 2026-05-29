@@ -432,9 +432,9 @@ const onFileChange = async (e, workoutId) => {
           className={`absolute -right-6 -bottom-8 w-32 h-32 rotate-12 pointer-events-none ${
             hasActiveSession
               ? isPaused
-                ? "text-slate-500/10 dark:text-slate-400/10"
-                : "text-orange-500/10 dark:text-orange-400/10"
-              : "text-accent-500/10 dark:text-accent-400/10"
+                ? "text-slate-500/10 dark:text-[#222937]"
+                : "text-orange-500/10 dark:text-[#222937]"
+              : "text-accent-500/10 dark:text-[#222937]"
           } ${!isPaused && hasActiveSession ? "animate-spin-slow" : ""}`}
         />
 

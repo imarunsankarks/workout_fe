@@ -3,26 +3,26 @@ import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { BarChart, Bar, XAxis, ResponsiveContainer, Cell } from 'recharts';
-import { 
-  Activity, ChevronLeft, ChevronRight, Clock, Trophy, 
+import {
+  Activity, ChevronLeft, ChevronRight, Clock, Trophy,
   Target, TrendingUp, AlertTriangle, Trash2, Dumbbell, Calendar, ChevronDown, ChevronUp, Key, X, PauseCircle, Play, Image as ImageIcon, LogOut
 } from 'lucide-react';
 
 const Reports = () => {
-  const { user, token, logout } = useContext(AuthContext); 
+  const { user, token, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
   const [clickedIntensity, setClickedIntensity] = useState(false);
-  const [stats, setStats] = useState({ 
-    totalWorkouts: 0, 
-    totalMinutes: 0, 
-    monthlyWorkouts: 0 
+  const [stats, setStats] = useState({
+    totalWorkouts: 0,
+    totalMinutes: 0,
+    monthlyWorkouts: 0
   });
   const [weeklyHistogram, setWeeklyHistogram] = useState([]);
   const [muscleDistribution, setMuscleDistribution] = useState([]);
   const [personalRecords, setPersonalRecords] = useState({});
   const [activePrTab, setActivePrTab] = useState('Legs');
-  const [showAllPrs, setShowAllPrs] = useState(false); 
+  const [showAllPrs, setShowAllPrs] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showDeletePrompt, setShowDeletePrompt] = useState(false);
   const [showLogoutPrompt, setShowLogoutPrompt] = useState(false);
@@ -33,12 +33,12 @@ const Reports = () => {
     newPassword: '',
     confirmPassword: ''
   });
-  const [passwordStep, setPasswordStep] = useState(1); 
+  const [passwordStep, setPasswordStep] = useState(1);
   const [passwordError, setPasswordError] = useState("");
   const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
   const [countdown, setCountdown] = useState(3);
   const [selectedPrHistory, setSelectedPrHistory] = useState(null);
-  const [allWorkouts, setAllWorkouts] = useState([]); 
+  const [allWorkouts, setAllWorkouts] = useState([]);
   const [historyLimit, setHistoryLimit] = useState(5);
   const [hasActiveSession, setHasActiveSession] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -55,15 +55,15 @@ const Reports = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         const history = res.data;
-        setAllWorkouts(history); 
+        setAllWorkouts(history);
         // --- 1. OVERALL STATS & MONTHLY VOLUME ---
         const totalMins = history.reduce((acc, curr) => acc + (curr.duration || 0), 0);
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         const monthlyWorkoutsCount = history.filter(w => new Date(w.date) >= thirtyDaysAgo).length;
 
-        setStats({ 
-          totalWorkouts: history.length, 
+        setStats({
+          totalWorkouts: history.length,
           totalMinutes: totalMins,
           monthlyWorkouts: monthlyWorkoutsCount
         });
@@ -86,7 +86,7 @@ const Reports = () => {
 
               if (maxSet.weight >= 0) {
                 if (!prMap[muscleGroup]) prMap[muscleGroup] = {};
-                
+
                 const existingRecord = prMap[muscleGroup][exerciseName];
                 const existingTotal = existingRecord ? (existingRecord.weight + existingRecord.resistance) : -1;
 
@@ -110,10 +110,10 @@ const Reports = () => {
         const startOfThisWeek = new Date(now);
         startOfThisWeek.setDate(now.getDate() - dayOfWeek);
         startOfThisWeek.setHours(0, 0, 0, 0);
-        
+
         const startOfViewWeek = new Date(startOfThisWeek);
         startOfViewWeek.setDate(startOfViewWeek.getDate() + (currentWeekOffset * 7));
-        
+
         const endOfViewWeek = new Date(startOfViewWeek);
         endOfViewWeek.setDate(endOfViewWeek.getDate() + 6);
         endOfViewWeek.setHours(23, 59, 59, 999);
@@ -190,10 +190,10 @@ const Reports = () => {
 
   const getUserTier = () => {
     const count = stats.monthlyWorkouts;
-    if (count < 5)  return { label: 'Amateur',     color: 'bg-gradient-to-br from-[#4c1d95] via-[#a78bfa] to-[#2e1065]',           icon: <Activity size={14}/> };
-    if (count < 12) return { label: 'Beginner',    color: 'bg-gradient-to-br from-[#7a3f1d] via-[#e89a4d] to-[#5e2f15]',           icon: <Target size={14}/> };
-    if (count <= 19) return { label: 'Advanced',   color: 'bg-gradient-to-br from-[#6b6d70] via-[#e5e7eb] to-[#4b4d50]',           icon: <TrendingUp size={14}/> };
-    return { label: 'Pro Athlete', color: 'bg-gradient-to-br from-[#8b6914] via-[#fde17a] to-[#7a5e0f]', icon: <Trophy size={14}/> };
+    if (count < 5) return { label: 'Amateur', color: 'bg-gradient-to-br from-[#4c1d95] via-[#a78bfa] to-[#2e1065]', Icon: Activity };
+    if (count < 12) return { label: 'Beginner', color: 'bg-gradient-to-br from-[#7a3f1d] via-[#e89a4d] to-[#5e2f15]', Icon: Target };
+    if (count <= 19) return { label: 'Advanced', color: 'bg-gradient-to-br from-[#6b6d70] via-[#e5e7eb] to-[#4b4d50]', Icon: TrendingUp };
+    return { label: 'Pro Athlete', color: 'bg-gradient-to-br from-[#8b6914] via-[#fde17a] to-[#7a5e0f]', Icon: Trophy };
   };
 
   const tier = getUserTier();
@@ -216,7 +216,7 @@ const Reports = () => {
   };
 
   const handleChangePassword = async () => {
-    setPasswordError(""); 
+    setPasswordError("");
 
     if (passwordStep === 1) {
       try {
@@ -224,7 +224,7 @@ const Reports = () => {
           email: passwordData.email,
           password: passwordData.currentPassword
         }, { headers: { Authorization: `Bearer ${token}` } });
-        
+
         setPasswordStep(2);
       } catch (err) {
         setPasswordError("Invalid email or current password.");
@@ -242,10 +242,10 @@ const Reports = () => {
           userId: user.id,
           newPassword: passwordData.newPassword
         }, { headers: { Authorization: `Bearer ${token}` } });
-        
+
         setShowPasswordModal(false);
         setShowSuccessOverlay(true);
-        
+
         let timer = 3;
         const interval = setInterval(() => {
           timer -= 1;
@@ -264,8 +264,8 @@ const Reports = () => {
 
   const handlePrClick = (exerciseName) => {
     setHistoryLimit(5);
-    const exerciseHistory = allWorkouts 
-      .filter(workout => 
+    const exerciseHistory = allWorkouts
+      .filter(workout =>
         workout.details?.some(ex => ex.name.toLowerCase() === exerciseName.toLowerCase())
       )
       .map(workout => {
@@ -334,14 +334,6 @@ const Reports = () => {
           <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">Analytics</h1>
           <p className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">Growth Tracking</p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="bg-transparent border border-slate-300 dark:border-white/15 px-1.5 py-1.5 rounded-2xl flex items-center gap-2 text-slate-700 dark:text-white text-[10px] font-bold uppercase tracking-widest transition-all duration-500">
-            <div className={`${tier.color} w-7 h-7 rounded-[10px] flex items-center justify-center text-slate-700 dark:text-black shadow-md`}>
-              {tier.icon}
-            </div>
-            <span className="pr-2">{tier.label}</span>
-          </div>
-        </div>
       </div>
 
       {/* Body Metrics Nav */}
@@ -384,11 +376,10 @@ const Reports = () => {
 
       {hasActiveSession && (
         <div className="mb-8 animate-in slide-in-from-top duration-500">
-          <div 
+          <div
             onClick={() => navigate('/workout', { state: { from: 'reports' } })}
-            className={`group relative overflow-hidden p-0.5 rounded-[26px] cursor-pointer transition-all duration-500 active:scale-[0.97] ${
-              isPaused ? 'bg-slate-200 dark:bg-slate-700' : 'bg-gradient-to-r from-amber-400 via-orange-500 to-amber-400 bg-[length:200%_auto] animate-gradient-x'
-            }`}
+            className={`group relative overflow-hidden p-0.5 rounded-[26px] cursor-pointer transition-all duration-500 active:scale-[0.97] ${isPaused ? 'bg-slate-200 dark:bg-slate-700' : 'bg-gradient-to-r from-amber-400 via-orange-500 to-amber-400 bg-[length:200%_auto] animate-gradient-x'
+              }`}
           >
             <div className="bg-white/60 dark:bg-slate-800/50 backdrop-blur-xl rounded-[24px] px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -396,9 +387,8 @@ const Reports = () => {
                   {!isPaused && (
                     <div className="absolute inset-0 bg-amber-500/20 rounded-xl animate-ping"></div>
                   )}
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
-                    isPaused ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500' : 'bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-300'
-                  }`}>
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${isPaused ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500' : 'bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-300'
+                    }`}>
                     {isPaused ? <PauseCircle size={24} /> : <Activity size={24} className="animate-bounce" />}
                   </div>
                 </div>
@@ -428,13 +418,12 @@ const Reports = () => {
           <h3 className="font-bold text-slate-700 dark:text-slate-200 uppercase text-[10px] tracking-widest">Personal Records</h3>
         </div>
         <div className="flex gap-2 overflow-x-auto pb-4 no-scrollbar scroll-smooth" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          {['Legs', 'Chest', 'Back', 'Biceps','Shoulders', 'Triceps', 'Abs', 'Full Body'].map((muscle) => (
+          {['Legs', 'Chest', 'Back', 'Biceps', 'Shoulders', 'Triceps', 'Abs', 'Full Body'].map((muscle) => (
             <button
               key={muscle}
               onClick={() => setActivePrTab(muscle)}
-              className={`px-6 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${
-                activePrTab === muscle ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-md' : 'bg-white/40 dark:bg-slate-800/30 backdrop-blur-md text-slate-400 dark:text-slate-500 border border-white/40 dark:border-white/10'
-              }`}
+              className={`px-6 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${activePrTab === muscle ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-md' : 'bg-white/40 dark:bg-slate-800/30 backdrop-blur-md text-slate-400 dark:text-slate-500 border border-white/40 dark:border-white/10'
+                }`}
             >
               {muscle}
             </button>
@@ -447,41 +436,41 @@ const Reports = () => {
                 .sort(([, a], [, b]) => b.weight - a.weight)
                 .slice(0, showAllPrs ? undefined : 5)
                 .map(([name, data]) => (
-                <div key={name} onClick={() => handlePrClick(name)} className="group bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-5 rounded-[28px] shadow-sm border border-white/40 dark:border-white/10 flex justify-between items-center active:scale-[0.98] transition-all cursor-pointer relative overflow-hidden">
-                  <div>
-                    <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm mb-1 capitalize">{name}</h4>
-                    <div className="flex items-center gap-3">
-                      <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold flex items-center gap-1 uppercase tracking-tighter">
-                        <Calendar size={10} /> {new Date(data.date).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'2-digit'})}
-                      </p>
-                      <div className="w-1 h-1 rounded-full bg-slate-200 dark:bg-slate-700"></div>
-                      <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-tighter">{data.reps} Reps</p>
-                      {data.resistance > 0 && (
-                        <>
-                          <div className="w-1 h-1 rounded-full bg-slate-200 dark:bg-slate-700"></div>
-                          <p className="text-[9px] text-amber-500 dark:text-amber-400 font-bold uppercase tracking-tighter">{data.resistance} kg</p>
-                        </>
-                      )}
+                  <div key={name} onClick={() => handlePrClick(name)} className="group bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-5 rounded-[28px] shadow-sm border border-white/40 dark:border-white/10 flex justify-between items-center active:scale-[0.98] transition-all cursor-pointer relative overflow-hidden">
+                    <div>
+                      <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm mb-1 capitalize">{name}</h4>
+                      <div className="flex items-center gap-3">
+                        <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold flex items-center gap-1 uppercase tracking-tighter">
+                          <Calendar size={10} /> {new Date(data.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}
+                        </p>
+                        <div className="w-1 h-1 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+                        <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-tighter">{data.reps} Reps</p>
+                        {data.resistance > 0 && (
+                          <>
+                            <div className="w-1 h-1 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+                            <p className="text-[9px] text-amber-500 dark:text-amber-400 font-bold uppercase tracking-tighter">{data.resistance} kg</p>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <div className="bg-accent-50 dark:bg-accent-500/10 px-4 py-2 rounded-2xl border border-accent-100 dark:border-accent-500/30 text-right">
+                      <p className="text-xl font-bold text-accent-600 dark:text-accent-400 leading-none">{data.weight}<span className="text-[10px] ml-0.5">kg</span></p>
                     </div>
                   </div>
-                  <div className="bg-accent-50 dark:bg-accent-500/10 px-4 py-2 rounded-2xl border border-accent-100 dark:border-accent-500/30 text-right">
-                    <p className="text-xl font-bold text-accent-600 dark:text-accent-400 leading-none">{data.weight}<span className="text-[10px] ml-0.5">kg</span></p>
-                  </div>
-                </div>
-              ))}
+                ))}
               {Object.keys(personalRecords[activePrTab]).length > 5 && (
                 <button
                   onClick={() => setShowAllPrs(!showAllPrs)}
                   className="mt-2 py-3 w-full flex items-center justify-center gap-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-white/10 active:scale-95 transition-all shadow-sm"
                 >
-                  {showAllPrs ? <>{'Show Less'} <ChevronUp size={14}/></> : <>{'View All'} {Object.keys(personalRecords[activePrTab]).length} {activePrTab} {'PRs'} <ChevronDown size={14}/></>}
+                  {showAllPrs ? <>{'Show Less'} <ChevronUp size={14} /></> : <>{'View All'} {Object.keys(personalRecords[activePrTab]).length} {activePrTab} {'PRs'} <ChevronDown size={14} /></>}
                 </button>
               )}
             </div>
           ) : (
             <div className="bg-white/30 dark:bg-slate-800/30 backdrop-blur-xl p-10 rounded-[32px] text-center border-2 border-dashed border-white/40 dark:border-white/10 flex flex-col items-center">
-                <Dumbbell size={24} className="text-slate-200 dark:text-slate-700 mb-3"/>
-                <p className="text-slate-400 dark:text-slate-500 text-[10px] font-bold uppercase tracking-widest italic">No {activePrTab} PRs recorded</p>
+              <Dumbbell size={24} className="text-slate-200 dark:text-slate-700 mb-3" />
+              <p className="text-slate-400 dark:text-slate-500 text-[10px] font-bold uppercase tracking-widest italic">No {activePrTab} PRs recorded</p>
             </div>
           )}
         </div>
@@ -493,13 +482,13 @@ const Reports = () => {
           <ImageIcon size={18} className="text-fuchsia-500" />
           <h3 className="font-bold text-slate-700 dark:text-slate-200 uppercase text-[10px] tracking-widest">Progress Gallery</h3>
         </div>
-        
+
         {galleryImages.length > 0 ? (
           <div className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-4 rounded-[32px] shadow-sm border border-white/40 dark:border-white/10">
             <div className="grid grid-cols-4 gap-2">
               {galleryImages.slice(0, 8).map((img, idx) => (
-                <div 
-                  key={idx} 
+                <div
+                  key={idx}
                   onClick={() => setFullscreenImage(img)}
                   className="aspect-square rounded-xl overflow-hidden border border-slate-100 dark:border-slate-800 cursor-pointer active:scale-95 transition-transform"
                 >
@@ -508,7 +497,7 @@ const Reports = () => {
               ))}
             </div>
             {galleryImages.length > 0 && (
-              <button 
+              <button
                 onClick={() => setShowFullGallery(true)}
                 className="w-full mt-4 py-3 text-[10px] font-bold text-slate-600 dark:text-slate-200 uppercase tracking-widest bg-white/60 dark:bg-white/10 backdrop-blur-md rounded-2xl border border-white/60 dark:border-white/10 shadow-sm hover:bg-white/80 dark:hover:bg-white/20 active:scale-95 transition-all"
               >
@@ -518,7 +507,7 @@ const Reports = () => {
           </div>
         ) : (
           <div className="bg-white/30 dark:bg-slate-800/30 backdrop-blur-xl p-10 rounded-[32px] text-center border-2 border-dashed border-white/40 dark:border-white/10 flex flex-col items-center">
-            <ImageIcon size={24} className="text-slate-200 dark:text-slate-700 mb-3"/>
+            <ImageIcon size={24} className="text-slate-200 dark:text-slate-700 mb-3" />
             <p className="text-slate-400 dark:text-slate-500 text-[10px] font-bold uppercase tracking-widest italic">No progress photos yet</p>
           </div>
         )}
@@ -532,20 +521,20 @@ const Reports = () => {
             <h3 className="font-bold text-slate-700 dark:text-slate-200 uppercase text-[10px] tracking-widest">Intensity trend</h3>
           </div>
           <div className="flex items-center bg-white/30 dark:bg-white/5 backdrop-blur-md p-1 rounded-xl border border-white/40 dark:border-white/10 gap-1">
-            <button onClick={() => {setCurrentWeekOffset(prev => prev - 1); setClickedIntensity(true)}} className="p-1.5 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm rounded-lg transition-all text-slate-400 dark:text-slate-500 hover:text-accent-600 dark:hover:text-accent-400"><ChevronLeft size={16}/></button>
+            <button onClick={() => { setCurrentWeekOffset(prev => prev - 1); setClickedIntensity(true) }} className="p-1.5 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm rounded-lg transition-all text-slate-400 dark:text-slate-500 hover:text-accent-600 dark:hover:text-accent-400"><ChevronLeft size={16} /></button>
             <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 px-2 uppercase">{currentWeekOffset === 0 ? "This Week" : currentWeekOffset === -1 ? "Last Week" : `${Math.abs(currentWeekOffset)}w ago`}</span>
             <button
-              onClick={() => {setCurrentWeekOffset(prev => prev + 1); setClickedIntensity(true)}}
+              onClick={() => { setCurrentWeekOffset(prev => prev + 1); setClickedIntensity(true) }}
               disabled={currentWeekOffset >= 0}
               className="p-1.5 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm rounded-lg transition-all text-slate-400 dark:text-slate-500 hover:text-accent-600 dark:hover:text-accent-400 disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:shadow-none disabled:hover:text-slate-400 dark:disabled:hover:text-slate-500"
-            ><ChevronRight size={16}/></button>
+            ><ChevronRight size={16} /></button>
           </div>
         </div>
         <div className="h-44 w-full [&_*:focus]:outline-none [&_*]:outline-none">
           {weeklyHistogram.some(d => d.minutes > 0) ? (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={weeklyHistogram} style={{ outline: 'none' }}>
-                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 800, fill: '#cbd5e1'}} />
+                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 800, fill: '#cbd5e1' }} />
                 <Bar dataKey="minutes" radius={[6, 6, 6, 6]} barSize={22} activeBar={false} style={{ outline: 'none' }}>
                   {weeklyHistogram.map((entry, index) => (
                     <Cell key={index} fill={entry.minutes > 45 ? '#7c3aed' : entry.minutes > 0 ? '#c4b5fd' : '#f1f5f9'} />
@@ -573,8 +562,8 @@ const Reports = () => {
                 <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">{muscle.percentage}%</span>
               </div>
               <div className="h-2 w-full bg-slate-50 dark:bg-slate-800 rounded-full overflow-hidden border border-slate-100 dark:border-slate-700">
-                <div 
-                  className="h-full rounded-full transition-all duration-1000" 
+                <div
+                  className="h-full rounded-full transition-all duration-1000"
                   style={{ width: `${muscle.percentage}%`, backgroundColor: muscle.color }}
                 ></div>
               </div>
@@ -586,15 +575,18 @@ const Reports = () => {
       {/* Efficiency Banner */}
       <div className="bg-slate-900 rounded-[32px] p-6 text-white relative overflow-hidden mb-12">
         <div className="relative z-10">
-            <h3 className="font-bold text-lg mb-1">Session Efficiency</h3>
-            <p className="text-slate-400 text-xs mb-4">
-              Averaging {stats.totalWorkouts > 0 ? Math.round(stats.totalMinutes / stats.totalWorkouts) : 0} mins per session. 
-            </p>
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent-500/20 text-accent-400 rounded-lg text-[10px] font-bold uppercase tracking-widest">
-                <TrendingUp size={12}/> {stats.monthlyWorkouts} sessions (Last 30d)
-            </div>
+          <span className={`px-2.5 pt-1 pb-1.5 rounded-full border border-white/15 text-[8px] font-medium uppercase tracking-widest`}>
+            {tier.label}
+          </span>
+          <h3 className="font-bold text-lg mt-2">Session Efficiency</h3>
+          <p className="text-slate-400 text-xs mb-4">
+            Averaging {stats.totalWorkouts > 0 ? Math.round(stats.totalMinutes / stats.totalWorkouts) : 0} mins per session.
+          </p>
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent-500/20 text-accent-400 rounded-lg text-[10px] font-bold uppercase tracking-widest">
+            <TrendingUp size={12} /> {stats.monthlyWorkouts} sessions (Last 30d)
+          </div>
         </div>
-        <Activity className="absolute -right-8 -bottom-8 w-32 h-32 text-accent-500/40 rotate-12" />
+        <tier.Icon className={`absolute -right-8 -bottom-8 w-32 h-32 rotate-12 text-[#323c53]`} strokeWidth={2} />
       </div>
 
       {/* Account Actions */}
@@ -615,7 +607,7 @@ const Reports = () => {
       <hr className="mb-3 border-slate-200 dark:border-slate-800" />
 
       {/* Delete Profile */}
-      <button 
+      <button
         onClick={() => setShowDeletePrompt(true)}
         className="w-full py-4 flex items-center justify-center gap-2 text-red-400 dark:text-red-300 font-bold text-[10px] uppercase tracking-[0.2em] bg-red-50/50 dark:bg-red-500/10 rounded-2xl hover:bg-red-50 dark:hover:bg-red-500/20 transition-all border border-red-100 dark:border-red-500/30"
       >
@@ -675,11 +667,10 @@ const Reports = () => {
             <button
               onClick={goPrev}
               disabled={!hasPrev}
-              className={`absolute left-4 md:left-8 top-1/2 -translate-y-1/2 p-3 rounded-full text-white transition-all z-10 ${
-                hasPrev
+              className={`absolute left-4 md:left-8 top-1/2 -translate-y-1/2 p-3 rounded-full text-white transition-all z-10 ${hasPrev
                   ? "bg-black/10 hover:bg-black/20 active:scale-90"
                   : "bg-black/5 text-black/30 cursor-not-allowed"
-              }`}
+                }`}
               aria-label="Previous image"
             >
               <ChevronLeft size={24} />
@@ -698,11 +689,10 @@ const Reports = () => {
             <button
               onClick={goNext}
               disabled={!hasNext}
-              className={`absolute right-4 md:right-8 top-1/2 -translate-y-1/2 p-3 rounded-full text-white transition-all z-10 ${
-                hasNext
+              className={`absolute right-4 md:right-8 top-1/2 -translate-y-1/2 p-3 rounded-full text-white transition-all z-10 ${hasNext
                   ? "bg-black/10 hover:bg-black/20 active:scale-90"
                   : "bg-black/5 text-black/30 cursor-not-allowed"
-              }`}
+                }`}
               aria-label="Next image"
             >
               <ChevronRight size={24} />
@@ -760,7 +750,7 @@ const Reports = () => {
             </div>
             <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">Delete Profile?</h2>
             <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 leading-relaxed">
-              This will permanently delete your account and history. 
+              This will permanently delete your account and history.
               <span className="font-bold text-red-400 dark:text-red-300 text-xs uppercase tracking-tighter block mt-1">This action is irreversible.</span>
             </p>
             <div className="flex flex-col gap-2">
@@ -784,32 +774,32 @@ const Reports = () => {
             <div className="space-y-4 mb-6 text-left">
               {passwordStep === 1 ? (
                 <>
-                  <input 
+                  <input
                     type="email" placeholder="Email Address"
                     className="w-full p-4 bg-white/50 dark:bg-white/5 backdrop-blur-md text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-2xl font-bold outline-none border border-white/50 dark:border-white/10 focus:border-accent-500 dark:focus:border-accent-400"
                     value={passwordData.email}
-                    onChange={(e) => setPasswordData({...passwordData, email: e.target.value})}
+                    onChange={(e) => setPasswordData({ ...passwordData, email: e.target.value })}
                   />
-                  <input 
+                  <input
                     type="password" placeholder="Current Password"
                     className="w-full p-4 bg-white/50 dark:bg-white/5 backdrop-blur-md text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-2xl font-bold outline-none border border-white/50 dark:border-white/10 focus:border-accent-500 dark:focus:border-accent-400"
                     value={passwordData.currentPassword}
-                    onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
+                    onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
                   />
                 </>
               ) : (
                 <>
-                  <input 
+                  <input
                     type="password" placeholder="New Password"
                     className="w-full p-4 bg-white/50 dark:bg-white/5 backdrop-blur-md text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-2xl font-bold outline-none border border-white/50 dark:border-white/10 focus:border-accent-500 dark:focus:border-accent-400"
                     value={passwordData.newPassword}
-                    onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                    onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                   />
-                  <input 
+                  <input
                     type="password" placeholder="Repeat New Password"
                     className="w-full p-4 bg-white/50 dark:bg-white/5 backdrop-blur-md text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-2xl font-bold outline-none border border-white/50 dark:border-white/10 focus:border-accent-500 dark:focus:border-accent-400"
                     value={passwordData.confirmPassword}
-                    onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
+                    onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                   />
                 </>
               )}
@@ -825,16 +815,16 @@ const Reports = () => {
             )}
 
             <div className="flex flex-col gap-2">
-              <button 
+              <button
                 onClick={handleChangePassword}
                 className="w-full py-4 bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white font-bold rounded-2xl shadow-lg dark:shadow-md active:scale-95 transition-all"
               >
                 {passwordStep === 1 ? 'Verify & Continue' : 'Update Password'}
               </button>
-              <button 
-                onClick={() => { 
-                  setShowPasswordModal(false); 
-                  setPasswordStep(1); 
+              <button
+                onClick={() => {
+                  setShowPasswordModal(false);
+                  setPasswordStep(1);
                   setPasswordError(""); // Clear error on close
                 }}
                 className="w-full py-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-colors"
@@ -849,7 +839,7 @@ const Reports = () => {
       {showSuccessOverlay && (
         <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[600] flex flex-col items-center justify-center p-6 text-center">
           <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 rounded-[40px] p-10 w-full max-w-sm shadow-2xl relative overflow-hidden animate-in zoom-in duration-300">
-            
+
             {/* Circular Timer Animation */}
             <div className="relative w-24 h-24 mx-auto mb-6 flex items-center justify-center">
               <svg className="w-full h-full transform -rotate-90">
@@ -880,20 +870,20 @@ const Reports = () => {
             <div className="bg-accent-100 dark:bg-accent-500/15 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-accent-600 dark:text-accent-400">
               <Activity size={32} />
             </div>
-            
+
             <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">Security Updated</h2>
             <p className="text-slate-500 dark:text-slate-400 text-sm mb-6 leading-relaxed">
-              Password changed successfully. <br/>
+              Password changed successfully. <br />
               For your safety, please log in again with your new credentials.
             </p>
 
             <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-accent-500 transition-all duration-1000 ease-linear" 
+              <div
+                className="h-full bg-accent-500 transition-all duration-1000 ease-linear"
                 style={{ width: `${(countdown / 3) * 100}%` }}
               ></div>
             </div>
-            
+
             <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-[0.2em] mt-4">
               Logging out...
             </p>
@@ -905,7 +895,7 @@ const Reports = () => {
       {selectedPrHistory && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[500] flex items-end justify-center">
           <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-lg rounded-t-[40px] p-8 max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
-            
+
             {/* Modal Header */}
             <div className="flex justify-between items-start mb-8">
               <div>
@@ -922,11 +912,11 @@ const Reports = () => {
               {selectedPrHistory.history.slice(0, historyLimit).map((entry, idx) => (
                 <div key={idx} className="relative pl-6 border-l-2 border-white/40 dark:border-white/10 pb-2">
                   <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-white dark:bg-slate-900 border-4 border-accent-500" />
-                  
+
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">
-                        {new Date(entry.date).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'})}
+                        {new Date(entry.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                       </p>
                       <div className="flex items-center gap-2">
                         <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm capitalize">{entry.workoutName || 'Routine'}</h4>
@@ -943,7 +933,7 @@ const Reports = () => {
                             Unilateral
                           </span>
                         )}
-                          
+
                         {entry.execution === 'Bilateral' && (
                           <span className="px-2 py-0.5 bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-700 rounded-lg text-[9px] font-bold uppercase tracking-wider">
                             Bilateral
@@ -978,8 +968,8 @@ const Reports = () => {
               )}
             </div>
 
-            <button 
-              onClick={() => setSelectedPrHistory(null)} 
+            <button
+              onClick={() => setSelectedPrHistory(null)}
               className="w-full mt-8 bg-slate-900 dark:bg-slate-700 text-white font-bold py-4 rounded-2xl"
             >
               CLOSE

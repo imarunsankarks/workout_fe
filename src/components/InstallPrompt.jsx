@@ -49,7 +49,7 @@ const InstallPrompt = () => {
 
   return (
     <div className="fixed bottom-24 left-4 right-4 z-[100] animate-in slide-in-from-bottom-10 duration-500">
-      <div className="bg-slate-900 text-white p-5 rounded-[32px] shadow-2xl border border-white/10 flex items-center justify-between gap-4">
+      <div className="bg-black/30 backdrop-blur-xl text-white p-5 rounded-[32px] shadow-2xl border border-white/10 flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="bg-accent-500 p-3 rounded-2xl shadow-lg dark:shadow-md shadow-accent-500/20">
             <Smartphone size={24} />
