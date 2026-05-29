@@ -93,13 +93,26 @@ html.dark body {
   @apply bg-black text-slate-100;
 }
 
-/* Dark mode color-scheme hint so native form controls / scrollbars adapt.
-   Also paint the html element itself black so the safe-area-inset region
-   (which renders the html background, not the body's) doesn't show a hairline
-   seam against the surrounding pure-black UI chrome. */
+/* Dark mode color-scheme hint so native form controls / scrollbars adapt. */
 html.dark {
   color-scheme: dark;
+}
+
+/* Paint the safe-area-inset zone explicitly in dark mode so the seam between
+   the body's padding region (renders html bg) and the body's content region
+   (renders body bg + the -z-10 blob layer) doesn't show a 1px hairline on
+   installed PWAs. The pseudo-element sits BELOW the blob layer (z: -20) so
+   the animated colored blobs remain visible above it. */
+html.dark body::before {
+  content: "";
+  position: fixed;
+  top: -2px;
+  left: 0;
+  right: 0;
+  height: 5px;
   background-color: #000;
+  z-index: -20;
+  pointer-events: none;
 }
 
 @keyframes progress-loading {
