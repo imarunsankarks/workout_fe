@@ -26,6 +26,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { AuthContext } from "../context/AuthContext";
+import ConfirmModal from "../components/ConfirmModal";
 
 const API = process.env.REACT_APP_API_URL;
 
@@ -651,33 +652,13 @@ const Metrics = () => {
       )}
 
       {/* DELETE CONFIRM */}
-      {confirmDeleteId && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[600] flex items-center justify-center p-6">
-          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[32px] p-7 text-center shadow-2xl animate-in fade-in zoom-in duration-200">
-            <Trash2 size={36} className="mx-auto mb-3 text-red-500" />
-            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2">
-              Delete this entry?
-            </h2>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mb-6">
-              This action cannot be undone.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setConfirmDeleteId(null)}
-                className="flex-1 py-3 rounded-2xl bg-white/50 dark:bg-white/10 backdrop-blur-md text-slate-500 dark:text-slate-300 font-bold text-xs uppercase tracking-widest active:scale-95 transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleDelete(confirmDeleteId)}
-                className="flex-1 py-3 rounded-2xl bg-red-500 text-white font-bold text-xs uppercase tracking-widest active:scale-95 transition-all"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        open={!!confirmDeleteId}
+        onClose={() => setConfirmDeleteId(null)}
+        onConfirm={() => handleDelete(confirmDeleteId)}
+        title="Delete this entry?"
+        message="This action cannot be undone."
+      />
     </div>
   );
 };

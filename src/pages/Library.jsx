@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   Info,
 } from "lucide-react";
+import ConfirmModal from "../components/ConfirmModal";
 import { AuthContext } from "../context/AuthContext";
 
 const Library = () => {
@@ -344,33 +345,14 @@ const Library = () => {
       )}
 
       {/* Delete Confirmation */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6 text-center">
-          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl">
-            <div className="bg-red-50 dark:bg-red-900/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500 dark:text-red-400">
-              <AlertTriangle size={32} />
-            </div>
-            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">Delete?</h2>
-            <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 leading-relaxed">
-              This will remove it from your library forever.
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowDeleteConfirm(null)}
-                className="flex-1 py-4 text-slate-400 dark:text-slate-500 font-bold"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => deleteLibraryItem(showDeleteConfirm)}
-                className="flex-1 py-4 bg-red-500 text-white font-bold rounded-2xl"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        open={!!showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(null)}
+        onConfirm={() => deleteLibraryItem(showDeleteConfirm)}
+        title="Delete Exercise?"
+        message="This will remove it from your library forever."
+        icon={AlertTriangle}
+      />
     </div>
   );
 };

@@ -8,6 +8,7 @@ import {
   Activity, ChevronLeft, ChevronRight, Clock, Trophy, Flame,
   Target, TrendingUp, AlertTriangle, Trash2, Dumbbell, Calendar, ChevronDown, ChevronUp, Key, X, PauseCircle, Image as ImageIcon, LogOut
 } from 'lucide-react';
+import ConfirmModal from '../components/ConfirmModal';
 
 // Mount-only-when-open fullscreen image carousel. Mounting fresh on every
 // open means useEmblaCarousel initializes once with the correct startIndex,
@@ -794,130 +795,78 @@ const Reports = () => {
         />
       )}
 
-      {showLogoutPrompt && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6 text-center">
-          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div className="bg-red-100 dark:bg-red-500/15 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-red-600 dark:text-red-400">
-              <LogOut size={32} />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
-              Logging out?
-            </h2>
-            <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 leading-relaxed">
-              Are you sure you want to sign out? <br />
-              Your active session (if any) will stay saved on this device.
-            </p>
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={logout}
-                className="w-full py-4 bg-red-500 text-white font-bold rounded-2xl shadow-lg dark:shadow-md active:scale-95 transition-all"
-              >
-                Yes, Sign Out
-              </button>
-              <button
-                onClick={() => setShowLogoutPrompt(false)}
-                className="w-full py-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-colors"
-              >
-                Stay Logged In
-              </button>
-            </div>
-          </div>
+      <ConfirmModal
+        open={showLogoutPrompt}
+        onClose={() => setShowLogoutPrompt(false)}
+        onConfirm={logout}
+        title="Logging out?"
+        message={<>Are you sure you want to sign out?<br />Your active session (if any) will stay saved on this device.</>}
+        confirmLabel="Yes, Sign Out"
+        cancelLabel="Stay Logged In"
+        icon={LogOut}
+      />
+
+      <ConfirmModal
+        open={showDeletePrompt}
+        onClose={() => setShowDeletePrompt(false)}
+        onConfirm={handleDeleteProfile}
+        title="Delete Profile?"
+        message="This will permanently delete your account and history."
+        extraNote="This action is irreversible."
+        confirmLabel="Yes, Delete Everything"
+        icon={AlertTriangle}
+      />
+
+      <ConfirmModal
+        open={showPasswordModal}
+        onClose={() => {
+          setShowPasswordModal(false);
+          setPasswordStep(1);
+          setPasswordError("");
+        }}
+        onConfirm={handleChangePassword}
+        title={passwordStep === 1 ? 'Verify Identity' : 'Set New Password'}
+        subtitle={passwordStep === 1 ? 'Enter current credentials' : 'Enter your new strong password'}
+        confirmLabel={passwordStep === 1 ? 'Verify & Continue' : 'Update Password'}
+        cancelLabel="Cancel"
+        icon={Key}
+        tone="neutral"
+        error={passwordError}
+      >
+        <div className="space-y-4">
+          {passwordStep === 1 ? (
+            <>
+              <input
+                type="email" placeholder="Email Address"
+                className="w-full p-4 bg-white/50 dark:bg-white/5 backdrop-blur-md text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-2xl font-bold outline-none border border-white/50 dark:border-white/10 focus:border-accent-500 dark:focus:border-accent-400"
+                value={passwordData.email}
+                onChange={(e) => setPasswordData({ ...passwordData, email: e.target.value })}
+              />
+              <input
+                type="password" placeholder="Current Password"
+                className="w-full p-4 bg-white/50 dark:bg-white/5 backdrop-blur-md text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-2xl font-bold outline-none border border-white/50 dark:border-white/10 focus:border-accent-500 dark:focus:border-accent-400"
+                value={passwordData.currentPassword}
+                onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+              />
+            </>
+          ) : (
+            <>
+              <input
+                type="password" placeholder="New Password"
+                className="w-full p-4 bg-white/50 dark:bg-white/5 backdrop-blur-md text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-2xl font-bold outline-none border border-white/50 dark:border-white/10 focus:border-accent-500 dark:focus:border-accent-400"
+                value={passwordData.newPassword}
+                onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+              />
+              <input
+                type="password" placeholder="Repeat New Password"
+                className="w-full p-4 bg-white/50 dark:bg-white/5 backdrop-blur-md text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-2xl font-bold outline-none border border-white/50 dark:border-white/10 focus:border-accent-500 dark:focus:border-accent-400"
+                value={passwordData.confirmPassword}
+                onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+              />
+            </>
+          )}
         </div>
-      )}
-
-      {showDeletePrompt && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6 text-center">
-          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div className="bg-red-100 dark:bg-red-500/15 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600 dark:text-red-400">
-              <AlertTriangle size={32} />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">Delete Profile?</h2>
-            <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 leading-relaxed">
-              This will permanently delete your account and history.
-              <span className="font-bold text-red-400 dark:text-red-300 text-xs uppercase tracking-tighter block mt-1">This action is irreversible.</span>
-            </p>
-            <div className="flex flex-col gap-2">
-              <button onClick={handleDeleteProfile} className="w-full py-4 bg-red-500 text-white font-bold rounded-2xl active:scale-95 transition-all">Yes, Delete Everything</button>
-              <button onClick={() => setShowDeletePrompt(false)} className="w-full py-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-colors">Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showPasswordModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[400] flex items-center justify-center p-6">
-          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
-              {passwordStep === 1 ? 'Verify Identity' : 'Set New Password'}
-            </h2>
-            <p className="text-slate-400 dark:text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-6">
-              {passwordStep === 1 ? 'Enter current credentials' : 'Enter your new strong password'}
-            </p>
-
-            <div className="space-y-4 mb-6 text-left">
-              {passwordStep === 1 ? (
-                <>
-                  <input
-                    type="email" placeholder="Email Address"
-                    className="w-full p-4 bg-white/50 dark:bg-white/5 backdrop-blur-md text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-2xl font-bold outline-none border border-white/50 dark:border-white/10 focus:border-accent-500 dark:focus:border-accent-400"
-                    value={passwordData.email}
-                    onChange={(e) => setPasswordData({ ...passwordData, email: e.target.value })}
-                  />
-                  <input
-                    type="password" placeholder="Current Password"
-                    className="w-full p-4 bg-white/50 dark:bg-white/5 backdrop-blur-md text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-2xl font-bold outline-none border border-white/50 dark:border-white/10 focus:border-accent-500 dark:focus:border-accent-400"
-                    value={passwordData.currentPassword}
-                    onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                  />
-                </>
-              ) : (
-                <>
-                  <input
-                    type="password" placeholder="New Password"
-                    className="w-full p-4 bg-white/50 dark:bg-white/5 backdrop-blur-md text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-2xl font-bold outline-none border border-white/50 dark:border-white/10 focus:border-accent-500 dark:focus:border-accent-400"
-                    value={passwordData.newPassword}
-                    onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                  />
-                  <input
-                    type="password" placeholder="Repeat New Password"
-                    className="w-full p-4 bg-white/50 dark:bg-white/5 backdrop-blur-md text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-2xl font-bold outline-none border border-white/50 dark:border-white/10 focus:border-accent-500 dark:focus:border-accent-400"
-                    value={passwordData.confirmPassword}
-                    onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                  />
-                </>
-              )}
-            </div>
-
-            {/* ERROR MESSAGE BLOCK */}
-            {passwordError && (
-              <div className="mb-4 p-3 bg-red-50 dark:bg-red-500/10 rounded-xl border border-red-100 dark:border-red-500/30 animate-in fade-in slide-in-from-top-1 duration-200">
-                <p className="text-red-500 dark:text-red-300 text-[10px] font-bold uppercase tracking-tight flex items-center justify-center gap-2">
-                  <AlertTriangle size={14} /> {passwordError}
-                </p>
-              </div>
-            )}
-
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={handleChangePassword}
-                className="w-full py-4 bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white font-bold rounded-2xl shadow-lg dark:shadow-md active:scale-95 transition-all"
-              >
-                {passwordStep === 1 ? 'Verify & Continue' : 'Update Password'}
-              </button>
-              <button
-                onClick={() => {
-                  setShowPasswordModal(false);
-                  setPasswordStep(1);
-                  setPasswordError(""); // Clear error on close
-                }}
-                className="w-full py-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      </ConfirmModal>
 
       {showSuccessOverlay && (
         <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[600] flex flex-col items-center justify-center p-6 text-center">

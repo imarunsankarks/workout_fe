@@ -24,6 +24,7 @@ import {
   Plus
 } from "lucide-react";
 import { subscribeWorkoutTimer } from "../utils/workoutTimer";
+import ConfirmModal from "../components/ConfirmModal";
 
 // Returns "Today", "Yesterday", or "DD Mon" depending on how far back `date` is.
 const formatLastSessionLabel = (date) => {
@@ -540,69 +541,29 @@ const onFileChange = async (e, workoutId) => {
       </div>
 
 
-      {/* Delete Confirmation Modal */}
-      {workoutToDelete && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6 text-center">
-          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div className="bg-orange-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-orange-600">
-              <Trash2 size={32} />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
-              Delete Workout?
-            </h2>
-            <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 leading-relaxed">
-              This action cannot be undone. This workout will be permanently
-              removed from your history.
-            </p>
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={confirmDelete}
-                className="w-full py-4 bg-orange-600 text-white font-bold rounded-2xl shadow-lg dark:shadow-md active:scale-95 transition-all"
-              >
-                Delete Permanently
-              </button>
-              <button
-                onClick={() => setWorkoutToDelete(null)}
-                className="w-full py-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-colors"
-              >
-                Keep Workout
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Delete Workout Confirmation */}
+      <ConfirmModal
+        open={!!workoutToDelete}
+        onClose={() => setWorkoutToDelete(null)}
+        onConfirm={confirmDelete}
+        title="Delete Workout?"
+        message="This action cannot be undone. This workout will be permanently removed from your history."
+        confirmLabel="Delete Permanently"
+        cancelLabel="Keep Workout"
+      />
 
       {/* Confirmation Start Prompt Modal */}
-      {showStartPrompt && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[250] flex items-center justify-center p-6 text-center">
-          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div className="bg-accent-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-accent-600">
-              <Play size={32} fill="currentColor" />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
-              Ready to Start?
-            </h2>
-            <p className="text-slate-500 dark:text-slate-400 text-sm mb-8">
-              This will begin a new session and start the timer. Are you ready
-              to crush your goals?
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowStartPrompt(false)}
-                className="flex-1 py-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-colors"
-              >
-                Not yet
-              </button>
-              <button
-                onClick={confirmStartWorkout}
-                className="flex-1 bg-accent-gradient text-white font-bold py-4 rounded-2xl shadow-lg dark:shadow-md shadow-accent-100 active:scale-95 transition-all"
-              >
-                Let's Go!
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        open={showStartPrompt}
+        onClose={() => setShowStartPrompt(false)}
+        onConfirm={confirmStartWorkout}
+        title="Ready to Start?"
+        message="This will begin a new session and start the timer. Are you ready to crush your goals?"
+        confirmLabel="Let's Go!"
+        cancelLabel="Not yet"
+        icon={Play}
+        tone="accent"
+      />
 
       {/* History List */}
       <div className="flex justify-between items-center mb-4">
@@ -864,36 +825,18 @@ const onFileChange = async (e, workoutId) => {
               )}
             </div>
 
-            {showImageDeleteConfirm && (
-              <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[700] flex items-center justify-center p-6 text-center">
-                <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
-                  <div className="bg-red-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
-                    <AlertTriangle size={32} />
-                  </div>
-                  <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 mb-2">Delete Photo?</h2>
-                  <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 leading-relaxed">
-                    This will permanently remove the image from this workout record.
-                  </p>
-                  <div className="flex flex-col gap-2">
-                    <button 
-                      onClick={() => {
-                        handleImageUpdate(selectedWorkout._id, null, null);
-                        setShowImageDeleteConfirm(false);
-                      }} 
-                      className="w-full py-4 bg-red-500 text-white font-black rounded-2xl shadow-lg dark:shadow-md active:scale-95 transition-all"
-                    >
-                      Yes, Delete Photo
-                    </button>
-                    <button 
-                      onClick={() => setShowImageDeleteConfirm(false)} 
-                      className="w-full py-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+            <ConfirmModal
+              open={showImageDeleteConfirm}
+              onClose={() => setShowImageDeleteConfirm(false)}
+              onConfirm={() => {
+                handleImageUpdate(selectedWorkout._id, null, null);
+                setShowImageDeleteConfirm(false);
+              }}
+              title="Delete Photo?"
+              message="This will permanently remove the image from this workout record."
+              confirmLabel="Yes, Delete Photo"
+              icon={AlertTriangle}
+            />
             <div className="space-y-6">
               {selectedWorkout.details?.map((ex, idx) => (
                 <div
@@ -1240,42 +1183,41 @@ const onFileChange = async (e, workoutId) => {
         </div>
       )}
 
-      {isWarming && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[600] flex items-center justify-center p-6 text-center">
-          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-10 shadow-2xl animate-in zoom-in duration-300">
-            <div className="relative w-24 h-24 mx-auto mb-8">
-              {warmupStatus === "loading" ? (
-                <>
-                  <div className="absolute inset-0 rounded-full bg-amber-500/20 animate-ping"></div>
-                  <div className="relative bg-amber-500 w-24 h-24 rounded-full flex items-center justify-center text-white shadow-xl dark:shadow-md shadow-amber-200">
-                    <Loader2 size={40} className="animate-spin" />
-                  </div>
-                </>
-              ) : (
-                <div className="relative bg-accent-gradient w-24 h-24 rounded-full flex items-center justify-center text-white shadow-xl dark:shadow-md shadow-accent-200 animate-in zoom-in">
-                  <CheckCircle2 size={48} />
-                </div>
-              )}
+      <ConfirmModal
+        open={isWarming}
+        onClose={() => setIsWarming(false)}
+        dismissible={false}
+        hideActions
+        title={warmupStatus === "loading" ? "Warming Up" : "Engine Ready"}
+        message={
+          warmupStatus === "loading"
+            ? "Waking up the backend. Preparing your training environment..."
+            : "Database connection established. Let's get these gains!"
+        }
+        icon={
+          warmupStatus === "loading" ? (
+            <div className="relative w-24 h-24">
+              <div className="absolute inset-0 rounded-full bg-amber-500/20 animate-ping"></div>
+              <div className="relative bg-amber-500 w-24 h-24 rounded-full flex items-center justify-center text-white shadow-xl dark:shadow-md shadow-amber-200">
+                <Loader2 size={40} className="animate-spin" />
+              </div>
             </div>
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
-              {warmupStatus === "loading" ? "Warming Up" : "Engine Ready"}
-            </h2>
-            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
-              {warmupStatus === "loading"
-                ? "Waking up the backend. Preparing your training environment..."
-                : "Database connection established. Let's get these gains!"}
-            </p>
-            <div className="mt-8 h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-              <div
-                className={`h-full transition-all duration-[3000ms] ${warmupStatus === "loading" ? "w-full bg-amber-500" : "w-full bg-accent-500"}`}
-              ></div>
+          ) : (
+            <div className="relative bg-accent-gradient w-24 h-24 rounded-full flex items-center justify-center text-white shadow-xl dark:shadow-md shadow-accent-200 animate-in zoom-in">
+              <CheckCircle2 size={48} />
             </div>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-[0.2em] mt-4">
-              {warmupStatus === "loading" ? "System Syncing" : "Ready to Lift"}
-            </p>
-          </div>
+          )
+        }
+      >
+        <div className="mt-6 h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+          <div
+            className={`h-full transition-all duration-[3000ms] ${warmupStatus === "loading" ? "w-full bg-amber-500" : "w-full bg-accent-500"}`}
+          ></div>
         </div>
-      )}
+        <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-[0.2em] mt-4 text-center">
+          {warmupStatus === "loading" ? "System Syncing" : "Ready to Lift"}
+        </p>
+      </ConfirmModal>
       {/* FULLSCREEN IMAGE LIGHTBOX */}
       {fullscreenImage && (
         <div 

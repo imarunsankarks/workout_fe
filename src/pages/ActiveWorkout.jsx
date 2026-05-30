@@ -47,6 +47,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { subscribeWorkoutTimer } from "../utils/workoutTimer";
+import ConfirmModal from "../components/ConfirmModal";
 
 // --- TIMER UTIL ---
 const formatTime = (s) => {
@@ -1113,33 +1114,24 @@ const ActiveWorkout = () => {
       )}
 
       {/* REPEAT CONFIRMATION MODAL */}
-      {workoutToRepeat && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[600] flex items-center justify-center p-6 text-center">
-          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in zoom-in duration-200">
-            <div className="bg-amber-100 dark:bg-amber-900/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-600 dark:text-amber-400">
-              <RotateCcw size={32} />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">Repeat Workout?</h2>
-            <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 leading-relaxed">
-              Would you like to perform the same <span className="font-bold text-slate-800 dark:text-slate-200">"{workoutToRepeat.name}"</span> workout done on <span className="font-bold text-slate-800 dark:text-slate-200">{new Date(workoutToRepeat.date).toLocaleDateString()}</span> today?
-            </p>
-            <div className="flex flex-col gap-2">
-              <button 
-                onClick={handleConfirmRepeat} 
-                className="w-full py-4 bg-accent-gradient text-white font-bold rounded-2xl shadow-lg dark:shadow-md active:scale-95 transition-all"
-              >
-                Yes, Prefill Workout
-              </button>
-              <button 
-                onClick={() => setWorkoutToRepeat(null)} 
-                className="w-full py-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 rounded-2xl transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        open={!!workoutToRepeat}
+        onClose={() => setWorkoutToRepeat(null)}
+        onConfirm={handleConfirmRepeat}
+        title="Repeat Workout?"
+        message={workoutToRepeat ? (
+          <>
+            Would you like to perform the same{' '}
+            <span className="font-bold text-slate-800 dark:text-slate-200">"{workoutToRepeat.name}"</span>{' '}
+            workout done on{' '}
+            <span className="font-bold text-slate-800 dark:text-slate-200">{new Date(workoutToRepeat.date).toLocaleDateString()}</span>{' '}
+            today?
+          </>
+        ) : ''}
+        confirmLabel="Yes, Prefill Workout"
+        icon={RotateCcw}
+        tone="warning"
+      />
 
       {saveError && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[800] flex items-center justify-center p-6 text-center">
@@ -1174,32 +1166,16 @@ const ActiveWorkout = () => {
         </div>
       )}
 
-      {showDiscardPrompt && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[250] flex items-center justify-center p-6 text-center">
-          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div className="bg-amber-100 dark:bg-amber-900/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-600 dark:text-amber-400">
-              <AlertTriangle size={32} />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
-              Discard Session?
-            </h2>
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={handleDiscard}
-                className="w-full py-4 bg-red-500 text-white font-bold rounded-2xl shadow-lg dark:shadow-md active:scale-95 transition-all"
-              >
-                Yes, Discard it
-              </button>
-              <button
-                onClick={() => setShowDiscardPrompt(false)}
-                className="w-full py-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 rounded-2xl transition-colors"
-              >
-                No, Keep going
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        open={showDiscardPrompt}
+        onClose={() => setShowDiscardPrompt(false)}
+        onConfirm={handleDiscard}
+        title="Discard Session?"
+        message="All sets you've logged in this session will be lost."
+        confirmLabel="Yes, Discard it"
+        cancelLabel="No, Keep going"
+        icon={AlertTriangle}
+      />
 
       {/* FINISH PROMPT */}
       {showFinishPrompt && (
@@ -1637,36 +1613,14 @@ const ActiveWorkout = () => {
       )}
 
       {/* DELETE LIBRARY ITEM CONFIRM */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6 text-center">
-          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl">
-            <div className="bg-red-50 dark:bg-red-900/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500 dark:text-red-400">
-              <AlertTriangle size={32} />
-            </div>
-            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">
-              Delete Exercise?
-            </h2>
-            <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 leading-relaxed">
-              This will remove it from your library forever. <br />
-              Existing sessions won't be affected.
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowDeleteConfirm(null)}
-                className="flex-1 py-4 text-slate-400 dark:text-slate-500 font-bold"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => deleteLibraryItem(showDeleteConfirm)}
-                className="flex-1 py-4 bg-red-500 text-white font-bold rounded-2xl"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        open={!!showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(null)}
+        onConfirm={() => deleteLibraryItem(showDeleteConfirm)}
+        title="Delete Exercise?"
+        message={<>This will remove it from your library forever.<br />Existing sessions won't be affected.</>}
+        icon={AlertTriangle}
+      />
 
       {/* PR HISTORY BOTTOM SHEET */}
       {selectedPrHistory && (
@@ -1780,41 +1734,20 @@ const ActiveWorkout = () => {
       )}
 
       {/* EXERCISE DELETE PROMPT */}
-      {exerciseToDelete && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[250] flex items-center justify-center p-6 text-center">
-          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in zoom-in duration-200">
-            <div className="bg-red-50 dark:bg-red-900/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500 dark:text-red-400">
-              <AlertTriangle size={32} />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
-              Remove Exercise?
-            </h2>
-            <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
-              Are you sure you want to remove this exercise from your active
-              session?
-            </p>
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={() => {
-                  setExercises(
-                    exercises.filter((e) => e.instanceId !== exerciseToDelete),
-                  );
-                  setExerciseToDelete(null);
-                }}
-                className="w-full py-4 bg-red-500 text-white font-bold rounded-2xl shadow-lg dark:shadow-md active:scale-95 transition-all"
-              >
-                Yes, Remove it
-              </button>
-              <button
-                onClick={() => setExerciseToDelete(null)}
-                className="w-full py-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 rounded-2xl transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        open={!!exerciseToDelete}
+        onClose={() => setExerciseToDelete(null)}
+        onConfirm={() => {
+          setExercises(
+            exercises.filter((e) => e.instanceId !== exerciseToDelete),
+          );
+          setExerciseToDelete(null);
+        }}
+        title="Remove Exercise?"
+        message="Are you sure you want to remove this exercise from your active session?"
+        confirmLabel="Yes, Remove it"
+        icon={AlertTriangle}
+      />
     </div>
   );
 };
