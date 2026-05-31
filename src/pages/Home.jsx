@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useMemo } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -134,6 +134,47 @@ const Home = () => {
       return { type: "down", value: Math.abs(Math.round(percentChange)) };
     return { type: "neutral", value: 0 };
   };
+
+  // Streak = number of consecutive "active" workout days where between any
+  // two adjacent workout days the gap is at most 3 break days (i.e. a date
+  // diff of ≤ 4 days). If the most recent workout itself is more than 4 days
+  // in the past, the streak is considered broken (0).
+  const streak = useMemo(() => {
+    if (!history || history.length === 0) return 0;
+    const MS_PER_DAY = 86400000;
+    const MAX_GAP = 4; // up to 3 rest days between workouts
+
+    const toLocalMidnight = (d) => {
+      const dt = new Date(d);
+      dt.setHours(0, 0, 0, 0);
+      return dt.getTime();
+    };
+    const diffDays = (a, b) => Math.round((a - b) / MS_PER_DAY);
+
+    // Unique workout day timestamps (local midnight), sorted descending.
+    const uniqueDays = [
+      ...new Set(history.map((w) => toLocalMidnight(w.date))),
+    ].sort((a, b) => b - a);
+
+    const today = toLocalMidnight(new Date());
+    if (diffDays(today, uniqueDays[0]) > MAX_GAP) return 0;
+
+    let count = 1;
+    for (let i = 1; i < uniqueDays.length; i++) {
+      if (diffDays(uniqueDays[i - 1], uniqueDays[i]) <= MAX_GAP) count += 1;
+      else break;
+    }
+    return count;
+  }, [history]);
+
+  const streakEmoji = useMemo(() => {
+    if (streak === 0) return "\uD83D\uDCA4"; // 💤
+    if (streak < 3) return "\u2728"; // ✨
+    if (streak < 7) return "\uD83D\uDD25"; // 🔥
+    if (streak < 14) return "\u26A1"; // ⚡
+    if (streak < 30) return "\uD83D\uDCAA"; // 💪
+    return "\uD83D\uDC51"; // 👑
+  }, [streak]);
 
   const fetchWorkouts = async () => {
     setLoading(true);
@@ -409,11 +450,14 @@ const onFileChange = async (e, workoutId) => {
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">
-            GainsTracker
+          <h1 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2">
+            <span aria-hidden="true" className="text-2xl leading-none">{streakEmoji}</span>
+            <span>
+              {streak} <span className="text-slate-400 dark:text-slate-500 font-bold">Day{streak === 1 ? "" : "s"}</span>
+            </span>
           </h1>
-          <p className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-widest">
-            Welcome, {user?.name || "Champ"}
+          <p className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-[0.2em]">
+            {streak > 0 ? "Streak active" : "No streak"}
           </p>
         </div>
         <div className="flex items-center gap-2">
