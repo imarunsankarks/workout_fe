@@ -28,6 +28,7 @@ import {
 import { AuthContext } from "../context/AuthContext";
 import ConfirmModal from "../components/ConfirmModal";
 import BottomSheet from "../components/BottomSheet";
+import LoadingScreen from "../components/LoadingScreen";
 
 const API = process.env.REACT_APP_API_URL;
 
@@ -210,12 +211,16 @@ const Metrics = () => {
   };
 
   // --- RENDER ---
+  if (loading) return (
+    <LoadingScreen
+      icon={Scale}
+      title="Loading Body Metrics"
+      caption="Fetching Your Data..."
+    />
+  );
+
   return (
     <div className="relative min-h-screen px-6 pt-8 pb-32">
-      {loading ? (
-        <MetricsLoader />
-      ) : (
-        <>
           {/* Header */}
           <div className="flex justify-between items-center mb-8">
             <div className="flex items-center gap-3">
@@ -544,8 +549,6 @@ const Metrics = () => {
               )}
             </div>
           )}
-        </>
-      )}
 
       {/* ADD/EDIT MODAL */}
       {showForm && (
@@ -753,28 +756,6 @@ const toISO = (d) => {
   const dy = String(d.getDate()).padStart(2, "0");
   return `${yr}-${mo}-${dy}`;
 };
-
-const MetricsLoader = () => (
-  <div className="flex flex-col items-center justify-center py-24 h-[calc(100vh-80px)]">
-    <div className="relative mb-8">
-      <div className="absolute inset-0 rounded-full bg-accent-500/20 animate-ping duration-[2000ms]"></div>
-      <div className="relative bg-white dark:bg-slate-900 p-8 rounded-full shadow-xl dark:shadow-md border border-accent-100 dark:border-accent-500/30">
-        <Scale size={48} className="text-accent-500 animate-pulse" />
-      </div>
-    </div>
-    <div className="w-full max-w-[200px] text-center">
-      <h2 className="text-slate-800 dark:text-slate-100 font-bold text-sm uppercase tracking-[0.3em] mb-4">
-        Loading Body Metrics
-      </h2>
-      <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-        <div className="h-full bg-accent-500 rounded-full animate-progress-loading"></div>
-      </div>
-      <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mt-4 animate-bounce">
-        Fetching Your Data...
-      </p>
-    </div>
-  </div>
-);
 
 const ITEM_H = 40; // px per wheel row
 const WHEEL_H = 200; // px wheel viewport height (5 rows visible)

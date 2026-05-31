@@ -25,6 +25,7 @@ import {
   ChevronRight,
   Loader2,
   GripVertical,
+  PartyPopper,
 } from "lucide-react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
@@ -51,6 +52,8 @@ import ConfirmModal from "../components/ConfirmModal";
 import ExerciseHistorySheet from "../components/ExerciseHistorySheet";
 import BottomSheet from "../components/BottomSheet";
 import EditExerciseModal from "../components/EditExerciseModal";
+import LoadingScreen from "../components/LoadingScreen";
+import confetti from "canvas-confetti";
 
 // --- TIMER UTIL ---
 const formatTime = (s) => {
@@ -236,6 +239,7 @@ const ActiveWorkout = () => {
   const [workoutName, setWorkoutName] = useState("");
   const [library, setLibrary] = useState([]);
   const [loadingSave, setLoadingSave] = useState(false);
+  const [finishedSummary, setFinishedSummary] = useState(null);
   const [saveError, setSaveError] = useState(null);
   const [activeMuscle, setActiveMuscle] = useState("Legs");
   const [nullData, setNullData] = useState(false);
@@ -634,9 +638,32 @@ const ActiveWorkout = () => {
           },
         );
 
-        // 5. Cleanup
-        handleDiscard();
-        navigate("/");
+        // 5. Capture summary, clean local state, then celebrate.
+        const summary = {
+          name: finalName,
+          durationMin: Math.floor(secondsRef.current / 60),
+          exerciseCount: formattedDetails.length,
+          totalSets: formattedDetails.reduce(
+            (s, ex) => s + ex.sets.length,
+            0,
+          ),
+        };
+        // Clear local session state WITHOUT navigating away — the celebration
+        // overlay needs this page to stay mounted. We navigate manually below.
+        localStorage.removeItem("active_session_exercises");
+        localStorage.removeItem("active_session_seconds");
+        localStorage.removeItem("active_session_is_active");
+        localStorage.removeItem("active_session_last_unpaused");
+        localStorage.removeItem("active_session_base_seconds");
+        clearWorkoutNotification();
+
+        // Keep "Finalizing Gains" visible briefly so it doesn't flash past
+        // when the API responds fast, then swap to the celebration.
+        setTimeout(() => {
+          setLoadingSave(false);
+          setFinishedSummary(summary);
+          setTimeout(() => navigate("/"), 2500);
+        }, 1500);
       } catch (err) {
         console.error("Save Error:", err);
         const serverMsg =
@@ -680,6 +707,46 @@ const ActiveWorkout = () => {
       console.error(err);
     }
   };
+
+  // Fire a celebratory confetti burst from both bottom corners whenever the
+  // finish-celebration overlay is shown. Repeats a few times so the cannons
+  // feel sustained, then stops.
+  useEffect(() => {
+    if (!finishedSummary) return undefined;
+
+    const duration = 1800;
+    const end = Date.now() + duration;
+    const colors = ["#6366f1", "#d946ef", "#f59e0b", "#ffffff"]; // accent gradient stops
+
+    const tick = () => {
+      const timeLeft = end - Date.now();
+      if (timeLeft <= 0) return;
+      // Left cannon — angled up-and-right.
+      confetti({
+        particleCount: 4,
+        startVelocity: 55,
+        spread: 70,
+        angle: 60,
+        origin: { x: 0, y: 1 },
+        colors,
+        ticks: 200,
+        zIndex: 600,
+      });
+      // Right cannon — angled up-and-left.
+      confetti({
+        particleCount: 4,
+        startVelocity: 55,
+        spread: 70,
+        angle: 120,
+        origin: { x: 1, y: 1 },
+        colors,
+        ticks: 200,
+        zIndex: 600,
+      });
+      requestAnimationFrame(tick);
+    };
+    tick();
+  }, [finishedSummary]);
 
   // Guard render: bail out (useEffect above will navigate away)
   if (!isAllowedEntry) return null;
@@ -1073,8 +1140,12 @@ const ActiveWorkout = () => {
 
       {/* REPEAT PREVIOUS WORKOUT MODAL */}
       {showRepeatModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[500] flex items-end justify-center">
-          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-lg rounded-t-[40px] p-8 max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
+        <BottomSheet
+          open
+          onClose={() => setShowRepeatModal(false)}
+          zIndex="z-[500]"
+          maxHeight="85vh"
+        >
             <div className="flex justify-between items-center mb-8">
               <div>
                 <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">Recent Sessions</h2>
@@ -1112,8 +1183,7 @@ const ActiveWorkout = () => {
                 <div className="py-12 text-center text-slate-400 dark:text-slate-500 italic text-sm">No workout history found yet.</div>
               )}
             </div>
-          </div>
-        </div>
+        </BottomSheet>
       )}
 
       {/* REPEAT CONFIRMATION MODAL */}
@@ -1182,8 +1252,8 @@ const ActiveWorkout = () => {
 
       {/* FINISH PROMPT */}
       {showFinishPrompt && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-6 text-center">
-          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/10 backdrop-blur-xl z-[200] flex items-center justify-center p-6 text-center">
+          <div className="bg-white/70 dark:bg-black/10 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
             <CheckCircle2 size={48} className="mx-auto mb-4 text-accent-500" />
             <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-6">Great Session!</h2>
             
@@ -1333,22 +1403,61 @@ const ActiveWorkout = () => {
       )}
 
       {loadingSave && (
-        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[500] flex flex-col items-center justify-center p-6 text-center">
+        <LoadingScreen
+          variant="overlay"
+          icon={Trophy}
+          title="Finalizing Gains"
+          caption="Saving your workout..."
+        />
+      )}
+
+      {finishedSummary && (
+        <div className="fixed inset-0 bg-black/20 backdrop-blur-xl z-[500] flex flex-col items-center justify-center p-6 animate-in fade-in duration-300">
           <div className="relative mb-8">
-            <div className="absolute inset-0 rounded-full bg-accent-500/30 animate-ping duration-1000"></div>
-            <div className="relative bg-accent-gradient p-8 rounded-full shadow-2xl shadow-accent-500/50">
-              <Trophy size={48} className="text-white" />
+            <div className="absolute inset-0 rounded-full bg-accent-500/20 animate-ping duration-[2000ms]"></div>
+            <div className="relative bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-8 rounded-full shadow-xl dark:shadow-md border border-white/40 dark:border-white/10">
+              <PartyPopper size={48} className="text-accent-500 animate-bounce" />
             </div>
           </div>
-          <div className="space-y-2">
-            <h2 className="text-white text-2xl font-bold uppercase tracking-tight">
-              Finalizing Gains
+          <div className="w-full max-w-[280px] text-center">
+            <p className="text-accent-500 dark:text-accent-400 font-bold text-[10px] uppercase tracking-[0.3em] mb-2">
+              Workout Complete
+            </p>
+            <h2 className="text-slate-800 dark:text-slate-100 font-bold text-xl tracking-tight mb-5 capitalize truncate">
+              {finishedSummary.name}
             </h2>
-            <div className="flex items-center justify-center gap-1.5">
-              <span className="w-1.5 h-1.5 bg-accent-500 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-              <span className="w-1.5 h-1.5 bg-accent-500 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-              <span className="w-1.5 h-1.5 bg-accent-500 rounded-full animate-bounce"></span>
+            <div className="grid grid-cols-3 gap-2 mb-5">
+              <div className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl border border-white/40 dark:border-white/10 rounded-2xl py-3">
+                <p className="text-slate-800 dark:text-slate-100 font-bold text-lg leading-none">
+                  {finishedSummary.durationMin}
+                </p>
+                <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">
+                  Min
+                </p>
+              </div>
+              <div className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl border border-white/40 dark:border-white/10 rounded-2xl py-3">
+                <p className="text-slate-800 dark:text-slate-100 font-bold text-lg leading-none">
+                  {finishedSummary.exerciseCount}
+                </p>
+                <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">
+                  Moves
+                </p>
+              </div>
+              <div className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl border border-white/40 dark:border-white/10 rounded-2xl py-3">
+                <p className="text-slate-800 dark:text-slate-100 font-bold text-lg leading-none">
+                  {finishedSummary.totalSets}
+                </p>
+                <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">
+                  Sets
+                </p>
+              </div>
             </div>
+            <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-full bg-accent-500 rounded-full animate-progress-loading"></div>
+            </div>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mt-4 animate-bounce">
+              Heading home...
+            </p>
           </div>
         </div>
       )}

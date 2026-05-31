@@ -11,6 +11,7 @@ import {
 import ConfirmModal from '../components/ConfirmModal';
 import BottomSheet from '../components/BottomSheet';
 import ExerciseHistorySheet from '../components/ExerciseHistorySheet';
+import LoadingScreen from '../components/LoadingScreen';
 
 // Mount-only-when-open fullscreen image carousel. Mounting fresh on every
 // open means useEmblaCarousel initializes once with the correct startIndex,
@@ -421,31 +422,17 @@ const Reports = () => {
   }, [fullscreenIdx, showFullGallery]);
 
   if (loading) return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center p-6">
-      <div className="relative mb-8">
-        <div className="absolute inset-0 rounded-full bg-accent-500/20 animate-ping duration-[2000ms]"></div>
-        <div className="relative bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-8 rounded-full shadow-xl dark:shadow-md border border-white/40 dark:border-white/10">
-          <Activity size={48} className="text-accent-500 animate-pulse" />
-        </div>
-      </div>
-      <div className="w-full max-w-[200px] text-center">
-        <h2 className="text-slate-800 dark:text-slate-100 font-bold text-sm uppercase tracking-[0.3em] mb-4">
-          Analyzing Gains
-        </h2>
-        <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-          <div className="h-full bg-accent-500 rounded-full animate-progress-loading"></div>
-        </div>
-        <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mt-4 animate-bounce">
-          Generating Report...
-        </p>
-      </div>
-    </div>
+    <LoadingScreen
+      icon={Activity}
+      title="Analyzing Gains"
+      caption="Generating Report..."
+    />
   );
 
   return (
     <div className="relative min-h-screen p-6 pb-40">
       {/* Header */}
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">Analytics</h1>
           <p className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">Growth Tracking</p>
@@ -473,7 +460,7 @@ const Reports = () => {
       </button>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-5 rounded-[32px] shadow-sm border border-white/40 dark:border-white/10">
           <div className="bg-accent-100 dark:bg-accent-500/15 w-10 h-10 rounded-2xl flex items-center justify-center text-accent-600 dark:text-accent-400 mb-3">
             <Activity size={20} />
@@ -491,7 +478,7 @@ const Reports = () => {
       </div>
 
       {hasActiveSession && (
-        <div className="mb-8 animate-in slide-in-from-top duration-500">
+        <div className="mb-6 animate-in slide-in-from-top duration-500">
           <div
             onClick={() => navigate('/workout', { state: { from: 'reports' } })}
             className={`group relative overflow-hidden p-0.5 rounded-[26px] cursor-pointer transition-all duration-500 active:scale-[0.97] ${isPaused ? 'bg-slate-200 dark:bg-slate-700' : 'bg-gradient-to-r from-amber-400 via-orange-500 to-amber-400 bg-[length:200%_auto] animate-gradient-x'
@@ -528,7 +515,7 @@ const Reports = () => {
       )}
 
       {/* PERSONAL RECORDS (PR) SECTION */}
-      <div className="mb-10">
+      <div className="mb-6">
         <div className="flex items-center gap-2 mb-4 px-2">
           <Trophy size={18} className="text-amber-500" />
           <h3 className="font-bold text-slate-700 dark:text-slate-200 uppercase text-[10px] tracking-widest">Personal Records</h3>
@@ -593,34 +580,26 @@ const Reports = () => {
       </div>
 
       {/* --- NEW: PROGRESS GALLERY SECTION --- */}
-      <div className="mb-10">
-        <div className="flex items-center gap-2 mb-4 px-2">
-          <ImageIcon size={18} className="text-fuchsia-500" />
-          <h3 className="font-bold text-slate-700 dark:text-slate-200 uppercase text-[10px] tracking-widest">Progress Gallery</h3>
-        </div>
-
+      <div className="mb-6">
         {galleryImages.length > 0 ? (
-          <div className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-4 rounded-[32px] shadow-sm border border-white/40 dark:border-white/10">
-            <div className="grid grid-cols-4 gap-2">
-              {galleryImages.slice(0, 8).map((img, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => setFullscreenIdx(idx)}
-                  className="aspect-square rounded-xl overflow-hidden border border-slate-100 dark:border-slate-800 cursor-pointer active:scale-95 transition-transform"
-                >
-                  <img src={img} alt="progress" className="w-full h-full object-cover" />
-                </div>
-              ))}
+          <button
+            onClick={() => setShowFullGallery(true)}
+            className="w-full bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-5 rounded-[32px] shadow-sm border border-white/40 dark:border-white/10 hover:bg-white/60 dark:hover:bg-slate-800/50 active:scale-[0.98] transition-all flex items-center gap-4 text-left relative overflow-hidden"
+          >
+            <div className="bg-gradient-to-br from-fuchsia-500 to-fuchsia-600 dark:from-fuchsia-600 dark:to-fuchsia-800 w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-md shadow-fuchsia-200 dark:shadow-fuchsia-900/30 shrink-0 relative z-10">
+              <ImageIcon size={22} strokeWidth={2.5} />
             </div>
-            {galleryImages.length > 0 && (
-              <button
-                onClick={() => setShowFullGallery(true)}
-                className="w-full mt-4 py-3 text-[10px] font-bold text-slate-600 dark:text-slate-200 uppercase tracking-widest bg-white/60 dark:bg-white/10 backdrop-blur-md rounded-2xl border border-white/60 dark:border-white/10 shadow-sm hover:bg-white/80 dark:hover:bg-white/20 active:scale-95 transition-all"
-              >
-                View Full Gallery ({galleryImages.length})
-              </button>
-            )}
-          </div>
+            <div className="flex-1 min-w-0 relative z-10">
+              <p className="text-base font-bold text-slate-800 dark:text-slate-100 leading-tight">
+                View Progress Gallery
+              </p>
+              <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">
+                {galleryImages.length} {galleryImages.length === 1 ? 'photo' : 'photos'}
+              </p>
+            </div>
+            <ChevronRight size={20} className="text-slate-400 dark:text-slate-500 shrink-0 relative z-10" />
+            <ImageIcon className="absolute -right-4 -bottom-4 w-24 h-24 text-fuchsia-500/10 dark:text-fuchsia-400/10 rotate-12" />
+          </button>
         ) : (
           <div className="bg-white/30 dark:bg-slate-800/30 backdrop-blur-xl p-10 rounded-[32px] text-center border-2 border-dashed border-white/40 dark:border-white/10 flex flex-col items-center">
             <ImageIcon size={24} className="text-slate-200 dark:text-slate-700 mb-3" />
@@ -699,7 +678,7 @@ const Reports = () => {
       </div>
 
       {/* Muscle Focus */}
-      <div className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-6 rounded-[32px] shadow-sm border border-white/40 dark:border-white/10 mb-10">
+      <div className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-6 rounded-[32px] shadow-sm border border-white/40 dark:border-white/10 mb-6">
         <div className="flex items-center gap-2 mb-6">
           <Target size={18} className="text-accent-500" />
           <h3 className="font-bold text-slate-700 dark:text-slate-200 uppercase text-[10px] tracking-widest">Muscle Volume (%)</h3>

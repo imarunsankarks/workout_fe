@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Save, Dumbbell, Flame, Move, CheckCircle2, Info } from 'lucide-react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
+import LoadingScreen from '../components/LoadingScreen';
 
 const CreateExercise = () => {
   const { user, token } = useContext(AuthContext);
@@ -144,11 +145,12 @@ const CreateExercise = () => {
 
       {/* Success Feedback Overlay */}
       {showSuccess && (
-        <div className="fixed inset-0 bg-accent-600/95 backdrop-blur-sm z-[300] flex flex-col items-center justify-center text-white animate-in fade-in duration-300">
-          <CheckCircle2 size={80} className="mb-4 animate-bounce" />
-          <h2 className="text-3xl font-bold italic">EXERCISE ADDED!</h2>
-          <p className="font-medium opacity-80">Updating your library...</p>
-        </div>
+        <LoadingScreen
+          variant="overlay"
+          icon={CheckCircle2}
+          title="Exercise Added"
+          caption="Updating your library..."
+        />
       )}
     </div>
   );
