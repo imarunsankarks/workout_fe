@@ -9,6 +9,7 @@ import {
   Target, TrendingUp, AlertTriangle, Trash2, Dumbbell, Calendar, ChevronDown, ChevronUp, Key, X, PauseCircle, Image as ImageIcon, LogOut
 } from 'lucide-react';
 import ConfirmModal from '../components/ConfirmModal';
+import BottomSheet from '../components/BottomSheet';
 
 // Mount-only-when-open fullscreen image carousel. Mounting fresh on every
 // open means useEmblaCarousel initializes once with the correct startIndex,
@@ -763,29 +764,31 @@ const Reports = () => {
       </button>
 
       {/* Modals & Popups */}
-      {showFullGallery && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[500] flex items-end justify-center">
-          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-lg rounded-t-[40px] p-8 max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
-            <div className="flex justify-between items-center mb-8">
-              <div>
-                <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">Full Gallery</h2>
-                <p className="text-fuchsia-500 dark:text-fuchsia-400 font-bold text-[10px] uppercase tracking-[0.2em]">All Progress Photos</p>
-              </div>
-              <button onClick={() => setShowFullGallery(false)} className="bg-white/50 dark:bg-white/10 backdrop-blur-md p-2 rounded-full text-slate-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-white/20 transition-colors">
-                <X size={20} />
-              </button>
-            </div>
-            <div className="grid grid-cols-4 gap-2 mb-8">
-              {galleryImages.map((img, idx) => (
-                <div key={idx} onClick={() => setFullscreenIdx(idx)} className="aspect-square rounded-xl overflow-hidden border border-slate-100 dark:border-slate-800 cursor-pointer active:scale-95 transition-all">
-                  <img src={img} alt="progress" className="w-full h-full object-cover" />
-                </div>
-              ))}
-            </div>
-            <button onClick={() => setShowFullGallery(false)} className="w-full bg-slate-900 dark:bg-slate-700 text-white font-bold py-4 rounded-2xl">CLOSE</button>
+      <BottomSheet
+        open={showFullGallery}
+        onClose={() => setShowFullGallery(false)}
+        zIndex="z-[500]"
+        maxHeight="85vh"
+        backdropClass="bg-slate-900/60 backdrop-blur-md"
+      >
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 tracking-tight">Full Gallery</h2>
+            <p className="text-fuchsia-500 dark:text-fuchsia-400 font-bold text-[10px] uppercase tracking-[0.2em]">All Progress Photos</p>
           </div>
+          <button onClick={() => setShowFullGallery(false)} className="bg-white/50 dark:bg-white/10 backdrop-blur-md p-2 rounded-full text-slate-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-white/20 transition-colors">
+            <X size={20} />
+          </button>
         </div>
-      )}
+        <div className="grid grid-cols-4 gap-2 mb-8">
+          {galleryImages.map((img, idx) => (
+            <div key={idx} onClick={() => setFullscreenIdx(idx)} className="aspect-square rounded-xl overflow-hidden border border-slate-100 dark:border-slate-800 cursor-pointer active:scale-95 transition-all">
+              <img src={img} alt="progress" className="w-full h-full object-cover" />
+            </div>
+          ))}
+        </div>
+        <button onClick={() => setShowFullGallery(false)} className="w-full bg-slate-900 dark:bg-slate-700 text-white font-bold py-4 rounded-2xl">CLOSE</button>
+      </BottomSheet>
 
       {fullscreenIdx !== null && (
         <FullscreenCarousel

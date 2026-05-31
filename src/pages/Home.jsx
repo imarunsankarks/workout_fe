@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { subscribeWorkoutTimer } from "../utils/workoutTimer";
 import ConfirmModal from "../components/ConfirmModal";
+import BottomSheet from "../components/BottomSheet";
 
 // Returns "Today", "Yesterday", or "DD Mon" depending on how far back `date` is.
 const formatLastSessionLabel = (date) => {
@@ -692,8 +693,13 @@ const onFileChange = async (e, workoutId) => {
 
       {/* Detail Modal */}
       {selectedWorkout && (
-        <div className="fixed inset-0 bg-slate-900/30  backdrop-blur-2xl z-[200] flex items-end justify-center">
-          <div className="bg-white/70 dark:bg-slate-800/30 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-lg rounded-t-[40px] p-8 max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
+        <BottomSheet
+          open
+          onClose={() => setSelectedWorkout(null)}
+          zIndex="z-[200]"
+          maxHeight="90vh"
+          backdropClass="bg-slate-900/30 backdrop-blur-2xl"
+        >
             <div className="flex justify-between items-start mb-6">
               <div>
                 <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 capitalize">
@@ -903,17 +909,22 @@ const onFileChange = async (e, workoutId) => {
             >
               CLOSE
             </button>
-          </div>
-        </div>
+        </BottomSheet>
       )}
 
       {/* === EDIT WORKOUT MODAL === */}
       {editingWorkout && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-2xl z-[300] flex items-end justify-center">
-          <div className="bg-white/80 dark:bg-slate-800/50 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-lg rounded-t-[40px] p-6 max-h-[92vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
+        <BottomSheet
+          open
+          onClose={() => setEditingWorkout(null)}
+          zIndex="z-[300]"
+          maxHeight="92vh"
+          padding="p-6"
+          backdropClass="bg-slate-900/40 backdrop-blur-2xl"
+        >
             {/* Header */}
-            <div className="flex justify-between items-center mb-5">
-              <div>
+            <div className="flex items-start gap-3 mb-5">
+              <div className="flex-1 min-w-0">
                 <p className="text-[10px] font-bold text-accent-500 dark:text-accent-400 uppercase tracking-[0.2em] mb-1">Edit Session</p>
                 <input
                   type="text"
@@ -923,12 +934,21 @@ const onFileChange = async (e, workoutId) => {
                   className="text-2xl font-bold text-slate-800 dark:text-slate-100 bg-transparent border-b border-slate-300 dark:border-slate-600 focus:border-accent-500 focus:outline-none w-full pb-1"
                 />
               </div>
-              <button
-                onClick={() => { setEditingWorkout(null); setEditError(null); }}
-                className="bg-white/50 dark:bg-white/10 backdrop-blur-md p-2 rounded-full text-slate-400 dark:text-slate-500 ml-3 shrink-0"
-              >
-                <X size={20} />
-              </button>
+              <div className="flex items-center gap-2 shrink-0 mt-4">
+                <button
+                  onClick={saveEditedWorkout}
+                  disabled={editSaving}
+                  className="px-5 py-2.5 bg-accent-gradient text-white font-bold text-xs uppercase tracking-wider rounded-full shadow-lg active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {editSaving ? (<><Loader2 size={14} className="animate-spin" /> Saving</>) : ("Save")}
+                </button>
+                <button
+                  onClick={() => { setEditingWorkout(null); setEditError(null); }}
+                  className="bg-white/50 dark:bg-white/10 backdrop-blur-md p-2 rounded-full text-slate-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-white/20 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
             {/* Duration + Notes */}
@@ -1092,25 +1112,7 @@ const onFileChange = async (e, workoutId) => {
               </div>
             )}
 
-            {/* Action buttons */}
-            <div className="flex gap-2 sticky bottom-0 -mx-6 -mb-6 px-6 py-4 bg-gradient-to-t from-white/90 dark:from-slate-800/80 via-white/80 dark:via-slate-800/60 to-transparent backdrop-blur-xl">
-              <button
-                onClick={() => { setEditingWorkout(null); setEditError(null); }}
-                disabled={editSaving}
-                className="flex-1 py-4 text-slate-500 dark:text-slate-400 font-bold rounded-2xl border border-white/60 dark:border-white/10 hover:bg-white/50 dark:hover:bg-white/5 transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={saveEditedWorkout}
-                disabled={editSaving}
-                className="flex-1 py-4 bg-accent-gradient text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {editSaving ? (<><Loader2 size={16} className="animate-spin" /> Saving</>) : ("Save Changes")}
-              </button>
-            </div>
-          </div>
-        </div>
+        </BottomSheet>
       )}
 
       {/* === EXERCISE PICKER (for edit modal) === */}
