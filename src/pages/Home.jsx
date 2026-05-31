@@ -698,7 +698,6 @@ const onFileChange = async (e, workoutId) => {
           onClose={() => setSelectedWorkout(null)}
           zIndex="z-[200]"
           maxHeight="90vh"
-          backdropClass="bg-slate-900/30 backdrop-blur-2xl"
         >
             <div className="flex justify-between items-start mb-6">
               <div>
@@ -797,7 +796,7 @@ const onFileChange = async (e, workoutId) => {
                   className={`relative overflow-hidden flex flex-col items-center justify-center w-full h-[120px] border-2 border-dashed rounded-[32px] backdrop-blur-md transition-all group ${
                     isUploading
                       ? "border-accent-300 bg-accent-50/40 dark:bg-accent-500/10 cursor-wait pointer-events-none"
-                      : "border-white/50 dark:border-white/10 bg-white/30 dark:bg-white/5 cursor-pointer hover:bg-white/50 dark:hover:bg-white/10 hover:border-accent-300"
+                      : "border-white/50 dark:border-white/10 bg-white/30 dark:bg-gray-300/5 cursor-pointer hover:bg-white/50 dark:hover:bg-white/10 hover:border-accent-300"
                   }`}
                 >
                   {isUploading ? (
@@ -889,12 +888,12 @@ const onFileChange = async (e, workoutId) => {
                         key={sIdx}
                         className="flex-1 basis-[calc(50%-0.25rem)] flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-slate-50 dark:bg-black/15"
                       >
-                        <span className="flex items-center justify-center px-2 py-1 rounded-full text-slate-400 dark:text-slate-500 text-[9px] font-bold leading-none">
+                        <span className="flex items-center justify-center rounded-full text-slate-400 dark:text-slate-500 text-[9px] font-bold leading-none">
                           SET {sIdx + 1}
                         </span>
                         <span className="font-medium text-slate-700 dark:text-slate-200 text-sm">
                           {ex.type === "Strength"
-                            ? `${set.weight} × ${set.reps}`
+                            ? `${set.weight} x ${set.reps}`
                             : formatTime(set.time)}
                         </span>
                       </div>
@@ -920,7 +919,6 @@ const onFileChange = async (e, workoutId) => {
           zIndex="z-[300]"
           maxHeight="92vh"
           padding="p-6"
-          backdropClass="bg-slate-900/40 backdrop-blur-2xl"
         >
             {/* Header */}
             <div className="flex items-start gap-3 mb-5">
@@ -955,7 +953,7 @@ const onFileChange = async (e, workoutId) => {
             <div className="mb-5 space-y-3">
               <div>
                 <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">Duration</label>
-                <div className="mt-1 flex items-center gap-2 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/60 dark:border-white/10 rounded-2xl px-4 py-3">
+                <div className="mt-1 flex items-center gap-2 bg-white/50 dark:bg-black/15 backdrop-blur-md border border-white/60 dark:border-white/10 rounded-2xl px-4 py-3">
                   <Clock size={16} className="text-slate-400 dark:text-slate-500 shrink-0" />
                   <input
                     type="number"
@@ -986,7 +984,7 @@ const onFileChange = async (e, workoutId) => {
                   onChange={(e) => setEditingWorkout({ ...editingWorkout, notes: e.target.value })}
                   placeholder="How did it feel?"
                   rows={2}
-                  className="w-full mt-1 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/60 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-accent-400 resize-none"
+                  className="w-full mt-1 bg-white/50 dark:bg-black/15 backdrop-blur-md border border-white/60 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-accent-400 resize-none"
                 />
               </div>
             </div>
@@ -996,7 +994,7 @@ const onFileChange = async (e, workoutId) => {
               {editingWorkout.details.map((ex, exIdx) => (
                 <div
                   key={exIdx}
-                  className="bg-white/40 dark:bg-white/5 backdrop-blur-md p-4 rounded-3xl border border-white/60 dark:border-white/10"
+                  className="bg-white/40 dark:bg-black/15 backdrop-blur-md p-4 rounded-3xl border border-white/60 dark:border-white/10"
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2.5 min-w-0">
@@ -1017,7 +1015,7 @@ const onFileChange = async (e, workoutId) => {
                   {/* Resistance + execution chips (Strength only) */}
                   {ex.type === "Strength" && (
                     <div className="flex items-center gap-2 mb-3">
-                      <div className="flex items-center gap-1 px-2.5 py-1 bg-white/60 dark:bg-white/5 rounded-xl border border-white/60 dark:border-white/10">
+                      <div className="flex items-center gap-1 px-2.5 py-1 bg-white/60 dark:bg-black/15 rounded-xl border border-white/60 dark:border-white/10">
                         <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase">Band</span>
                         <input
                           type="number"
@@ -1029,7 +1027,7 @@ const onFileChange = async (e, workoutId) => {
                       </div>
                       <button
                         onClick={() => editToggleExecution(exIdx)}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-white/60 dark:bg-white/5 rounded-xl border border-white/60 dark:border-white/10 active:scale-95 transition-all"
+                        className="flex items-center gap-1 px-3 py-1.5 bg-white/60 dark:bg-black/15 rounded-xl border border-white/60 dark:border-white/10 active:scale-95 transition-all"
                       >
                         <div className="w-1 h-1 rounded-full bg-fuchsia-500" />
                         <span className="text-[10px] font-bold text-slate-700 dark:text-slate-200">
@@ -1044,7 +1042,7 @@ const onFileChange = async (e, workoutId) => {
                     {ex.sets.map((set, sIdx) => (
                       <div
                         key={sIdx}
-                        className="flex items-center gap-2 bg-white/60 dark:bg-white/5 rounded-xl border border-white/60 dark:border-white/10 px-3 py-2"
+                        className="flex items-center gap-2 bg-white/60 dark:bg-black/15 rounded-xl border border-white/60 dark:border-white/10 px-3 py-2"
                       >
                         <span className="flex items-center justify-center w-5 h-5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400 text-[10px] font-bold shrink-0">
                           {sIdx + 1}
@@ -1135,7 +1133,7 @@ const onFileChange = async (e, workoutId) => {
               value={pickerSearch}
               onChange={(e) => setPickerSearch(e.target.value)}
               placeholder="Search exercises..."
-              className="w-full bg-white/50 dark:bg-white/5 border border-white/60 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-accent-400 mb-3"
+              className="w-full bg-white/50 dark:bg-gray-300/5 border border-white/60 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-accent-400 mb-3"
             />
 
             {/* Muscle filter */}
@@ -1147,7 +1145,7 @@ const onFileChange = async (e, workoutId) => {
                   className={`whitespace-nowrap px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all ${
                     pickerMuscle === m
                       ? "bg-accent-600 border-accent-600 text-white"
-                      : "bg-white/40 dark:bg-white/5 border-white/60 dark:border-white/10 text-slate-400 dark:text-slate-500"
+                      : "bg-white/40 dark:bg-gray-300/5 border-white/60 dark:border-white/10 text-slate-400 dark:text-slate-500"
                   }`}
                 >
                   {m}
@@ -1165,7 +1163,7 @@ const onFileChange = async (e, workoutId) => {
                   <button
                     key={ex._id}
                     onClick={() => editAddExerciseFromLibrary(ex)}
-                    className="w-full flex items-center gap-3 bg-white/50 dark:bg-white/5 backdrop-blur-md p-3 rounded-2xl border border-white/60 dark:border-white/10 active:bg-accent-50 dark:active:bg-accent-900/30 transition-colors text-left"
+                    className="w-full flex items-center gap-3 bg-white/50 dark:bg-gray-300/5 backdrop-blur-md p-3 rounded-2xl border border-white/60 dark:border-white/10 active:bg-accent-50 dark:active:bg-accent-900/30 transition-colors text-left"
                   >
                     <div className={`p-2 rounded-xl shrink-0 ${ex.type === "Warmup" ? "text-amber-500 bg-amber-50 dark:bg-amber-900/30" : ex.type === "Stretching" ? "text-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-900/30" : "text-accent-500 bg-accent-50 dark:bg-accent-900/30"}`}>
                       {ex.type === "Warmup" ? <Flame size={16} /> : ex.type === "Stretching" ? <Move size={16} /> : <Dumbbell size={16} />}

@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   Info,
 } from "lucide-react";
+import EditExerciseModal from '../components/EditExerciseModal';
 import ConfirmModal from "../components/ConfirmModal";
 import { AuthContext } from "../context/AuthContext";
 
@@ -121,7 +122,7 @@ const Library = () => {
         <input
           type="text"
           placeholder="Search exercise..."
-          className="w-full pl-12 pr-4 py-4 bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl rounded-2xl font-bold outline-none border border-white/40 dark:border-white/10 shadow-sm focus:ring-2 focus:ring-accent-500 transition-all text-sm text-slate-800 dark:text-slate-200"
+          className="w-full pl-4 pr-4 py-4 bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl rounded-2xl font-bold outline-none border border-white/40 dark:border-white/10 shadow-sm focus:ring-2 focus:ring-accent-500 transition-all text-sm text-slate-800 dark:text-slate-200"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -214,13 +215,13 @@ const Library = () => {
               <div className="flex gap-2">
                 <button
                   onClick={() => setEditingExercise(ex)}
-                  className="p-2 bg-white/40 dark:bg-white/5 backdrop-blur-md rounded-xl text-slate-400 dark:text-slate-500 hover:text-accent-500 dark:hover:text-accent-400 hover:bg-accent-50 dark:hover:bg-accent-900/30 transition-all"
+                  className="p-2 bg-white/40 dark:bg-gray-300/5 backdrop-blur-md rounded-xl text-slate-400 dark:text-slate-500 hover:text-accent-500 dark:hover:text-accent-400 hover:bg-accent-50 dark:hover:bg-accent-900/30 transition-all"
                 >
                   <Edit3 size={15} />
                 </button>
                 <button
                   onClick={() => setShowDeleteConfirm(ex._id)}
-                  className="p-2 bg-white/40 dark:bg-white/5 backdrop-blur-md rounded-xl text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all"
+                  className="p-2 bg-white/40 dark:bg-gray-300/5 backdrop-blur-md rounded-xl text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all"
                 >
                   <Trash2 size={15} />
                 </button>
@@ -231,118 +232,12 @@ const Library = () => {
       </div>
 
       {/* Edit Modal */}
-      {editingExercise && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6">
-          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-6">
-              Edit Exercise
-            </h2>
-            <div className="space-y-6 text-left">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">
-                  Exercise Name
-                </label>
-                <input
-                  type="text"
-                  value={editingExercise.name}
-                  onChange={(e) =>
-                    setEditingExercise({
-                      ...editingExercise,
-                      name: e.target.value,
-                    })
-                  }
-                  className="w-full p-4 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/50 dark:border-white/10 rounded-xl font-bold outline-none focus:ring-2 focus:ring-accent-500 text-slate-800 dark:text-slate-200"
-                />
-              </div>
-
-              {/* NEW: Category (Type) Selection */}
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">
-                  Category
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { id: "Strength", icon: <Dumbbell size={16} /> },
-                    { id: "Warmup", icon: <Flame size={16} /> },
-                    { id: "Stretching", icon: <Move size={16} /> },
-                  ].map((t) => (
-                    <button
-                      key={t.id}
-                      type="button"
-                      onClick={() =>
-                        setEditingExercise({ ...editingExercise, type: t.id })
-                      }
-                      className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border-2 transition-all ${
-                        editingExercise.type === t.id
-                          ? `border-slate-900 dark:border-slate-600 bg-slate-900 dark:bg-slate-700 text-white shadow-md`
-                          : "border-white/40 dark:border-white/10 bg-white/40 dark:bg-white/5 backdrop-blur-md text-slate-400 dark:text-slate-500"
-                      }`}
-                    >
-                      {t.icon}
-                      <span className="text-[9px] font-bold uppercase tracking-tighter">
-                        {t.id}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-
-              {/* Target Muscle */}
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">
-                  Target Muscle
-                </label>
-                <div
-                  className="flex gap-2 overflow-x-auto pb-2 no-scrollbar"
-                  style={{ scrollbarWidth: "none" }}
-                >
-                  {[
-                    "Chest",
-                    "Back",
-                    "Shoulders",
-                    "Biceps",
-                    "Triceps",
-                    "Legs",
-                    "Abs",
-                    "Full Body",
-                  ].map((m) => (
-                    <button
-                      key={m}
-                      onClick={() =>
-                        setEditingExercise({ ...editingExercise, muscle: m })
-                      }
-                      className={`whitespace-nowrap px-4 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider border transition-all ${
-                        editingExercise.muscle === m
-                          ? "bg-accent-600 border-accent-600 text-white"
-                          : "bg-white/40 dark:bg-white/5 backdrop-blur-md border-white/40 dark:border-white/10 text-slate-400 dark:text-slate-500"
-                      }`}
-                    >
-                      {m}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-3 mt-8">
-              <button
-                onClick={() => setEditingExercise(null)}
-                className="flex-1 py-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-white/40 dark:hover:bg-white/5 rounded-2xl transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={updateLibraryItem}
-                className="flex-1 py-4 bg-accent-gradient text-white font-bold rounded-2xl shadow-lg dark:shadow-md active:scale-95 transition-all"
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <EditExerciseModal
+        exercise={editingExercise}
+        onChange={setEditingExercise}
+        onClose={() => setEditingExercise(null)}
+        onSave={updateLibraryItem}
+      />
 
       {/* Delete Confirmation */}
       <ConfirmModal

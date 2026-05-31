@@ -78,7 +78,7 @@ const CreateExercise = () => {
             autoFocus
             type="text" 
             placeholder="e.g. Diamond Pushups"
-            className="w-full bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/50 dark:border-white/10 rounded-2xl p-4 font-bold text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-accent-500 transition-all"
+            className="w-full bg-white/50 dark:bg-gray-300/5 backdrop-blur-md border border-white/50 dark:border-white/10 rounded-2xl p-4 font-bold text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-accent-500 transition-all"
             value={formData.name}
             onChange={(e) => setFormData({...formData, name: e.target.value})}
           />
@@ -96,7 +96,7 @@ const CreateExercise = () => {
                 className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${
                   formData.type === t.id 
                   ? `border-slate-900 dark:border-slate-600 bg-slate-900 dark:bg-slate-700 text-white shadow-lg dark:shadow-md` 
-                  : 'border-white/40 dark:border-white/10 bg-white/40 dark:bg-white/5 backdrop-blur-md text-slate-400 dark:text-slate-500'
+                  : 'border-white/40 dark:border-white/10 bg-white/40 dark:bg-gray-300/5 backdrop-blur-md text-slate-400 dark:text-slate-500'
                 }`}
               >
                 {t.icon}
@@ -118,7 +118,7 @@ const CreateExercise = () => {
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                   formData.muscle === m 
                   ? 'bg-accent-500 text-white' 
-                  : 'bg-white/40 dark:bg-white/5 backdrop-blur-md text-slate-400 dark:text-slate-500 hover:bg-white/60 dark:hover:bg-white/10'
+                  : 'bg-white/40 dark:bg-gray-300/5 backdrop-blur-md text-slate-400 dark:text-slate-500 hover:bg-white/60 dark:hover:bg-white/10'
                 }`}
               >
                 {m}

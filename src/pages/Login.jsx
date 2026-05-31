@@ -125,7 +125,7 @@ const Login = () => {
                 <input
                   type="email"
                   placeholder="Email Address"
-                  className="w-full pl-12 pr-4 py-4 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/50 dark:border-white/10 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-accent-500 transition-all text-slate-800 dark:text-slate-200"
+                  className="w-full pl-12 pr-4 py-4 bg-white/50 dark:bg-gray-300/5 backdrop-blur-md border border-white/50 dark:border-white/10 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-accent-500 transition-all text-slate-800 dark:text-slate-200"
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);
@@ -192,7 +192,7 @@ const Login = () => {
                 <input
                   type="password"
                   placeholder="Password"
-                  className="w-full pl-12 pr-4 py-4 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/50 dark:border-white/10 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-accent-500 transition-all text-slate-800 dark:text-slate-200"
+                  className="w-full pl-12 pr-4 py-4 bg-white/50 dark:bg-gray-300/5 backdrop-blur-md border border-white/50 dark:border-white/10 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-accent-500 transition-all text-slate-800 dark:text-slate-200"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required

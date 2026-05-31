@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { AuthContext } from "../context/AuthContext";
 import ConfirmModal from "../components/ConfirmModal";
+import BottomSheet from "../components/BottomSheet";
 
 const API = process.env.REACT_APP_API_URL;
 
@@ -294,7 +295,7 @@ const Metrics = () => {
             </div>
 
             {/* Range selector */}
-            <div className="flex items-center gap-1 bg-white/30 dark:bg-white/5 backdrop-blur-md p-1 rounded-2xl mb-3">
+            <div className="flex items-center gap-1 bg-white/30 dark:bg-gray-300/5 backdrop-blur-md p-1 rounded-2xl mb-3">
               {["1M", "3M", "6M", "1Y", "ALL"].map((r) => (
                 <button
                   key={r}
@@ -491,7 +492,7 @@ const Metrics = () => {
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => openEdit(m)}
-                          className="p-2 rounded-xl bg-white/40 dark:bg-white/5 backdrop-blur-md text-slate-400 dark:text-slate-300 hover:text-accent-500 dark:hover:text-accent-400 active:scale-95 transition-all"
+                          className="p-2 rounded-xl bg-white/40 dark:bg-gray-300/5 backdrop-blur-md text-slate-400 dark:text-slate-300 hover:text-accent-500 dark:hover:text-accent-400 active:scale-95 transition-all"
                         >
                           <Pencil size={14} />
                         </button>
@@ -536,7 +537,7 @@ const Metrics = () => {
               {visibleCount > 4 && visibleCount >= sortedDesc.length && (
                 <button
                   onClick={() => setVisibleCount(4)}
-                  className="w-full py-4 mt-1 rounded-2xl bg-white/30 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/10 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest active:scale-[0.98] transition-all"
+                  className="w-full py-4 mt-1 rounded-2xl bg-white/30 dark:bg-gray-300/5 backdrop-blur-md border border-white/40 dark:border-white/10 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest active:scale-[0.98] transition-all"
                 >
                   Show Less
                 </button>
@@ -548,11 +549,13 @@ const Metrics = () => {
 
       {/* ADD/EDIT MODAL */}
       {showForm && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[500] flex items-end justify-center">
-          <form
-            onSubmit={handleSubmit}
-            className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-lg rounded-t-[40px] p-8 max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl"
-          >
+        <BottomSheet
+          open
+          onClose={closeForm}
+          zIndex="z-[500]"
+          maxHeight="90vh"
+        >
+          <form onSubmit={handleSubmit}>
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
@@ -648,7 +651,7 @@ const Metrics = () => {
               </button>
             </div>
           </form>
-        </div>
+        </BottomSheet>
       )}
 
       {/* DELETE CONFIRM */}
@@ -665,7 +668,7 @@ const Metrics = () => {
 
 // --- SUB-COMPONENTS ---
 const SummaryStat = ({ icon, label, value, unit }) => (
-  <div className="bg-white/40 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/10 rounded-2xl p-3">
+  <div className="bg-white/40 dark:bg-gray-300/5 backdrop-blur-md border border-white/40 dark:border-white/10 rounded-2xl p-3">
     <div className="flex items-center gap-1.5 mb-1 text-accent-500 dark:text-accent-400">
       {icon}
       <p className="text-[9px] font-bold uppercase tracking-widest">{label}</p>
@@ -689,7 +692,7 @@ const HistoryStat = ({ label, value, unit, highlight }) => {
   };
   const valueColor = colorMap[highlight] || colorMap.default;
   return (
-    <div className="bg-white/40 dark:bg-white/5 backdrop-blur-md rounded-xl p-2.5 text-center">
+    <div className="bg-white/40 dark:bg-gray-300/5 backdrop-blur-md rounded-xl p-2.5 text-center">
       <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">
         {label}
       </p>
@@ -733,7 +736,7 @@ const FormField = ({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       required={required}
-      className="w-full bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/50 dark:border-white/10 px-4 py-3 rounded-2xl font-bold text-slate-800 dark:text-slate-100 outline-none focus:border-accent-500 dark:focus:border-accent-400 transition-colors"
+      className="w-full bg-white/50 dark:bg-gray-300/5 backdrop-blur-md border border-white/50 dark:border-white/10 px-4 py-3 rounded-2xl font-bold text-slate-800 dark:text-slate-100 outline-none focus:border-accent-500 dark:focus:border-accent-400 transition-colors"
     />
   </div>
 );

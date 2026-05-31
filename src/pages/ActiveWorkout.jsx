@@ -48,6 +48,9 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { subscribeWorkoutTimer } from "../utils/workoutTimer";
 import ConfirmModal from "../components/ConfirmModal";
+import ExerciseHistorySheet from "../components/ExerciseHistorySheet";
+import BottomSheet from "../components/BottomSheet";
+import EditExerciseModal from "../components/EditExerciseModal";
 
 // --- TIMER UTIL ---
 const formatTime = (s) => {
@@ -761,7 +764,7 @@ const ActiveWorkout = () => {
                     <p className="text-[9px] font-bold text-slate-300 dark:text-slate-500 uppercase tracking-widest">
                       {ex.muscle}
                     </p>
-                    <div className="p-0.5 rounded-lg bg-white/40 dark:bg-white/5 backdrop-blur-md text-slate-400 dark:text-slate-500">
+                    <div className="p-0.5 rounded-lg bg-white/40 dark:bg-gray-300/5 backdrop-blur-md text-slate-400 dark:text-slate-500">
                       {ex.isCollapsed ? (
                         <ChevronDown size={12} />
                       ) : (
@@ -799,7 +802,7 @@ const ActiveWorkout = () => {
 
             {showInfo[ex.instanceId] && (
               <div className="mt-4 animate-in fade-in slide-in-from-top-1 duration-300">
-                <div className="flex items-center bg-white/30 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/10 rounded-2xl p-1.5 justify-between gap-1">
+                <div className="flex items-center bg-white/30 dark:bg-gray-300/5 backdrop-blur-md border border-white/40 dark:border-white/10 rounded-2xl p-1.5 justify-between gap-1">
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1 px-2 py-1.5 bg-white/60 dark:bg-slate-800/50 backdrop-blur-md rounded-xl shadow-sm border border-white/40 dark:border-white/10">
                       <div className="w-1 h-1 rounded-full bg-accent-500"></div>
@@ -852,7 +855,7 @@ const ActiveWorkout = () => {
                         key={sIdx}
                         className="grid grid-cols-[50px_1fr_1fr_25px] gap-3 items-center"
                       >
-                        <div className="bg-white/40 dark:bg-white/5 backdrop-blur-md rounded-xl py-3 text-center text-xs font-bold text-slate-400 dark:text-slate-300 uppercase">
+                        <div className="bg-white/40 dark:bg-gray-300/5 backdrop-blur-md rounded-xl py-3 text-center text-xs font-bold text-slate-400 dark:text-slate-300 uppercase">
                           {sIdx + 1}
                         </div>
                         <input
@@ -866,7 +869,7 @@ const ActiveWorkout = () => {
                             ).sets[sIdx].weight = e.target.value;
                             setExercises(newExs);
                           }}
-                          className="w-full bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/50 dark:border-white/10 py-3 rounded-xl text-center font-bold outline-none focus:border-accent-500 text-slate-800 dark:text-slate-200"
+                          className="w-full bg-white/50 dark:bg-gray-300/5 backdrop-blur-md border border-white/50 dark:border-white/10 py-3 rounded-xl text-center font-bold outline-none focus:border-accent-500 text-slate-800 dark:text-slate-200"
                         />
                         <input
                           type="number"
@@ -879,7 +882,7 @@ const ActiveWorkout = () => {
                             ).sets[sIdx].reps = e.target.value;
                             setExercises(newExs);
                           }}
-                          className="w-full bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/50 dark:border-white/10 py-3 rounded-xl text-center font-bold outline-none focus:border-accent-500 text-slate-800 dark:text-slate-200"
+                          className="w-full bg-white/50 dark:bg-gray-300/5 backdrop-blur-md border border-white/50 dark:border-white/10 py-3 rounded-xl text-center font-bold outline-none focus:border-accent-500 text-slate-800 dark:text-slate-200"
                         />
                         <button
                           onClick={() => {
@@ -905,7 +908,7 @@ const ActiveWorkout = () => {
                       return (
                         <div
                           key={sIdx}
-                          className="flex items-center gap-2 bg-white/40 dark:bg-white/5 backdrop-blur-md p-2 pl-4 rounded-2xl"
+                          className="flex items-center gap-2 bg-white/40 dark:bg-gray-300/5 backdrop-blur-md p-2 pl-4 rounded-2xl"
                         >
                           <span className="text-[10px] font-bold text-slate-300 dark:text-slate-500 uppercase min-w-[40px]">
                             Set {sIdx + 1}
@@ -958,7 +961,7 @@ const ActiveWorkout = () => {
                                 setExercises(newExs);
                               }}
                               aria-label="Reset"
-                              className="p-2 rounded-xl bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/50 dark:border-white/10 text-slate-600 dark:text-slate-200 shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                              className="p-2 rounded-xl bg-white/50 dark:bg-gray-300/5 backdrop-blur-md border border-white/50 dark:border-white/10 text-slate-600 dark:text-slate-200 shadow-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                               <RotateCcw size={14} />
                             </button>
@@ -1087,7 +1090,7 @@ const ActiveWorkout = () => {
                 <button
                   key={w._id}
                   onClick={() => setWorkoutToRepeat(w)}
-                  className="w-full bg-white/40 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/10 p-5 rounded-[28px] flex items-center justify-between hover:bg-white/60 dark:hover:bg-white/10 hover:border-accent-200 dark:hover:border-accent-700 transition-all active:scale-[0.98]"
+                  className="w-full bg-white/40 dark:bg-gray-300/5 backdrop-blur-md border border-white/40 dark:border-white/10 p-5 rounded-[28px] flex items-center justify-between hover:bg-white/60 dark:hover:bg-white/10 hover:border-accent-200 dark:hover:border-accent-700 transition-all active:scale-[0.98]"
                 >
                   <div className="text-left">
                     <h4 className="font-bold text-slate-800 dark:text-slate-100 capitalize mb-1">{w.name}</h4>
@@ -1195,7 +1198,7 @@ const ActiveWorkout = () => {
                     else setWorkoutName("");
                   }}
                   className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${
-                    activeTab === name ? "bg-slate-900 dark:bg-slate-700 text-white shadow-lg dark:shadow-md" : "bg-white/40 dark:bg-white/5 backdrop-blur-md text-slate-400 dark:text-slate-500 border border-white/40 dark:border-white/10"
+                    activeTab === name ? "bg-slate-900 dark:bg-slate-700 text-white shadow-lg dark:shadow-md" : "bg-white/40 dark:bg-gray-300/5 backdrop-blur-md text-slate-400 dark:text-slate-500 border border-white/40 dark:border-white/10"
                   }`}
                 >
                   {name}
@@ -1210,7 +1213,7 @@ const ActiveWorkout = () => {
                   autoFocus
                   type="text"
                   placeholder="Custom Name (e.g. Chest & Back)"
-                  className="w-full p-4 bg-white/50 dark:bg-white/5 backdrop-blur-md rounded-2xl font-bold outline-none border-2 border-accent-500/20 focus:border-accent-500 transition-all text-sm text-slate-800 dark:text-slate-200"
+                  className="w-full p-4 bg-white/50 dark:bg-gray-300/5 backdrop-blur-md rounded-2xl font-bold outline-none border-2 border-accent-500/20 focus:border-accent-500 transition-all text-sm text-slate-800 dark:text-slate-200"
                   value={workoutName}
                   onChange={(e) => setWorkoutName(e.target.value)}
                 />
@@ -1221,7 +1224,7 @@ const ActiveWorkout = () => {
             <div className="mb-4">
               <textarea
                 placeholder="How did it feel? (Optional note)"
-                className="w-full p-4 bg-white/50 dark:bg-white/5 backdrop-blur-md rounded-2xl font-medium outline-none border border-white/50 dark:border-white/10 focus:border-accent-500 transition-all text-sm min-h-[80px] resize-none text-slate-800 dark:text-slate-200"
+                className="w-full p-4 bg-white/50 dark:bg-gray-300/5 backdrop-blur-md rounded-2xl font-medium outline-none border border-white/50 dark:border-white/10 focus:border-accent-500 transition-all text-sm min-h-[80px] resize-none text-slate-800 dark:text-slate-200"
                 value={workoutNote}
                 onChange={(e) => setWorkoutNote(e.target.value)}
               />
@@ -1352,8 +1355,12 @@ const ActiveWorkout = () => {
 
       {/* LIBRARY MODAL */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[110] flex items-end">
-          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full rounded-t-[44px] p-8 max-h-[85vh] overflow-y-auto shadow-2xl animate-in slide-in-from-bottom duration-300">
+        <BottomSheet
+          open
+          onClose={() => setIsModalOpen(false)}
+          zIndex="z-[110]"
+          maxHeight="85vh"
+        >
             <div className="flex justify-between items-center mb-8">
               <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
                 Library
@@ -1384,7 +1391,7 @@ const ActiveWorkout = () => {
               <input
                 type="text"
                 placeholder="Search exercise..."
-                className="w-full pl-12 pr-4 py-4 bg-white/40 dark:bg-white/5 backdrop-blur-md border border-white/40 dark:border-white/10 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-accent-500 transition-all text-sm text-slate-800 dark:text-slate-200"
+                className="w-full pl-12 pr-4 py-4 bg-white/40 dark:bg-gray-300/5 backdrop-blur-md border border-white/40 dark:border-white/10 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-accent-500 transition-all text-sm text-slate-800 dark:text-slate-200"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -1397,7 +1404,7 @@ const ActiveWorkout = () => {
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-5 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${activeCategory === cat ? "bg-slate-900 dark:bg-slate-700 text-white" : "bg-white/40 dark:bg-white/5 backdrop-blur-md text-slate-400 dark:text-slate-500 border border-white/40 dark:border-white/10"}`}
+                  className={`px-5 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${activeCategory === cat ? "bg-slate-900 dark:bg-slate-700 text-white" : "bg-white/40 dark:bg-gray-300/5 backdrop-blur-md text-slate-400 dark:text-slate-500 border border-white/40 dark:border-white/10"}`}
                 >
                   {cat}
                 </button>
@@ -1420,7 +1427,7 @@ const ActiveWorkout = () => {
                 <button
                   key={muscle}
                   onClick={() => setActiveMuscle(muscle)}
-                  className={`px-4 py-2 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${activeMuscle === muscle ? "bg-accent-500 text-white shadow-md" : "bg-white/40 dark:bg-white/5 backdrop-blur-md text-slate-400 dark:text-slate-500 border border-white/40 dark:border-white/10"}`}
+                  className={`px-4 py-2 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${activeMuscle === muscle ? "bg-accent-500 text-white shadow-md" : "bg-white/40 dark:bg-gray-300/5 backdrop-blur-md text-slate-400 dark:text-slate-500 border border-white/40 dark:border-white/10"}`}
                 >
                   {muscle}
                 </button>
@@ -1457,7 +1464,7 @@ const ActiveWorkout = () => {
                   .map((ex) => (
                     <div
                       key={ex._id}
-                      className="w-full flex gap-2 items-center animate-in fade-in duration-300 bg-white/40 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-white/40 dark:border-white/10 transition-colors"
+                      className="w-full flex gap-2 items-center animate-in fade-in duration-300 bg-white/40 dark:bg-gray-300/5 backdrop-blur-md rounded-2xl border border-white/40 dark:border-white/10 transition-colors"
                     >
                       <button
                         onClick={() => addExercise(ex)}
@@ -1504,113 +1511,17 @@ const ActiveWorkout = () => {
                   ))
               )}
             </div>
-          </div>
-        </div>
+        </BottomSheet>
       )}
 
       {/* EDIT LIBRARY ITEM MODAL */}
-      {editingExercise && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[300] flex items-center justify-center p-6">
-          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-sm rounded-[40px] p-8 shadow-2xl animate-in zoom-in duration-200">
-            <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-6">
-              Edit Exercise
-            </h2>
-            <div className="space-y-6">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">
-                  Exercise Name
-                </label>
-                <input
-                  type="text"
-                  value={editingExercise.name}
-                  onChange={(e) =>
-                    setEditingExercise({
-                      ...editingExercise,
-                      name: e.target.value,
-                    })
-                  }
-                  className="w-full p-4 bg-white/50 dark:bg-white/5 backdrop-blur-md border border-white/50 dark:border-white/10 rounded-xl font-bold outline-none focus:ring-2 focus:ring-accent-500 text-slate-800 dark:text-slate-200"
-                />
-              </div>
-
-           
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">
-                  Target Muscle
-                </label>
-                <div
-                  className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1"
-                  style={{ scrollbarWidth: "none" }}
-                >
-                  {[
-                    "Chest",
-                    "Back",
-                    "Shoulders",
-                    "Biceps",
-                    "Triceps",
-                    "Legs",
-                    "Abs",
-                    "Full Body",
-                  ].map((muscle) => (
-                    <button
-                      key={muscle}
-                      onClick={() =>
-                        setEditingExercise({ ...editingExercise, muscle })
-                      }
-                      className={`whitespace-nowrap px-4 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider border transition-all ${editingExercise.muscle === muscle ? "bg-accent-600 border-accent-600 text-white shadow-md" : "bg-white/40 dark:bg-white/5 backdrop-blur-md border-white/40 dark:border-white/10 text-slate-400 dark:text-slate-500"}`}
-                    >
-                      {muscle}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest px-1">
-                  Workout Type
-                </label>
-                <div className="flex gap-2 p-1.5 bg-white/30 dark:bg-white/5 backdrop-blur-md rounded-2xl border border-white/40 dark:border-white/10">
-                  {[
-                    { id: "Strength", icon: <Dumbbell size={14} /> },
-                    { id: "Warmup", icon: <Flame size={14} /> },
-                    { id: "Stretching", icon: <Move size={14} /> },
-                  ].map((type) => (
-                    <button
-                      key={type.id}
-                      onClick={() =>
-                        setEditingExercise({
-                          ...editingExercise,
-                          type: type.id,
-                        })
-                      }
-                      className={`flex-1 py-3 px-1 rounded-xl flex flex-col items-center gap-1 transition-all ${editingExercise.type === type.id ? "bg-slate-900 dark:bg-slate-700 text-white shadow-lg dark:shadow-md" : "text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-600"}`}
-                    >
-                      {type.icon}
-                      <span className="text-[9px] font-bold uppercase tracking-wider">
-                        {type.id}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="flex gap-2 mt-8">
-              <button
-                onClick={() => setEditingExercise(null)}
-                className="flex-1 py-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 rounded-2xl transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={updateLibraryItem}
-                className="flex-1 py-4 bg-accent-gradient text-white font-bold rounded-2xl shadow-lg dark:shadow-md active:scale-95 transition-all"
-              >
-                Save Changes
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <EditExerciseModal
+        exercise={editingExercise}
+        onChange={setEditingExercise}
+        onClose={() => setEditingExercise(null)}
+        onSave={updateLibraryItem}
+        saveLabel="Save Changes"
+      />
 
       {/* DELETE LIBRARY ITEM CONFIRM */}
       <ConfirmModal
@@ -1623,115 +1534,12 @@ const ActiveWorkout = () => {
       />
 
       {/* PR HISTORY BOTTOM SHEET */}
-      {selectedPrHistory && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[500] flex items-end justify-center">
-          <div className="bg-white/70 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-lg rounded-t-[40px] p-8 max-h-[85vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
-            <div className="flex justify-between items-start mb-8">
-              <div>
-                <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight capitalize">
-                  {selectedPrHistory.name}
-                </h2>
-                <p className="text-accent-500 font-bold text-[10px] uppercase tracking-[0.2em]">
-                  Full History
-                </p>
-              </div>
-              <button
-                onClick={() => setSelectedPrHistory(null)}
-                className="bg-white/50 dark:bg-white/10 backdrop-blur-md p-2 rounded-full text-slate-400 dark:text-slate-500"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="space-y-6">
-              {selectedPrHistory.history.length > 0 ? (
-                selectedPrHistory.history
-                  .slice(0, historyLimit)
-                  .map((entry, idx) => (
-                    <div
-                    key={idx}
-                    className="relative pl-6 border-l-2 border-white/40 dark:border-white/10 pb-2"
-                    >
-                      <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-white dark:bg-slate-800 border-4 border-accent-500" />
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">
-                            {new Date(entry.date).toLocaleDateString("en-GB", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })}
-                          </p>
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm capitalize">
-                              {entry.workoutName || "Routine"}
-                            </h4>
-                            {Number(entry.resistance) > 0 && (
-                              <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-700/50 rounded-lg text-[9px] font-bold uppercase tracking-wider">
-                                <div className="w-1 h-1 rounded-full bg-amber-400" />
-                                +{entry.resistance}kg
-                              </span>
-                            )}
-
-                            {entry.execution === 'Unilateral' && (
-                              <span className="flex items-center gap-1 px-2 py-0.5 bg-fuchsia-50 dark:bg-fuchsia-900/30 text-fuchsia-600 dark:text-fuchsia-400 border border-fuchsia-100 dark:border-fuchsia-700/50 rounded-lg text-[9px] font-bold uppercase tracking-wider">
-                                <div className="w-1 h-1 rounded-full bg-fuchsia-400" />
-                                Unilateral
-                              </span>
-                            )}
-                              
-                            {entry.execution === 'Bilateral' && (
-                              <span className="px-2 py-0.5 bg-slate-50 dark:bg-slate-700 text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-600 rounded-lg text-[9px] font-bold uppercase tracking-wider">
-                                Bilateral
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        {entry.sets.map((set, sIdx) => (
-                          <div
-                            key={sIdx}
-                            className="bg-white/40 dark:bg-white/5 backdrop-blur-md px-3 py-2 rounded-xl border border-white/40 dark:border-white/10 flex justify-between items-center"
-                          >
-                            <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500">
-                              SET {sIdx + 1}
-                            </span>
-                            <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                              {entry.type === "Strength"
-                                ? `${set.weight}kg x ${set.reps}`
-                                : `${set.time}s`}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))
-              ) : (
-                <p className="text-center text-slate-400 dark:text-slate-500 text-xs italic">
-                  No history found for this exercise.
-                </p>
-              )}
-
-              {historyLimit < selectedPrHistory.history.length && (
-                <button
-                  onClick={() => setHistoryLimit((prev) => prev + 5)}
-                  className="w-full py-4 mt-4 text-[10px] font-bold text-accent-600 uppercase tracking-[0.2em] bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl rounded-2xl border border-accent-100 dark:border-accent-700 active:scale-95 transition-all flex items-center justify-center gap-2"
-                >
-                  Show 5 More Sessions
-                </button>
-              )}
-            </div>
-
-            <button
-              onClick={() => setSelectedPrHistory(null)}
-              className="w-full mt-8 bg-slate-900 dark:bg-slate-700 text-white font-bold py-4 rounded-2xl"
-            >
-              CLOSE
-            </button>
-          </div>
-        </div>
-      )}
+      <ExerciseHistorySheet
+        data={selectedPrHistory}
+        onClose={() => setSelectedPrHistory(null)}
+        historyLimit={historyLimit}
+        onLoadMore={() => setHistoryLimit((prev) => prev + 5)}
+      />
 
       {/* EXERCISE DELETE PROMPT */}
       <ConfirmModal

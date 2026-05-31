@@ -24,7 +24,7 @@ const BottomSheet = ({
   padding = 'p-8',
   zIndex = 'z-[300]',
   dismissible = true,
-  backdropClass = 'bg-slate-900/40 backdrop-blur-2xl',
+  backdropClass = 'bg-black/20 backdrop-blur-xl',
 }) => {
   // Escape closes when dismissible.
   useEffect(() => {
