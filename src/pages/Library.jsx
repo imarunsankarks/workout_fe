@@ -29,6 +29,8 @@ const Library = () => {
   // Edit/Delete States
   const [editingExercise, setEditingExercise] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+  // Server-side validation error (e.g. duplicate name on update).
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const fetchLibrary = async () => {
     try {
@@ -61,6 +63,12 @@ const Library = () => {
       fetchLibrary();
       setShowDeleteConfirm(null);
     } catch (err) {
+      const serverMsg = err?.response?.data?.message;
+      // Close the confirm prompt and surface the validation error on top.
+      setShowDeleteConfirm(null);
+      setErrorMessage(
+        serverMsg || 'Could not delete the exercise. Please try again.',
+      );
       console.error(err);
     }
   };
@@ -78,6 +86,12 @@ const Library = () => {
       fetchLibrary();
       setEditingExercise(null);
     } catch (err) {
+      const serverMsg = err?.response?.data?.message;
+      // Keep the edit modal open so the user can correct the name; just
+      // surface the validation error on top.
+      setErrorMessage(
+        serverMsg || 'Could not update the exercise. Please try again.',
+      );
       console.error(err);
     }
   };
@@ -237,6 +251,19 @@ const Library = () => {
         onChange={setEditingExercise}
         onClose={() => setEditingExercise(null)}
         onSave={updateLibraryItem}
+      />
+
+      {/* Server-side validation error (e.g. duplicate name) */}
+      <ConfirmModal
+        open={!!errorMessage}
+        onClose={() => setErrorMessage(null)}
+        onConfirm={() => setErrorMessage(null)}
+        title="Action not allowed"
+        message={errorMessage || ''}
+        confirmLabel="OK"
+        icon={AlertTriangle}
+        tone="warning"
+        singleAction
       />
 
       {/* Delete Confirmation */}

@@ -12,6 +12,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import BottomSheet from '../components/BottomSheet';
 import ExerciseHistorySheet from '../components/ExerciseHistorySheet';
 import LoadingScreen from '../components/LoadingScreen';
+import { buildLibraryMap, getDisplayName } from '../utils/exerciseLookup';
 
 // Mount-only-when-open fullscreen image carousel. Mounting fresh on every
 // open means useEmblaCarousel initializes once with the correct startIndex,
@@ -159,10 +160,19 @@ const Reports = () => {
     const fetchData = async () => {
       try {
         setLoading(!clickedIntensity ? true : false);
-        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/workouts/${user.id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const history = res.data;
+        // Fetch workouts and the user's exercise library in parallel. The
+        // library powers live name resolution — workouts only carry
+        // `exerciseId`, so every display name is looked up through this map.
+        const [workoutsRes, libraryRes] = await Promise.all([
+          axios.get(`${process.env.REACT_APP_API_URL}/api/workouts/${user.id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get(`${process.env.REACT_APP_API_URL}/api/exercises/${user.id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+        const history = workoutsRes.data;
+        const libraryMap = buildLibraryMap(libraryRes.data || []);
         setAllWorkouts(history);
         // --- 1. OVERALL STATS & MONTHLY VOLUME ---
         const totalMins = history.reduce((acc, curr) => acc + (curr.duration || 0), 0);
@@ -177,35 +187,43 @@ const Reports = () => {
         });
 
         // --- 2. PERSONAL RECORDS (PR) CALCULATION ---
+        // Keyed by exerciseId so renames don't split a single exercise into
+        // multiple PR cards. The display name is resolved from the library
+        // and stored on the record at aggregation time.
         const prMap = {};
         history.forEach(workout => {
           workout.details?.forEach(exercise => {
-            if (exercise.type === 'Strength') {
-              const muscleGroup = exercise.muscle || 'Other';
-              const exerciseName = exercise.name;
-              const baseResistance = Number(exercise.resistance) || 0;
-              const maxSet = exercise.sets.reduce((prev, current) => {
-                const prevTotal = (Number(prev.weight) || 0) + baseResistance;
-                const currentTotal = (Number(current.weight) || 0) + baseResistance;
-                return (prevTotal > currentTotal) ? prev : current;
-              }, { weight: 0, reps: 0 });
+            if (exercise.type !== 'Strength') return;
+            if (!exercise.exerciseId) return; // strict id-only model
 
-              const currentSetTotal = (Number(maxSet.weight) || 0) + baseResistance;
+            const muscleGroup = exercise.muscle || 'Other';
+            const exerciseId = String(exercise.exerciseId);
+            const baseResistance = Number(exercise.resistance) || 0;
+            const maxSet = exercise.sets.reduce((prev, current) => {
+              const prevTotal = (Number(prev.weight) || 0) + baseResistance;
+              const currentTotal = (Number(current.weight) || 0) + baseResistance;
+              return (prevTotal > currentTotal) ? prev : current;
+            }, { weight: 0, reps: 0 });
 
-              if (maxSet.weight >= 0) {
-                if (!prMap[muscleGroup]) prMap[muscleGroup] = {};
+            const currentSetTotal = (Number(maxSet.weight) || 0) + baseResistance;
 
-                const existingRecord = prMap[muscleGroup][exerciseName];
-                const existingTotal = existingRecord ? (existingRecord.weight + existingRecord.resistance) : -1;
+            if (maxSet.weight >= 0) {
+              if (!prMap[muscleGroup]) prMap[muscleGroup] = {};
 
-                if (!existingRecord || currentSetTotal > existingTotal) {
-                  prMap[muscleGroup][exerciseName] = {
-                    weight: Number(maxSet.weight),
-                    reps: maxSet.reps,
-                    date: workout.date,
-                    resistance: baseResistance,
-                  };
-                }
+              const existingRecord = prMap[muscleGroup][exerciseId];
+              const existingTotal = existingRecord
+                ? (existingRecord.weight + existingRecord.resistance)
+                : -1;
+
+              if (!existingRecord || currentSetTotal > existingTotal) {
+                prMap[muscleGroup][exerciseId] = {
+                  exerciseId,
+                  name: getDisplayName(exercise, libraryMap),
+                  weight: Number(maxSet.weight),
+                  reps: maxSet.reps,
+                  date: workout.date,
+                  resistance: baseResistance,
+                };
               }
             }
           });
@@ -375,14 +393,18 @@ const Reports = () => {
     }
   };
 
-  const handlePrClick = (exerciseName) => {
+  // Match by canonical id; the display name passed in is just for the
+  // history sheet header.
+  const handlePrClick = (exerciseId, displayName) => {
+    if (!exerciseId) return;
     setHistoryLimit(5);
+    const idStr = String(exerciseId);
     const exerciseHistory = allWorkouts
       .filter(workout =>
-        workout.details?.some(ex => ex.name.toLowerCase() === exerciseName.toLowerCase())
+        workout.details?.some(ex => String(ex.exerciseId) === idStr)
       )
       .map(workout => {
-        const detail = workout.details.find(ex => ex.name.toLowerCase() === exerciseName.toLowerCase());
+        const detail = workout.details.find(ex => String(ex.exerciseId) === idStr);
         return {
           workoutName: workout.name,
           date: workout.date,
@@ -394,7 +416,7 @@ const Reports = () => {
       })
       .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    setSelectedPrHistory({ name: exerciseName, history: exerciseHistory });
+    setSelectedPrHistory({ name: displayName, history: exerciseHistory });
   };
 
   const galleryImages = allWorkouts.filter(w => w.imageUrl).map(w => w.imageUrl);
@@ -538,10 +560,10 @@ const Reports = () => {
               {Object.entries(personalRecords[activePrTab])
                 .sort(([, a], [, b]) => b.weight - a.weight)
                 .slice(0, showAllPrs ? undefined : 5)
-                .map(([name, data]) => (
-                  <div key={name} onClick={() => handlePrClick(name)} className="group bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-5 rounded-[28px] shadow-sm border border-white/40 dark:border-white/10 flex justify-between items-center active:scale-[0.98] transition-all cursor-pointer relative overflow-hidden">
+                .map(([exerciseId, data]) => (
+                  <div key={exerciseId} onClick={() => handlePrClick(exerciseId, data.name)} className="group bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-5 rounded-[28px] shadow-sm border border-white/40 dark:border-white/10 flex justify-between items-center active:scale-[0.98] transition-all cursor-pointer relative overflow-hidden">
                     <div>
-                      <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm mb-1 capitalize">{name}</h4>
+                      <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm mb-1 capitalize">{data.name}</h4>
                       <div className="flex items-center gap-3">
                         <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold flex items-center gap-1 uppercase tracking-tighter">
                           <Calendar size={10} /> {new Date(data.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })}

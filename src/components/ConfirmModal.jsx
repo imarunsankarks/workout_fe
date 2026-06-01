@@ -22,6 +22,8 @@ import { AlertTriangle, Trash2 } from 'lucide-react';
  *  - loading         : boolean — disables buttons + shows pending state.
  *  - error           : string — error message shown above the buttons.
  *  - hideActions     : boolean — render no buttons (status/indicator modals).
+ *  - singleAction    : boolean — render only the primary button (useful for
+ *                      OK / acknowledge dialogs such as inline error alerts).
  *  - dismissible     : boolean — backdrop click + Escape close. Default true.
  *  - icon            : lucide component OR a ReactElement. Element is rendered
  *                      as-is (useful for animated icons); component is wrapped
@@ -43,6 +45,7 @@ const ConfirmModal = ({
   loading = false,
   error,
   hideActions = false,
+  singleAction = false,
   dismissible = true,
 }) => {
   // Escape key closes the modal.
@@ -140,13 +143,15 @@ const ConfirmModal = ({
             >
               {loading ? 'Working…' : confirmLabel}
             </button>
-            <button
-              onClick={onClose}
-              disabled={loading}
-              className="w-full py-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-colors disabled:opacity-60"
-            >
-              {cancelLabel}
-            </button>
+            {!singleAction && (
+              <button
+                onClick={onClose}
+                disabled={loading}
+                className="w-full py-4 text-slate-400 dark:text-slate-500 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-colors disabled:opacity-60"
+              >
+                {cancelLabel}
+              </button>
+            )}
           </div>
         )}
       </div>

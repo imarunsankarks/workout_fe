@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef, useCallback } from "react";
+import React, { useState, useEffect, useContext, useRef, useCallback, useMemo } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import {
   Play,
@@ -54,6 +54,7 @@ import BottomSheet from "../components/BottomSheet";
 import EditExerciseModal from "../components/EditExerciseModal";
 import LoadingScreen from "../components/LoadingScreen";
 import confetti from "canvas-confetti";
+import { buildLibraryMap, getDisplayName } from "../utils/exerciseLookup";
 
 // --- TIMER UTIL ---
 const formatTime = (s) => {
@@ -246,6 +247,8 @@ const ActiveWorkout = () => {
   const [exerciseToDelete, setExerciseToDelete] = useState(null);
   const [editingExercise, setEditingExercise] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+  // Server-side validation error (e.g. duplicate name on library edit).
+  const [libraryEditError, setLibraryEditError] = useState(null);
   const [activeTab, setActiveTab] = useState("");
   const [workoutNote, setWorkoutNote] = useState("");
   // selectedImage holds { url, publicId } after a successful Cloudinary upload
@@ -474,19 +477,29 @@ const ActiveWorkout = () => {
       navigator.serviceWorker.removeEventListener("message", handler);
   }, [toggleGlobalTimer]);
 
+  // Live lookup so display names always reflect the current library
+  // (renames mid-session propagate immediately, and saved workouts —
+  // which now only carry `exerciseId` — still render correctly).
+  const libraryMap = useMemo(() => buildLibraryMap(library), [library]);
+
   const addExercise = (template) => {
-    const lastEntry = allWorkouts
-      .filter((workout) =>
-        workout.details?.some(
-          (ex) => ex.name.toLowerCase() === template.name.toLowerCase(),
-        ),
-      )
-      .sort((a, b) => new Date(b.date) - new Date(a.date))
-      .map((workout) =>
-        workout.details.find(
-          (ex) => ex.name.toLowerCase() === template.name.toLowerCase(),
-        ),
-      )[0];
+    // Find the most recent prior performance of this same library
+    // exercise (by canonical id) so we can prefill sets/resistance.
+    const templateId = template._id && String(template._id);
+    const lastEntry = templateId
+      ? allWorkouts
+          .filter((workout) =>
+            workout.details?.some(
+              (ex) => String(ex.exerciseId) === templateId,
+            ),
+          )
+          .sort((a, b) => new Date(b.date) - new Date(a.date))
+          .map((workout) =>
+            workout.details.find(
+              (ex) => String(ex.exerciseId) === templateId,
+            ),
+          )[0]
+      : undefined;
 
     let prefilledSets;
     if (template.type === "Strength") {
@@ -505,6 +518,9 @@ const ActiveWorkout = () => {
 
     const newEx = {
       ...template,
+      // Canonical link to the library entry. We carry this through so it
+      // can be persisted on the workout and survive future renames.
+      exerciseId: template._id,
       resistance:
         lastEntry?.resistance ?? template.resistance ?? 0,
       execution:
@@ -525,6 +541,10 @@ const ActiveWorkout = () => {
     
     const prefilledExercises = workoutToRepeat.details.map((ex, idx) => ({
       ...ex,
+      // Preserve the canonical id so re-saving the repeated workout keeps
+      // the link intact. Legacy details that don't carry exerciseId yet
+      // will simply roundtrip undefined and rely on the name fallback.
+      exerciseId: ex.exerciseId,
       instanceId: Date.now() + idx,
       isCollapsed: false,
       isRunning: false,
@@ -543,17 +563,20 @@ const ActiveWorkout = () => {
     setWorkoutToRepeat(null);
   };
 
-  const handlePrClick = (exerciseName) => {
+  // Match by canonical id; the displayName argument is just used as the
+  // history sheet header so we can render a label even though the
+  // saved workout details no longer carry a `name` snapshot.
+  const handlePrClick = (exerciseId, displayName) => {
+    if (!exerciseId) return;
     setHistoryLimit(5);
+    const idStr = String(exerciseId);
     const exerciseHistory = allWorkouts
       .filter((workout) =>
-        workout.details?.some(
-          (ex) => ex.name.toLowerCase() === exerciseName.toLowerCase(),
-        ),
+        workout.details?.some((ex) => String(ex.exerciseId) === idStr),
       )
       .map((workout) => {
         const detail = workout.details.find(
-          (ex) => ex.name.toLowerCase() === exerciseName.toLowerCase(),
+          (ex) => String(ex.exerciseId) === idStr,
         );
         return {
           workoutName: workout.name,
@@ -566,7 +589,7 @@ const ActiveWorkout = () => {
       })
       .sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    setSelectedPrHistory({ name: exerciseName, history: exerciseHistory });
+    setSelectedPrHistory({ name: displayName, history: exerciseHistory });
   };
 
   const clearWorkoutNotification = useCallback(() => {
@@ -598,7 +621,9 @@ const ActiveWorkout = () => {
           });
 
           return {
-            name: ex.name,
+            // The canonical (and only) link to the library entry. Display
+            // names are always resolved through the library on the read side.
+            exerciseId: ex.exerciseId,
             type: ex.type,
             muscle: ex.muscle,
             sets: validSets,
@@ -687,6 +712,11 @@ const ActiveWorkout = () => {
       fetchLibrary();
       setShowDeleteConfirm(null);
     } catch (err) {
+      const serverMsg = err?.response?.data?.message;
+      setShowDeleteConfirm(null);
+      setLibraryEditError(
+        serverMsg || 'Could not delete the exercise. Please try again.',
+      );
       console.error(err);
     }
   };
@@ -704,6 +734,11 @@ const ActiveWorkout = () => {
       fetchLibrary();
       setEditingExercise(null);
     } catch (err) {
+      const serverMsg = err?.response?.data?.message;
+      // Keep the edit modal open so the user can correct the name.
+      setLibraryEditError(
+        serverMsg || 'Could not update the exercise. Please try again.',
+      );
       console.error(err);
     }
   };
@@ -825,7 +860,7 @@ const ActiveWorkout = () => {
                 </div>
                 <div>
                   <h4 className="font-bold text-slate-800 dark:text-slate-100 text-md leading-tight flex items-center gap-2 capitalize">
-                    {ex.name}
+                    {getDisplayName(ex, libraryMap)}
                   </h4>
                   <div className="flex items-center gap-2">
                     <p className="text-[9px] font-bold text-slate-300 dark:text-slate-500 uppercase tracking-widest">
@@ -895,7 +930,7 @@ const ActiveWorkout = () => {
 
                   <div className="flex items-center gap-3">
                     <button
-                      onClick={() => handlePrClick(ex.name)}
+                      onClick={() => handlePrClick(ex.exerciseId, getDisplayName(ex, libraryMap))}
                       className="p-2 bg-amber-50 dark:bg-amber-900/30 text-amber-500 dark:text-amber-400 rounded-xl active:scale-90 transition-all"
                     >
                       <History size={16} strokeWidth={1.5} />
@@ -1106,7 +1141,7 @@ const ActiveWorkout = () => {
                 </div>
                 <div className="flex-1">
                   <h4 className="font-bold text-slate-800 dark:text-slate-100 text-md leading-tight capitalize">
-                    {activeDraggingExercise.name}
+                    {getDisplayName(activeDraggingExercise, libraryMap)}
                   </h4>
                   <p className="text-[9px] font-bold text-slate-300 dark:text-slate-500 uppercase tracking-widest mt-1">
                     {activeDraggingExercise.muscle}
@@ -1630,6 +1665,19 @@ const ActiveWorkout = () => {
         onClose={() => setEditingExercise(null)}
         onSave={updateLibraryItem}
         saveLabel="Save Changes"
+      />
+
+      {/* LIBRARY EDIT VALIDATION ERROR (e.g. duplicate name) */}
+      <ConfirmModal
+        open={!!libraryEditError}
+        onClose={() => setLibraryEditError(null)}
+        onConfirm={() => setLibraryEditError(null)}
+        title="Action not allowed"
+        message={libraryEditError || ''}
+        confirmLabel="OK"
+        icon={AlertTriangle}
+        tone="warning"
+        singleAction
       />
 
       {/* DELETE LIBRARY ITEM CONFIRM */}

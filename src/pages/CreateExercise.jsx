@@ -1,15 +1,19 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Save, Dumbbell, Flame, Move, CheckCircle2, Info } from 'lucide-react';
+import { ChevronLeft, Save, Dumbbell, Flame, Move, CheckCircle2, Info, AlertTriangle } from 'lucide-react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import LoadingScreen from '../components/LoadingScreen';
+import ConfirmModal from '../components/ConfirmModal';
 
 const CreateExercise = () => {
   const { user, token } = useContext(AuthContext);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  // Holds a server-side validation error (e.g. duplicate name) so we can
+  // surface it in a ConfirmModal without dismissing the form.
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -55,7 +59,15 @@ const CreateExercise = () => {
       }, 1500);
     } catch (err) {
       setLoading(false);
-      console.error("Save failed", err);
+      const serverMsg = err?.response?.data?.message;
+      if (err?.response?.status === 409 && serverMsg) {
+        setErrorMessage(serverMsg);
+      } else {
+        setErrorMessage(
+          serverMsg || 'Could not save the exercise. Please try again.',
+        );
+      }
+      console.error('Save failed', err);
     }
   };
 
@@ -152,6 +164,19 @@ const CreateExercise = () => {
           caption="Updating your library..."
         />
       )}
+
+      {/* Server-side validation error (e.g. duplicate name) */}
+      <ConfirmModal
+        open={!!errorMessage}
+        onClose={() => setErrorMessage(null)}
+        onConfirm={() => setErrorMessage(null)}
+        title="Couldn't save exercise"
+        message={errorMessage || ''}
+        confirmLabel="OK"
+        icon={AlertTriangle}
+        tone="warning"
+        singleAction
+      />
     </div>
   );
 };

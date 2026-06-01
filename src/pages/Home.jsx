@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext, useMemo } from "react";
 import { AuthContext } from "../context/AuthContext";
+import { buildLibraryMap, getDisplayName } from "../utils/exerciseLookup";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
@@ -83,7 +84,10 @@ const Home = () => {
   const [isUploading, setIsUploading] = useState(false);
   // --- Edit completed workout state ---
   const [editingWorkout, setEditingWorkout] = useState(null);
-  const [editLibrary, setEditLibrary] = useState([]);
+  // The user's exercise library. Fetched on mount so we can resolve a
+  // workout detail's display name through it (renames propagate retroactively).
+  // Also reused by the in-Home edit-workout flow's exercise picker.
+  const [library, setLibrary] = useState([]);
   const [showExercisePicker, setShowExercisePicker] = useState(false);
   const [pickerMuscle, setPickerMuscle] = useState("Legs");
   const [pickerSearch, setPickerSearch] = useState("");
@@ -176,6 +180,24 @@ const Home = () => {
     return "\uD83D\uDC51"; // 👑
   }, [streak]);
 
+  // Build a quick lookup so any render path can resolve a detail's
+  // canonical name without scanning the array.
+  const libraryMap = useMemo(() => buildLibraryMap(library), [library]);
+
+  const fetchLibrary = async () => {
+    if (!user?.id) return;
+    try {
+      const res = await axios.get(
+        `${process.env.REACT_APP_API_URL}/api/exercises/${user.id}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setLibrary(res.data || []);
+    } catch (err) {
+      console.error("Failed to fetch exercise library:", err);
+      setLibrary([]);
+    }
+  };
+
   const fetchWorkouts = async () => {
     setLoading(true);
     try {
@@ -196,6 +218,7 @@ const Home = () => {
   useEffect(() => {
     if (user?.id) {
       fetchWorkouts();
+      fetchLibrary();
     }
 
     const activeData = localStorage.getItem("active_session_exercises");
@@ -273,16 +296,9 @@ const Home = () => {
   const openEditWorkout = async (workout) => {
     // Deep clone to avoid mutating the displayed workout while editing
     setEditingWorkout(JSON.parse(JSON.stringify(workout)));
-    try {
-      const res = await axios.get(
-        `${process.env.REACT_APP_API_URL}/api/exercises/${user.id}`,
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-      setEditLibrary(res.data || []);
-    } catch (err) {
-      console.error("Failed to fetch library for edit:", err);
-      setEditLibrary([]);
-    }
+    // Refresh the library on edit-open so the picker reflects any
+    // changes made on the Library page since the page mounted.
+    fetchLibrary();
   };
 
   const updateEditingDetails = (mutator) => {
@@ -335,7 +351,9 @@ const Home = () => {
   const editAddExerciseFromLibrary = (libEx) => {
     updateEditingDetails((draft) => {
       draft.details.push({
-        name: libEx.name,
+        // Canonical (and only) link. The display name is resolved live
+        // through the library on every render.
+        exerciseId: libEx._id,
         type: libEx.type,
         muscle: libEx.muscle,
         execution: "Bilateral",
@@ -902,7 +920,7 @@ const onFileChange = async (e, workoutId) => {
                     )}
                     <div className="flex flex-row gap-2 items-center">
                       <h5 className="font-bold text-slate-800 dark:text-slate-100 capitalize leading-tight">
-                        {ex.name}
+                        {getDisplayName(ex, libraryMap)}
                       </h5>
                  
                       {Number(ex.resistance) > 0 && (
@@ -1045,7 +1063,7 @@ const onFileChange = async (e, workoutId) => {
                       <div className={`p-1.5 rounded-lg shrink-0 ${ex.type === "Warmup" ? "text-amber-500 bg-amber-50 dark:bg-amber-900/30" : ex.type === "Stretching" ? "text-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-900/30" : "text-accent-500 bg-accent-50 dark:bg-accent-900/30"}`}>
                         {ex.type === "Warmup" ? <Flame size={14} /> : ex.type === "Stretching" ? <Move size={14} /> : <Dumbbell size={14} />}
                       </div>
-                      <h5 className="font-bold text-slate-800 dark:text-slate-100 capitalize text-sm truncate">{ex.name}</h5>
+                      <h5 className="font-bold text-slate-800 dark:text-slate-100 capitalize text-sm truncate">{getDisplayName(ex, libraryMap)}</h5>
                     </div>
                     <button
                       onClick={() => editRemoveExercise(exIdx)}
@@ -1199,7 +1217,7 @@ const onFileChange = async (e, workoutId) => {
 
             {/* Library list */}
             <div className="space-y-2">
-              {editLibrary
+              {library
                 .filter((ex) => ex.muscle?.toLowerCase() === pickerMuscle.toLowerCase())
                 .filter((ex) => ex.name?.toLowerCase().includes(pickerSearch.toLowerCase()))
                 .sort((a, b) => a.name.localeCompare(b.name))
@@ -1219,7 +1237,7 @@ const onFileChange = async (e, workoutId) => {
                     <Plus size={16} className="text-accent-500 shrink-0" />
                   </button>
                 ))}
-              {editLibrary.filter((ex) => ex.muscle?.toLowerCase() === pickerMuscle.toLowerCase() && ex.name?.toLowerCase().includes(pickerSearch.toLowerCase())).length === 0 && (
+              {library.filter((ex) => ex.muscle?.toLowerCase() === pickerMuscle.toLowerCase() && ex.name?.toLowerCase().includes(pickerSearch.toLowerCase())).length === 0 && (
                 <p className="text-center text-slate-400 dark:text-slate-500 text-xs italic py-8">No exercises in this category</p>
               )}
             </div>
