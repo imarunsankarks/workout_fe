@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useMemo } from "react";
+import React, { useState, useEffect, useContext, useMemo, useRef, useCallback } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { buildLibraryMap, getDisplayName } from "../utils/exerciseLookup";
 import { useNavigate } from "react-router-dom";
@@ -22,11 +22,81 @@ import {
   Loader2,
   Edit3,
   AlertTriangle,
-  Plus
+  Plus,
+  GripVertical,
 } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { subscribeWorkoutTimer } from "../utils/workoutTimer";
 import ConfirmModal from "../components/ConfirmModal";
 import BottomSheet from "../components/BottomSheet";
+
+// Wraps an exercise card inside the edit-workout modal so it can be
+// reordered by drag-and-drop. Children receive `dragHandleProps` to spread
+// onto the grip element. Mirrors the SortableExercise pattern used on the
+// ActiveWorkout page, including size-locking so the dragged card keeps
+// its natural dimensions over slots of varying height.
+const SortableEditExercise = ({ id, children }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const nodeRef = useRef(null);
+  const lockedSizeRef = useRef(null);
+
+  const composedRef = useCallback(
+    (node) => {
+      setNodeRef(node);
+      nodeRef.current = node;
+    },
+    [setNodeRef],
+  );
+
+  if (nodeRef.current && !isDragging) {
+    lockedSizeRef.current = {
+      width: nodeRef.current.offsetWidth,
+      height: nodeRef.current.offsetHeight,
+    };
+  }
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 50 : 1,
+    opacity: isDragging ? 0.7 : 1,
+    ...(isDragging && lockedSizeRef.current
+      ? {
+          width: lockedSizeRef.current.width,
+          height: lockedSizeRef.current.height,
+          boxSizing: "border-box",
+        }
+      : {}),
+  };
+
+  return (
+    <div ref={composedRef} style={style}>
+      {children({ dragHandleProps: { ...attributes, ...listeners }, isDragging })}
+    </div>
+  );
+};
 
 // Returns "Today", "Yesterday", or "DD Mon" depending on how far back `date` is.
 const formatLastSessionLabel = (date) => {
@@ -292,10 +362,38 @@ const Home = () => {
     }
   };
 
+  // --- DRAG-AND-DROP (edit-workout exercise reorder) ---
+  // Touch sensor uses a short delay so the BottomSheet still scrolls
+  // normally; users must dwell on the grip handle to begin a drag.
+  const editSensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
+  );
+
+  const handleEditDragEnd = (event) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    updateEditingDetails((draft) => {
+      const oldIndex = draft.details.findIndex((d) => d._dndId === active.id);
+      const newIndex = draft.details.findIndex((d) => d._dndId === over.id);
+      if (oldIndex === -1 || newIndex === -1) return;
+      draft.details = arrayMove(draft.details, oldIndex, newIndex);
+    });
+  };
+
   // --- EDIT WORKOUT HELPERS ---
   const openEditWorkout = async (workout) => {
-    // Deep clone to avoid mutating the displayed workout while editing
-    setEditingWorkout(JSON.parse(JSON.stringify(workout)));
+    // Deep clone to avoid mutating the displayed workout while editing.
+    // Each detail also gets a stable `_dndId` so the drag-and-drop list
+    // has unique keys that survive reorders (positional index isn't
+    // stable, and the same exercise may appear twice in a workout).
+    const clone = JSON.parse(JSON.stringify(workout));
+    const base = Date.now();
+    clone.details = (clone.details || []).map((d, i) => ({
+      ...d,
+      _dndId: `edit-${base}-${i}`,
+    }));
+    setEditingWorkout(clone);
     // Refresh the library on edit-open so the picker reflects any
     // changes made on the Library page since the page mounted.
     fetchLibrary();
@@ -359,6 +457,7 @@ const Home = () => {
         execution: "Bilateral",
         resistance: 0,
         sets: libEx.type === "Strength" ? [{ weight: "", reps: "" }] : [{ time: 0 }],
+        _dndId: `edit-${Date.now()}-${draft.details.length}`,
       });
     });
     setShowExercisePicker(false);
@@ -370,9 +469,11 @@ const Home = () => {
     setEditSaving(true);
     setEditError(null);
     try {
-      // Drop empty sets so we don't persist garbage
+      // Drop empty sets so we don't persist garbage. Also strip the
+      // client-only `_dndId` used for drag-and-drop keying so it doesn't
+      // bleed into the persisted document.
       const cleanedDetails = editingWorkout.details
-        .map((ex) => ({
+        .map(({ _dndId, ...ex }) => ({
           ...ex,
           sets: ex.sets.filter((s) =>
             ex.type === "Strength"
@@ -1051,15 +1152,34 @@ const onFileChange = async (e, workoutId) => {
               </div>
             </div>
 
-            {/* Exercises list */}
+            {/* Exercises list (drag-and-drop reorderable) */}
+            <DndContext
+              sensors={editSensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleEditDragEnd}
+            >
+              <SortableContext
+                items={editingWorkout.details.map((d) => d._dndId)}
+                strategy={verticalListSortingStrategy}
+              >
             <div className="space-y-4 mb-4">
               {editingWorkout.details.map((ex, exIdx) => (
+                <SortableEditExercise key={ex._dndId} id={ex._dndId}>
+                  {({ dragHandleProps }) => (
                 <div
-                  key={exIdx}
                   className="bg-white/40 dark:bg-black/15 backdrop-blur-md p-4 rounded-3xl border border-white/60 dark:border-white/10"
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2.5 min-w-0">
+                      <button
+                        type="button"
+                        {...dragHandleProps}
+                        className="p-1.5 -ml-1 text-slate-300 dark:text-slate-600 hover:text-accent-500 dark:hover:text-accent-400 touch-none cursor-grab active:cursor-grabbing shrink-0"
+                        title="Drag to reorder"
+                        aria-label="Drag to reorder"
+                      >
+                        <GripVertical size={16} />
+                      </button>
                       <div className={`p-1.5 rounded-lg shrink-0 ${ex.type === "Warmup" ? "text-amber-500 bg-amber-50 dark:bg-amber-900/30" : ex.type === "Stretching" ? "text-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-900/30" : "text-accent-500 bg-accent-50 dark:bg-accent-900/30"}`}>
                         {ex.type === "Warmup" ? <Flame size={14} /> : ex.type === "Stretching" ? <Move size={14} /> : <Dumbbell size={14} />}
                       </div>
@@ -1153,8 +1273,12 @@ const onFileChange = async (e, workoutId) => {
                     </button>
                   </div>
                 </div>
+                  )}
+                </SortableEditExercise>
               ))}
             </div>
+              </SortableContext>
+            </DndContext>
 
             {/* Add exercise button */}
             <button
