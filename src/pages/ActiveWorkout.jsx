@@ -5,7 +5,6 @@ import {
   Plus,
   Trash2,
   X,
-  Search,
   CheckCircle2,
   Dumbbell,
   Timer,
@@ -13,7 +12,6 @@ import {
   Move,
   Pause,
   AlertTriangle,
-  Edit3,
   Trophy,
   History,
   ChevronDown,
@@ -52,6 +50,7 @@ import ConfirmModal from "../components/ConfirmModal";
 import ExerciseHistorySheet from "../components/ExerciseHistorySheet";
 import BottomSheet from "../components/BottomSheet";
 import EditExerciseModal from "../components/EditExerciseModal";
+import ExerciseLibrarySheet from "../components/ExerciseLibrarySheet";
 import LoadingScreen from "../components/LoadingScreen";
 import confetti from "canvas-confetti";
 import { buildLibraryMap, getDisplayName } from "../utils/exerciseLookup";
@@ -233,8 +232,6 @@ const ActiveWorkout = () => {
   });
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState("All");
-  const [searchTerm, setSearchTerm] = useState("");
   const [showFinishPrompt, setShowFinishPrompt] = useState(false);
   const [showDiscardPrompt, setShowDiscardPrompt] = useState(false);
   const [workoutName, setWorkoutName] = useState("");
@@ -242,7 +239,6 @@ const ActiveWorkout = () => {
   const [loadingSave, setLoadingSave] = useState(false);
   const [finishedSummary, setFinishedSummary] = useState(null);
   const [saveError, setSaveError] = useState(null);
-  const [activeMuscle, setActiveMuscle] = useState("Legs");
   const [nullData, setNullData] = useState(false);
   const [exerciseToDelete, setExerciseToDelete] = useState(null);
   const [editingExercise, setEditingExercise] = useState(null);
@@ -533,7 +529,6 @@ const ActiveWorkout = () => {
     };
     setExercises([...exercises, newEx]);
     setIsModalOpen(false);
-    setSearchTerm("");
   };
 
   const handleConfirmRepeat = () => {
@@ -1498,165 +1493,15 @@ const ActiveWorkout = () => {
       )}
 
       {/* LIBRARY MODAL */}
-      {isModalOpen && (
-        <BottomSheet
-          open
-          onClose={() => setIsModalOpen(false)}
-          zIndex="z-[110]"
-          maxHeight="85vh"
-        >
-            <div className="flex justify-between items-center mb-8">
-              <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
-                Library
-              </h2>
-              <div className="flex items-center gap-3">
-                <Link
-                  to="/add-exercise"
-                  className="flex items-center gap-2 bg-accent-50 dark:bg-accent-900/30 text-accent-600 dark:text-accent-400 px-4 py-2 rounded-2xl hover:bg-accent-100 dark:hover:bg-accent-900/50 border border-accent-100/50 dark:border-accent-700/50"
-                >
-                  <Plus size={16} strokeWidth={3} />
-                  <span className="text-[10px] font-bold uppercase tracking-widest">
-                    Add New
-                  </span>
-                </Link>
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="bg-white/50 dark:bg-white/10 backdrop-blur-md p-2.5 rounded-full text-slate-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-white/20 transition-all border border-white/40 dark:border-white/10"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-            </div>
-            <div className="relative mb-6">
-              <Search
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-500"
-                size={18}
-              />
-              <input
-                type="text"
-                placeholder="Search exercise..."
-                className="w-full pl-12 pr-4 py-4 bg-white/40 dark:bg-gray-300/5 backdrop-blur-md border border-white/40 dark:border-white/10 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-accent-500 transition-all text-sm text-slate-800 dark:text-slate-200"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div
-              className="flex gap-2 overflow-x-auto pb-2 no-scrollbar scroll-smooth"
-              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-            >
-              {["All", "Warmup", "Strength", "Stretching"].map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={`px-5 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${activeCategory === cat ? "bg-slate-900 dark:bg-slate-700 text-white" : "bg-white/40 dark:bg-gray-300/5 backdrop-blur-md text-slate-400 dark:text-slate-500 border border-white/40 dark:border-white/10"}`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-            <div
-              className="flex gap-2 overflow-x-auto py-4 mb-4 no-scrollbar scroll-smooth border-b border-white/40 dark:border-white/10"
-              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-            >
-              {[
-                "Chest",
-                "Back",
-                "Shoulders",
-                "Biceps",
-                "Triceps",
-                "Legs",
-                "Abs",
-                "Full Body",
-              ].map((muscle) => (
-                <button
-                  key={muscle}
-                  onClick={() => setActiveMuscle(muscle)}
-                  className={`px-4 py-2 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${activeMuscle === muscle ? "bg-accent-500 text-white shadow-md" : "bg-white/40 dark:bg-gray-300/5 backdrop-blur-md text-slate-400 dark:text-slate-500 border border-white/40 dark:border-white/10"}`}
-                >
-                  {muscle}
-                </button>
-              ))}
-            </div>
-            <div className="space-y-3">
-              {library.filter(
-                (ex) =>
-                  ex.muscle.toLowerCase() === activeMuscle.toLowerCase() &&
-                  (activeCategory.toLowerCase() !== "all"
-                    ? ex.type.toLowerCase() === activeCategory.toLowerCase()
-                    : true),
-              ).length === 0 ? (
-                <div className="py-12 text-center">
-                  <Dumbbell size={32} className="mx-auto text-slate-200 dark:text-slate-600 mb-2" />
-                  <p className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-widest">
-                    No {activeMuscle} exercises found
-                  </p>
-                </div>
-              ) : (
-                library
-                  .filter(
-                    (ex) =>
-                      activeCategory === "All" || ex.type === activeCategory,
-                  )
-                  .filter(
-                    (ex) =>
-                      ex.muscle.toLowerCase() === activeMuscle.toLowerCase(),
-                  )
-                  .filter((ex) =>
-                    ex.name.toLowerCase().includes(searchTerm.toLowerCase()),
-                  )
-                  .sort((a, b) => a.name.localeCompare(b.name))
-                  .map((ex) => (
-                    <div
-                      key={ex._id}
-                      className="w-full flex gap-2 items-center animate-in fade-in duration-300 bg-white/40 dark:bg-gray-300/5 backdrop-blur-md rounded-2xl border border-white/40 dark:border-white/10 transition-colors"
-                    >
-                      <button
-                        onClick={() => addExercise(ex)}
-                        className="flex-1 flex justify-between items-center p-4 rounded-2xl active:bg-accent-50 dark:active:bg-accent-900/30 transition-colors"
-                      >
-                        <div className="flex items-center gap-4 text-left">
-                          <div
-                            className={`p-2 rounded-xl ${ex.type === "Warmup" ? "text-amber-500 bg-amber-50 dark:bg-amber-900/30 dark:text-amber-400" : ex.type === "Stretching" ? "text-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-900/30 dark:text-fuchsia-400" : "text-accent-500 bg-accent-50 dark:bg-accent-900/30 dark:text-accent-400"}`}
-                          >
-                            {ex.type === "Warmup" ? (
-                              <Flame size={18} />
-                            ) : ex.type === "Stretching" ? (
-                              <Move size={18} />
-                            ) : (
-                              <Dumbbell size={18} />
-                            )}
-                          </div>
-                          <div>
-                            <p className="font-bold text-slate-700 dark:text-slate-200 text-sm capitalize">
-                              {ex.name}
-                            </p>
-                            <p className="text-[9px] font-bold text-slate-300 dark:text-slate-500 uppercase tracking-widest">
-                              {ex.muscle}
-                            </p>
-                          </div>
-                        </div>
-                        {/* <Plus size={18} className="text-slate-300" /> */}
-                      </button>
-                      <div className="flex gap-2 p-4">
-                        <button
-                          onClick={() => setEditingExercise(ex)}
-                          className="p-2 bg-white/50 dark:bg-white/10 backdrop-blur-md rounded-xl text-slate-400 dark:text-slate-500 hover:text-accent-500 dark:hover:text-accent-400 transition-colors"
-                        >
-                          <Edit3 size={16} />
-                        </button>
-                        <button
-                          onClick={() => setShowDeleteConfirm(ex._id)}
-                          className="p-2 bg-white/50 dark:bg-white/10 backdrop-blur-md rounded-xl text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-                  ))
-              )}
-            </div>
-        </BottomSheet>
-      )}
+      <ExerciseLibrarySheet
+        open={isModalOpen}
+        library={library}
+        onClose={() => setIsModalOpen(false)}
+        onPick={addExercise}
+        onEdit={setEditingExercise}
+        onDelete={setShowDeleteConfirm}
+        showAddNew
+      />
 
       {/* EDIT LIBRARY ITEM MODAL */}
       <EditExerciseModal

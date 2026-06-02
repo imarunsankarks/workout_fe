@@ -24,6 +24,7 @@ import {
   AlertTriangle,
   Plus,
   GripVertical,
+  ChevronDown,
 } from "lucide-react";
 import {
   DndContext,
@@ -43,6 +44,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { subscribeWorkoutTimer } from "../utils/workoutTimer";
 import ConfirmModal from "../components/ConfirmModal";
 import BottomSheet from "../components/BottomSheet";
+import ExerciseLibrarySheet from "../components/ExerciseLibrarySheet";
 
 // Wraps an exercise card inside the edit-workout modal so it can be
 // reordered by drag-and-drop. Children receive `dragHandleProps` to spread
@@ -159,10 +161,12 @@ const Home = () => {
   // Also reused by the in-Home edit-workout flow's exercise picker.
   const [library, setLibrary] = useState([]);
   const [showExercisePicker, setShowExercisePicker] = useState(false);
-  const [pickerMuscle, setPickerMuscle] = useState("Legs");
-  const [pickerSearch, setPickerSearch] = useState("");
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState(null);
+  // Set of `_dndId`s for exercise cards that are expanded in the edit
+  // modal. Cards default to collapsed to keep the list scannable; the
+  // user expands a card only when they actually need to edit its sets.
+  const [expandedEditIds, setExpandedEditIds] = useState(() => new Set());
 
   const calculateIntensity = (workout) => {
     if (!workout.duration || workout.duration === 0) return 0;
@@ -394,9 +398,20 @@ const Home = () => {
       _dndId: `edit-${base}-${i}`,
     }));
     setEditingWorkout(clone);
+    // Start every card collapsed so the modal stays compact.
+    setExpandedEditIds(new Set());
     // Refresh the library on edit-open so the picker reflects any
     // changes made on the Library page since the page mounted.
     fetchLibrary();
+  };
+
+  const toggleEditExpanded = (dndId) => {
+    setExpandedEditIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(dndId)) next.delete(dndId);
+      else next.add(dndId);
+      return next;
+    });
   };
 
   const updateEditingDetails = (mutator) => {
@@ -447,6 +462,10 @@ const Home = () => {
   };
 
   const editAddExerciseFromLibrary = (libEx) => {
+    // Generate the id once so we can both attach it to the new detail and
+    // pre-expand the card (a freshly added exercise is almost always one
+    // the user wants to immediately edit).
+    const newDndId = `edit-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
     updateEditingDetails((draft) => {
       draft.details.push({
         // Canonical (and only) link. The display name is resolved live
@@ -457,11 +476,15 @@ const Home = () => {
         execution: "Bilateral",
         resistance: 0,
         sets: libEx.type === "Strength" ? [{ weight: "", reps: "" }] : [{ time: 0 }],
-        _dndId: `edit-${Date.now()}-${draft.details.length}`,
+        _dndId: newDndId,
       });
     });
+    setExpandedEditIds((prev) => {
+      const next = new Set(prev);
+      next.add(newDndId);
+      return next;
+    });
     setShowExercisePicker(false);
-    setPickerSearch("");
   };
 
   const saveEditedWorkout = async () => {
@@ -1165,26 +1188,46 @@ const onFileChange = async (e, workoutId) => {
             <div className="space-y-4 mb-4">
               {editingWorkout.details.map((ex, exIdx) => (
                 <SortableEditExercise key={ex._dndId} id={ex._dndId}>
-                  {({ dragHandleProps }) => (
+                  {({ dragHandleProps }) => {
+                    const isExpanded = expandedEditIds.has(ex._dndId);
+                    return (
                 <div
                   className="bg-white/40 dark:bg-black/15 backdrop-blur-md p-4 rounded-3xl border border-white/60 dark:border-white/10"
                 >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <button
-                        type="button"
+                  <div className={`flex items-center justify-between ${isExpanded ? "mb-3" : ""}`}>
+                    <button
+                      type="button"
+                      onClick={() => toggleEditExpanded(ex._dndId)}
+                      className="flex items-center gap-2.5 min-w-0 flex-1 text-left -m-1 p-1 rounded-xl active:bg-white/30 dark:active:bg-white/5 transition-colors"
+                      aria-expanded={isExpanded}
+                      title={isExpanded ? "Collapse" : "Expand"}
+                    >
+                      <span
                         {...dragHandleProps}
+                        onClick={(e) => e.stopPropagation()}
                         className="p-1.5 -ml-1 text-slate-300 dark:text-slate-600 hover:text-accent-500 dark:hover:text-accent-400 touch-none cursor-grab active:cursor-grabbing shrink-0"
                         title="Drag to reorder"
                         aria-label="Drag to reorder"
                       >
                         <GripVertical size={16} />
-                      </button>
-                      <div className={`p-1.5 rounded-lg shrink-0 ${ex.type === "Warmup" ? "text-amber-500 bg-amber-50 dark:bg-amber-900/30" : ex.type === "Stretching" ? "text-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-900/30" : "text-accent-500 bg-accent-50 dark:bg-accent-900/30"}`}>
+                      </span>
+                      <span className={`p-1.5 rounded-lg shrink-0 ${ex.type === "Warmup" ? "text-amber-500 bg-amber-50 dark:bg-amber-900/30" : ex.type === "Stretching" ? "text-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-900/30" : "text-accent-500 bg-accent-50 dark:bg-accent-900/30"}`}>
                         {ex.type === "Warmup" ? <Flame size={14} /> : ex.type === "Stretching" ? <Move size={14} /> : <Dumbbell size={14} />}
-                      </div>
-                      <h5 className="font-bold text-slate-800 dark:text-slate-100 capitalize text-sm truncate">{getDisplayName(ex, libraryMap)}</h5>
-                    </div>
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <h5 className="font-bold text-slate-800 dark:text-slate-100 capitalize text-sm truncate">{getDisplayName(ex, libraryMap)}</h5>
+                        {!isExpanded && (
+                          <span className="block text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">
+                            {ex.sets.length} {ex.sets.length === 1 ? "set" : "sets"}
+                            {ex.type === "Strength" && Number(ex.resistance) > 0 && ` · ${ex.resistance} kg`}
+                          </span>
+                        )}
+                      </span>
+                      <ChevronDown
+                        size={16}
+                        className={`text-slate-400 dark:text-slate-500 shrink-0 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
+                      />
+                    </button>
                     <button
                       onClick={() => editRemoveExercise(exIdx)}
                       className="p-1.5 bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 rounded-lg active:scale-90 transition-all shrink-0 ml-2"
@@ -1195,7 +1238,7 @@ const onFileChange = async (e, workoutId) => {
                   </div>
 
                   {/* Resistance + execution chips (Strength only) */}
-                  {ex.type === "Strength" && (
+                  {isExpanded && ex.type === "Strength" && (
                     <div className="flex items-center gap-2 mb-3">
                       <div className="flex items-center gap-1 px-2.5 py-1 bg-white/60 dark:bg-black/15 rounded-xl border border-white/60 dark:border-white/10">
                         <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase">Band</span>
@@ -1219,7 +1262,8 @@ const onFileChange = async (e, workoutId) => {
                     </div>
                   )}
 
-                  {/* Sets */}
+                  {/* Sets — only when expanded */}
+                  {isExpanded && (
                   <div className="space-y-2">
                     {ex.sets.map((set, sIdx) => (
                       <div
@@ -1272,8 +1316,10 @@ const onFileChange = async (e, workoutId) => {
                       <Plus size={12} /> Add Set
                     </button>
                   </div>
-                </div>
                   )}
+                </div>
+                    );
+                  }}
                 </SortableEditExercise>
               ))}
             </div>
@@ -1300,74 +1346,18 @@ const onFileChange = async (e, workoutId) => {
       )}
 
       {/* === EXERCISE PICKER (for edit modal) === */}
-      {showExercisePicker && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-2xl z-[400] flex items-end justify-center">
-          <div className="bg-white/80 dark:bg-slate-800/60 backdrop-blur-2xl border border-white/40 dark:border-white/10 w-full max-w-lg rounded-t-[40px] p-6 max-h-[80vh] overflow-y-auto animate-in slide-in-from-bottom duration-300 shadow-2xl">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">Pick Exercise</h3>
-              <button
-                onClick={() => setShowExercisePicker(false)}
-                className="bg-white/50 dark:bg-white/10 p-2 rounded-full text-slate-400 dark:text-slate-500"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Search */}
-            <input
-              type="text"
-              value={pickerSearch}
-              onChange={(e) => setPickerSearch(e.target.value)}
-              placeholder="Search exercises..."
-              className="w-full bg-white/50 dark:bg-gray-300/5 border border-white/60 dark:border-white/10 rounded-2xl px-4 py-3 text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-accent-400 mb-3"
-            />
-
-            {/* Muscle filter */}
-            <div className="flex gap-2 overflow-x-auto pb-2 mb-3 no-scrollbar" style={{ scrollbarWidth: "none" }}>
-              {["Chest", "Back", "Shoulders", "Biceps", "Triceps", "Legs", "Abs", "Full Body"].map((m) => (
-                <button
-                  key={m}
-                  onClick={() => setPickerMuscle(m)}
-                  className={`whitespace-nowrap px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-all ${
-                    pickerMuscle === m
-                      ? "bg-accent-600 border-accent-600 text-white"
-                      : "bg-white/40 dark:bg-gray-300/5 border-white/60 dark:border-white/10 text-slate-400 dark:text-slate-500"
-                  }`}
-                >
-                  {m}
-                </button>
-              ))}
-            </div>
-
-            {/* Library list */}
-            <div className="space-y-2">
-              {library
-                .filter((ex) => ex.muscle?.toLowerCase() === pickerMuscle.toLowerCase())
-                .filter((ex) => ex.name?.toLowerCase().includes(pickerSearch.toLowerCase()))
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .map((ex) => (
-                  <button
-                    key={ex._id}
-                    onClick={() => editAddExerciseFromLibrary(ex)}
-                    className="w-full flex items-center gap-3 bg-white/50 dark:bg-gray-300/5 backdrop-blur-md p-3 rounded-2xl border border-white/60 dark:border-white/10 active:bg-accent-50 dark:active:bg-accent-900/30 transition-colors text-left"
-                  >
-                    <div className={`p-2 rounded-xl shrink-0 ${ex.type === "Warmup" ? "text-amber-500 bg-amber-50 dark:bg-amber-900/30" : ex.type === "Stretching" ? "text-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-900/30" : "text-accent-500 bg-accent-50 dark:bg-accent-900/30"}`}>
-                      {ex.type === "Warmup" ? <Flame size={16} /> : ex.type === "Stretching" ? <Move size={16} /> : <Dumbbell size={16} />}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-bold text-slate-800 dark:text-slate-100 text-sm capitalize truncate">{ex.name}</p>
-                      <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{ex.muscle} · {ex.type}</p>
-                    </div>
-                    <Plus size={16} className="text-accent-500 shrink-0" />
-                  </button>
-                ))}
-              {library.filter((ex) => ex.muscle?.toLowerCase() === pickerMuscle.toLowerCase() && ex.name?.toLowerCase().includes(pickerSearch.toLowerCase())).length === 0 && (
-                <p className="text-center text-slate-400 dark:text-slate-500 text-xs italic py-8">No exercises in this category</p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Nested above the edit-workout BottomSheet (z-[300]) so we need a
+          higher z-index here. Edit/delete are intentionally not exposed
+          from this entry point — manage the library on /library instead. */}
+      <ExerciseLibrarySheet
+        open={showExercisePicker}
+        library={library}
+        onClose={() => setShowExercisePicker(false)}
+        onPick={editAddExerciseFromLibrary}
+        title="Pick Exercise"
+        zIndex="z-[400]"
+        maxHeight="92vh"
+      />
 
       <ConfirmModal
         open={isWarming}
