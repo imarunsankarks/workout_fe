@@ -432,7 +432,15 @@ const Home = () => {
   const editAddSet = (exIdx) => {
     updateEditingDetails((draft) => {
       const ex = draft.details[exIdx];
-      ex.sets.push(ex.type === "Strength" ? { weight: "", reps: "" } : { time: 0 });
+      if (ex.type === "Strength") {
+        ex.sets.push({ weight: "", reps: "" });
+        return;
+      }
+      // Warmup may be in reps mode (sets carry `.reps`) — mirror the
+      // existing shape so the toggle stays consistent. Falls back to a
+      // timed set otherwise.
+      const isRepsMode = ex.sets?.[0]?.reps !== undefined;
+      ex.sets.push(isRepsMode ? { reps: "" } : { time: 0 });
     });
   };
 
@@ -498,11 +506,16 @@ const Home = () => {
       const cleanedDetails = editingWorkout.details
         .map(({ _dndId, ...ex }) => ({
           ...ex,
-          sets: ex.sets.filter((s) =>
-            ex.type === "Strength"
-              ? s.weight !== "" && s.reps !== "" && Number(s.reps) > 0
-              : s.time && Number(s.time) > 0,
-          ),
+          sets: ex.sets.filter((s) => {
+            if (ex.type === "Strength") {
+              return s.weight !== "" && s.reps !== "" && Number(s.reps) > 0;
+            }
+            // Warmup-reps mode: validate reps instead of time.
+            if (ex.type === "Warmup" && s.reps !== undefined) {
+              return s.reps !== "" && Number(s.reps) > 0;
+            }
+            return s.time && Number(s.time) > 0;
+          }),
         }))
         .filter((ex) => ex.sets.length > 0);
 
@@ -1080,7 +1093,9 @@ const onFileChange = async (e, workoutId) => {
                         <span className="font-medium text-slate-700 dark:text-slate-200 text-sm">
                           {ex.type === "Strength"
                             ? `${set.weight} x ${set.reps}`
-                            : formatTime(set.time)}
+                            : set.reps !== undefined
+                              ? `${set.reps} reps`
+                              : formatTime(set.time)}
                         </span>
                       </div>
                     ))}
@@ -1291,6 +1306,14 @@ const onFileChange = async (e, workoutId) => {
                               className="flex-1 min-w-0 bg-transparent text-sm font-bold text-slate-700 dark:text-slate-200 text-center focus:outline-none"
                             />
                           </>
+                        ) : set.reps !== undefined ? (
+                          <input
+                            type="number"
+                            placeholder="reps"
+                            value={set.reps ?? ""}
+                            onChange={(e) => editUpdateSet(exIdx, sIdx, "reps", e.target.value)}
+                            className="flex-1 min-w-0 bg-transparent text-sm font-bold text-slate-700 dark:text-slate-200 text-center focus:outline-none"
+                          />
                         ) : (
                           <input
                             type="number"

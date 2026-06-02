@@ -558,7 +558,12 @@ const ActiveWorkout = () => {
               weight: s.weight ?? "",
               reps: s.reps ?? "",
             }))
-          : [{ time: 0 }],
+          : // Warmup may have been saved in reps mode (sets have `.reps`
+            // instead of `.time`). Roundtrip the shape so the toggle UI
+            // re-derives the right mode on render.
+            ex.type === "Warmup" && (ex.sets?.[0]?.reps !== undefined)
+            ? ex.sets.map((s) => ({ reps: "" }))
+            : [{ time: 0 }],
     }));
 
     setExercises(prefilledExercises);
@@ -618,9 +623,14 @@ const ActiveWorkout = () => {
           const validSets = ex.sets.filter((set) => {
             if (ex.type === "Strength") {
               return set.weight !== "" && set.reps !== "" && Number(set.reps) > 0;
-            } else {
-              return set.time && Number(set.time) > 0;
             }
+            // Warmup in reps mode is identified by a `.reps` field on its
+            // sets (instead of `.time`). Validated like Strength but
+            // without requiring a weight.
+            if (ex.type === "Warmup" && set.reps !== undefined) {
+              return set.reps !== "" && Number(set.reps) > 0;
+            }
+            return set.time && Number(set.time) > 0;
           });
 
           return {
@@ -962,7 +972,7 @@ const ActiveWorkout = () => {
                       <div className="w-1 h-1 rounded-full bg-accent-500"></div>
                       <input 
                         type="number"
-                        className="w-10 text-[11px] font-bold text-slate-700 dark:text-slate-200 outline-none"
+                        className="w-10 text-[11px] font-bold text-slate-700 dark:text-slate-200 outline-none bg-transparent"
                         value={ex.resistance || 0}
                         onChange={(e) => setExercises(exercises.map(item => item.instanceId === ex.instanceId ? { ...item, resistance: e.target.value } : item))}
                       />
@@ -980,19 +990,19 @@ const ActiveWorkout = () => {
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={() => handlePrClick(ex.exerciseId, getDisplayName(ex, libraryMap))}
-                      className="p-2 bg-amber-50 dark:bg-amber-900/30 text-amber-500 dark:text-amber-400 rounded-xl active:scale-90 transition-all"
+                      className="p-1 text-amber-500 dark:text-amber-400 rounded-xl active:scale-90 transition-all"
                     >
-                      <History size={16} strokeWidth={1.5} />
+                      <History size={18} strokeWidth={1.5} />
                     </button>
 
                     <button
                       onClick={() => setExerciseToDelete(ex.instanceId)}
-                      className="p-2 bg-red-50 dark:bg-red-900/30 text-red-500 dark:text-red-400 rounded-xl active:scale-90 transition-all"
+                      className="p-1 text-red-500 dark:text-red-400 rounded-xl active:scale-90 transition-all"
                     >
-                      <Trash2 size={16} strokeWidth={1.5} />
+                      <Trash2 size={18} strokeWidth={1.5} />
                     </button>
                   </div>
                 </div>
@@ -1002,9 +1012,96 @@ const ActiveWorkout = () => {
             {!ex.isCollapsed && (
               <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                 <div className="h-4" />
-                {ex.type === "Strength" ? (
+                {/* For Warmup exercises, expose a Time/Reps mode toggle.
+                    The toggle locks itself as soon as any data is entered
+                    (either timed progress or a rep value) — switching modes
+                    after that would silently destroy logged work. */}
+                {ex.type === "Warmup" && (() => {
+                  const isRepsMode = ex.sets?.[0]?.reps !== undefined;
+                  const hasData = isRepsMode
+                    ? ex.sets.some(
+                        (s) => s.reps !== "" && s.reps !== undefined && Number(s.reps) > 0,
+                      )
+                    : ex.sets.some((s) => (s.time || 0) > 0);
+                  const switchMode = (next) => {
+                    if (hasData) return;
+                    const newExs = [...exercises];
+                    const t = newExs.find((i) => i.instanceId === ex.instanceId);
+                    t.sets = next === "reps" ? [{ reps: "" }] : [{ time: 0 }];
+                    t.isRunning = false;
+                    t.activeSetIdx = 0;
+                    setExercises(newExs);
+                  };
+                  return (
+                    <div className="flex gap-1 mb-3 p-1 bg-white/40 dark:bg-gray-300/5 backdrop-blur-md rounded-2xl border border-white/40 dark:border-white/10">
+                      {[
+                        { key: "time", label: "Time" },
+                        { key: "reps", label: "Reps" },
+                      ].map(({ key, label }) => {
+                        const active = (isRepsMode ? "reps" : "time") === key;
+                        return (
+                          <button
+                            key={key}
+                            disabled={hasData && !active}
+                            onClick={() => switchMode(key)}
+                            className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all ${
+                              active
+                                ? "bg-amber-500 text-white shadow-sm"
+                                : "text-slate-400 dark:text-slate-500"
+                            } ${hasData && !active ? "opacity-40 cursor-not-allowed" : ""}`}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+
+                {ex.type === "Strength" ||
+                (ex.type === "Warmup" && ex.sets?.[0]?.reps !== undefined) ? (
                   <div className="space-y-2">
-                    {ex.sets.map((set, sIdx) => (
+                    {ex.sets.map((set, sIdx) => {
+                      const isReps =
+                        ex.type === "Warmup" && set.reps !== undefined;
+                      if (isReps) {
+                        return (
+                          <div
+                            key={sIdx}
+                            className="grid grid-cols-[50px_1fr_25px] gap-3 items-center"
+                          >
+                            <div className="bg-white/40 dark:bg-gray-300/5 backdrop-blur-md rounded-xl py-3 text-center text-xs font-bold text-slate-400 dark:text-slate-300 uppercase">
+                              {sIdx + 1}
+                            </div>
+                            <input
+                              type="number"
+                              placeholder="reps"
+                              value={set.reps}
+                              onChange={(e) => {
+                                const newExs = [...exercises];
+                                newExs.find(
+                                  (i) => i.instanceId === ex.instanceId,
+                                ).sets[sIdx].reps = e.target.value;
+                                setExercises(newExs);
+                              }}
+                              className="w-full bg-white/50 dark:bg-gray-300/5 backdrop-blur-md border border-white/50 dark:border-white/10 py-3 rounded-xl text-center font-bold outline-none focus:border-amber-500 text-slate-800 dark:text-slate-200"
+                            />
+                            <button
+                              onClick={() => {
+                                const newExs = [...exercises];
+                                newExs
+                                  .find((i) => i.instanceId === ex.instanceId)
+                                  .sets.splice(sIdx, 1);
+                                setExercises(newExs);
+                              }}
+                              className="text-slate-200 dark:text-slate-500 hover:text-red-400 dark:hover:text-red-400 transition-colors flex justify-center items-center"
+                            >
+                              <X size={16} />
+                            </button>
+                          </div>
+                        );
+                      }
+                      return (
                       <div
                         key={sIdx}
                         className="grid grid-cols-[50px_1fr_1fr_25px] gap-3 items-center"
@@ -1051,7 +1148,8 @@ const ActiveWorkout = () => {
                           <X size={16} />
                         </button>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -1075,12 +1173,28 @@ const ActiveWorkout = () => {
                             <button
                               disabled={!isActive}
                               onClick={() => {
-                                const newExs = [...exercises];
-                                const target = newExs.find(
-                                  (i) => i.instanceId === ex.instanceId,
-                                );
-                                target.isRunning = !isThisRunning;
-                                target.activeSetIdx = sIdx;
+                                const willRun = !isThisRunning;
+                                const newExs = exercises.map((i) => {
+                                  if (i.instanceId === ex.instanceId) {
+                                    return {
+                                      ...i,
+                                      isRunning: willRun,
+                                      activeSetIdx: sIdx,
+                                    };
+                                  }
+                                  // Only one warmup/stretch timer may run at
+                                  // a time — pause every other timed
+                                  // exercise when starting this one.
+                                  if (
+                                    willRun &&
+                                    i.isRunning &&
+                                    (i.type === "Warmup" ||
+                                      i.type === "Stretching")
+                                  ) {
+                                    return { ...i, isRunning: false };
+                                  }
+                                  return i;
+                                });
                                 setExercises(newExs);
                               }}
                               aria-label={
@@ -1125,31 +1239,47 @@ const ActiveWorkout = () => {
                     })}
                   </div>
                 )}
-                {ex.type === "Strength" && (
-                  <button
-                    onClick={() => {
-                      const newExs = [...exercises];
-                      newExs
-                        .find((i) => i.instanceId === ex.instanceId)
-                        .sets.push({ weight: "", reps: "" });
-                      setExercises(newExs);
-                    }}
-                    disabled={
+                {(ex.type === "Strength" ||
+                  (ex.type === "Warmup" && ex.sets?.[0]?.reps !== undefined)) &&
+                  (() => {
+                    const isWarmupReps = ex.type === "Warmup";
+                    // Disable while any existing set is incomplete so users
+                    // can't pile up empty rows. Warmup-reps only checks reps;
+                    // Strength checks both weight and reps.
+                    const incomplete =
                       ex.sets.length > 0 &&
-                      (ex.sets?.find((s) => !s.weight) ||
-                        ex.sets?.find((s) => !s.reps || Number(s.reps) === 0))
-                    }
-                    className={`w-full mt-4 py-2 text-[10px] font-bold uppercase tracking-widest border-2 border-dashed rounded-xl transition-all ${
-                      ex.sets.length > 0 &&
-                      (ex.sets?.find((s) => !s.weight) ||
-                        ex.sets?.find((s) => !s.reps || Number(s.reps) === 0))
-                        ? "border-slate-50 dark:border-slate-700 text-slate-200 dark:text-slate-600 cursor-not-allowed opacity-50"
-                        : "border-slate-100 dark:border-slate-700 text-slate-300 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-accent-500 dark:hover:text-accent-400 hover:border-accent-100 dark:hover:border-accent-700"
-                    }`}
-                  >
-                    + ADD SET
-                  </button>
-                )}
+                      (isWarmupReps
+                        ? ex.sets.some(
+                            (s) => !s.reps || Number(s.reps) === 0,
+                          )
+                        : ex.sets.some((s) => !s.weight) ||
+                          ex.sets.some(
+                            (s) => !s.reps || Number(s.reps) === 0,
+                          ));
+                    return (
+                      <button
+                        onClick={() => {
+                          const newExs = [...exercises];
+                          newExs
+                            .find((i) => i.instanceId === ex.instanceId)
+                            .sets.push(
+                              isWarmupReps
+                                ? { reps: "" }
+                                : { weight: "", reps: "" },
+                            );
+                          setExercises(newExs);
+                        }}
+                        disabled={incomplete}
+                        className={`w-full mt-4 py-2 text-[10px] font-bold uppercase tracking-widest border-2 border-dashed rounded-xl transition-all ${
+                          incomplete
+                            ? "border-slate-50 dark:border-slate-700 text-slate-200 dark:text-slate-600 cursor-not-allowed opacity-50"
+                            : "border-slate-100 dark:border-slate-700 text-slate-300 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-accent-500 dark:hover:text-accent-400 hover:border-accent-100 dark:hover:border-accent-700"
+                        }`}
+                      >
+                        + ADD SET
+                      </button>
+                    );
+                  })()}
               </div>
             )}
           </div>
@@ -1163,7 +1293,7 @@ const ActiveWorkout = () => {
             category. */}
         {(() => {
           const baseCls =
-            "w-full flex items-center justify-center gap-2 px-5 py-4 text-sm font-semibold rounded-[20px] border-2 border-dashed bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl transition-colors shadow-sm";
+            "w-full flex items-center justify-center gap-2 px-5 py-6 text-sm font-semibold rounded-[32px] border-2 border-dashed bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl transition-colors shadow-sm";
 
           // Per-category styling: matching icon, text color, and dashed
           // border tint. "All" stays neutral slate with a generic +.
@@ -1197,7 +1327,7 @@ const ActiveWorkout = () => {
           return (
             <button onClick={onClick} className={`${baseCls} ${v.tone} mt-2`}>
               <v.Icon size={16} strokeWidth={2.5} />
-              <span>{v.label}</span>
+              <span style={{padding:"7px 0"}}>{v.label}</span>
             </button>
           );
         })()}

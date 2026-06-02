@@ -101,7 +101,9 @@ const ExerciseHistorySheet = ({ data, onClose, historyLimit, onLoadMore }) => {
                     <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
                       {entry.type === 'Strength'
                         ? `${set.weight}kg x ${set.reps}`
-                        : `${set.time}s`}
+                        : set.reps !== undefined
+                          ? `${set.reps} reps`
+                          : `${set.time}s`}
                     </span>
                   </div>
                 ))}
