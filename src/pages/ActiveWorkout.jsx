@@ -427,30 +427,93 @@ const ActiveWorkout = () => {
   const hasRunningTimedSet = exercises.some(
     (ex) => ex.isRunning && (ex.type === "Warmup" || ex.type === "Stretching"),
   );
+  // Warmup/Stretching timer is wall-clock based so it stays accurate even
+  // when the user navigates away and the component unmounts. Each running
+  // set carries a `startedAt` epoch anchor (persisted to localStorage via
+  // the `exercises` effect). On every tick we fold the wall-clock delta
+  // since the anchor into `set.time` and re-anchor — so accumulated time
+  // is always the source of truth and brief off-screen drifts are recovered
+  // on the next tick after remount.
   useEffect(() => {
     if (!isActive || !hasRunningTimedSet) return undefined;
-    const interval = setInterval(() => {
+    const tick = () => {
       setExercises((prev) => {
         if (!prev.some((ex) => ex.isRunning)) return prev;
-        return prev.map((ex) => {
+        const now = Date.now();
+        let changed = false;
+        const next = prev.map((ex) => {
           if (
-            ex.isRunning &&
-            (ex.type === "Warmup" || ex.type === "Stretching")
+            !(ex.isRunning &&
+              (ex.type === "Warmup" || ex.type === "Stretching"))
           ) {
+            return ex;
+          }
+          const idx = ex.activeSetIdx ?? 0;
+          const s = ex.sets[idx];
+          if (!s) return ex;
+          // No anchor yet (e.g. legacy persisted state) — stamp now and
+          // start counting on the next tick.
+          if (!s.startedAt) {
+            changed = true;
             const newSets = [...ex.sets];
-            const idx = ex.activeSetIdx ?? 0;
-            newSets[idx] = {
-              ...newSets[idx],
-              time: (newSets[idx].time || 0) + 1,
-            };
+            newSets[idx] = { ...s, startedAt: now };
             return { ...ex, sets: newSets };
           }
-          return ex;
+          const elapsed = Math.max(0, Math.floor((now - s.startedAt) / 1000));
+          if (elapsed <= 0) return ex;
+          changed = true;
+          const newSets = [...ex.sets];
+          newSets[idx] = {
+            ...s,
+            time: (s.time || 0) + elapsed,
+            startedAt: s.startedAt + elapsed * 1000,
+          };
+          return { ...ex, sets: newSets };
         });
+        return changed ? next : prev;
       });
-    }, 1000);
+    };
+    // Run once immediately to catch up any time that passed while the
+    // component was unmounted (or the tab was backgrounded).
+    tick();
+    const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
   }, [isActive, hasRunningTimedSet]);
+
+  // When the global session timer is paused, freeze running warmup/stretch
+  // timers by folding their elapsed wall-clock seconds into `set.time` and
+  // dropping the anchor. On resume, the per-tick effect re-stamps the
+  // anchor so counting continues from where it left off.
+  useEffect(() => {
+    if (isActive) return;
+    setExercises((prev) => {
+      let changed = false;
+      const next = prev.map((ex) => {
+        if (
+          !(ex.isRunning &&
+            (ex.type === "Warmup" || ex.type === "Stretching"))
+        ) {
+          return ex;
+        }
+        const idx = ex.activeSetIdx ?? 0;
+        const s = ex.sets[idx];
+        if (!s || !s.startedAt) return ex;
+        changed = true;
+        const elapsed = Math.max(
+          0,
+          Math.floor((Date.now() - s.startedAt) / 1000),
+        );
+        const newSets = [...ex.sets];
+        newSets[idx] = {
+          ...s,
+          time: (s.time || 0) + elapsed,
+          startedAt: null,
+        };
+        return { ...ex, sets: newSets };
+      });
+      return changed ? next : prev;
+    });
+  }, [isActive]);
 
   const toggleGlobalTimer = useCallback(() => {
     setIsActive((prevActive) => {
@@ -617,10 +680,33 @@ const ActiveWorkout = () => {
   const saveWorkout = async () => {
       const finalName = workoutName.trim() || "Daily Session";
 
-      // 1. Filter valid sets
+      // 1. Filter valid sets. Before validating, fold any in-flight
+      // wall-clock elapsed for running warmup/stretch timers into
+      // `set.time` so the saved value reflects the live UI.
+      const nowMs = Date.now();
       const formattedDetails = exercises
         .map((ex) => {
-          const validSets = ex.sets.filter((set) => {
+          const flushedSets = ex.sets.map((s) => {
+            if (
+              s &&
+              s.startedAt &&
+              (ex.type === "Warmup" || ex.type === "Stretching")
+            ) {
+              const elapsed = Math.max(
+                0,
+                Math.floor((nowMs - s.startedAt) / 1000),
+              );
+              const { startedAt: _drop, ...rest } = s;
+              return { ...rest, time: (s.time || 0) + elapsed };
+            }
+            // Always strip the client-only anchor before persisting.
+            if (s && s.startedAt !== undefined) {
+              const { startedAt: _drop, ...rest } = s;
+              return rest;
+            }
+            return s;
+          });
+          const validSets = flushedSets.filter((set) => {
             if (ex.type === "Strength") {
               return set.weight !== "" && set.reps !== "" && Number(set.reps) > 0;
             }
@@ -1174,25 +1260,68 @@ const ActiveWorkout = () => {
                               disabled={!isActive}
                               onClick={() => {
                                 const willRun = !isThisRunning;
+                                const now = Date.now();
+                                // Helper: fold any in-flight wall-clock
+                                // elapsed into `set.time` and drop the
+                                // anchor. Used both when pausing the
+                                // current exercise and when auto-pausing
+                                // a different running timer.
+                                const flushRunning = (item) => {
+                                  if (
+                                    !(item.isRunning &&
+                                      (item.type === "Warmup" ||
+                                        item.type === "Stretching"))
+                                  ) {
+                                    return item;
+                                  }
+                                  const idx = item.activeSetIdx ?? 0;
+                                  const s = item.sets[idx];
+                                  if (!s) {
+                                    return { ...item, isRunning: false };
+                                  }
+                                  const elapsed = s.startedAt
+                                    ? Math.max(
+                                        0,
+                                        Math.floor(
+                                          (now - s.startedAt) / 1000,
+                                        ),
+                                      )
+                                    : 0;
+                                  const newSets = [...item.sets];
+                                  newSets[idx] = {
+                                    ...s,
+                                    time: (s.time || 0) + elapsed,
+                                    startedAt: null,
+                                  };
+                                  return {
+                                    ...item,
+                                    isRunning: false,
+                                    sets: newSets,
+                                  };
+                                };
                                 const newExs = exercises.map((i) => {
                                   if (i.instanceId === ex.instanceId) {
+                                    if (!willRun) return flushRunning(i);
+                                    // Starting: stamp a wall-clock anchor
+                                    // on the target set so off-screen time
+                                    // can be recovered on the next tick.
+                                    const newSets = [...i.sets];
+                                    const cur = newSets[sIdx] || {};
+                                    newSets[sIdx] = {
+                                      ...cur,
+                                      startedAt: now,
+                                    };
                                     return {
                                       ...i,
-                                      isRunning: willRun,
+                                      isRunning: true,
                                       activeSetIdx: sIdx,
+                                      sets: newSets,
                                     };
                                   }
                                   // Only one warmup/stretch timer may run at
                                   // a time — pause every other timed
                                   // exercise when starting this one.
-                                  if (
-                                    willRun &&
-                                    i.isRunning &&
-                                    (i.type === "Warmup" ||
-                                      i.type === "Stretching")
-                                  ) {
-                                    return { ...i, isRunning: false };
-                                  }
+                                  if (willRun) return flushRunning(i);
                                   return i;
                                 });
                                 setExercises(newExs);
@@ -1225,6 +1354,7 @@ const ActiveWorkout = () => {
                                   (i) => i.instanceId === ex.instanceId,
                                 );
                                 target.sets[sIdx].time = 0;
+                                target.sets[sIdx].startedAt = null;
                                 if (isThisRunning) target.isRunning = false;
                                 setExercises(newExs);
                               }}
