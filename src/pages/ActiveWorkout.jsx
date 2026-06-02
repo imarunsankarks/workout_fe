@@ -1597,6 +1597,10 @@ const ActiveWorkout = () => {
         onDelete={setShowDeleteConfirm}
         showAddNew
         lockedCategory={libraryCategory === "All" ? null : libraryCategory}
+        disabledIds={exercises
+          .map((e) => e.exerciseId)
+          .filter(Boolean)
+          .map(String)}
         title={
           libraryCategory === "Stretching"
             ? "Stretch Library"

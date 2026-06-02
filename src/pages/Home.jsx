@@ -1357,6 +1357,10 @@ const onFileChange = async (e, workoutId) => {
         title="Pick Exercise"
         zIndex="z-[400]"
         maxHeight="92vh"
+        disabledIds={(editingWorkout?.details || [])
+          .map((d) => d.exerciseId)
+          .filter(Boolean)
+          .map(String)}
       />
 
       <ConfirmModal

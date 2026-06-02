@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Plus,
@@ -41,6 +41,10 @@ import BottomSheet from './BottomSheet';
  *                   "Stretching"), the category chip row is hidden and the
  *                   list is forced to that single category. Useful when a
  *                   parent screen has its own category tabs.
+ *  - disabledIds  : Set<string> | string[] — exercise ids that are already
+ *                   in use (e.g. already added to the active session). Their
+ *                   cards remain visible but the pick button is disabled and
+ *                   an "Added" badge is shown.
  */
 const MUSCLES = ['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Legs', 'Abs', 'Full Body'];
 const CATEGORIES = ['All', 'Warmup', 'Strength', 'Stretching'];
@@ -58,7 +62,17 @@ const ExerciseLibrarySheet = ({
   maxHeight = '85vh',
   initialMuscle = 'Legs',
   lockedCategory = null,
+  disabledIds = null,
 }) => {
+  // Normalize disabledIds (accept Set, array, or null) into a Set of strings
+  // for cheap O(1) lookups inside the render loop.
+  const disabledSet = useMemo(() => {
+    if (!disabledIds) return null;
+    if (disabledIds instanceof Set) {
+      return new Set(Array.from(disabledIds, (v) => String(v)));
+    }
+    return new Set(disabledIds.map((v) => String(v)));
+  }, [disabledIds]);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [activeMuscle, setActiveMuscle] = useState(initialMuscle);
@@ -178,14 +192,25 @@ const ExerciseLibrarySheet = ({
             </p>
           </div>
         ) : (
-          filtered.map((ex) => (
+          filtered.map((ex) => {
+            const isDisabled = !!disabledSet && disabledSet.has(String(ex._id));
+            return (
             <div
               key={ex._id}
-              className="w-full flex gap-2 items-center animate-in fade-in duration-300 bg-white/40 dark:bg-gray-300/5 backdrop-blur-md rounded-2xl border border-white/40 dark:border-white/10 transition-colors"
+              className={`w-full flex gap-2 items-center animate-in fade-in duration-300 bg-white/40 dark:bg-gray-300/5 backdrop-blur-md rounded-2xl border transition-colors ${
+                isDisabled
+                  ? 'border-white/20 dark:border-white/5 opacity-60'
+                  : 'border-white/40 dark:border-white/10'
+              }`}
             >
               <button
-                onClick={() => onPick?.(ex)}
-                className="flex-1 flex justify-between items-center p-4 rounded-2xl active:bg-accent-50 dark:active:bg-accent-900/30 transition-colors"
+                onClick={() => !isDisabled && onPick?.(ex)}
+                disabled={isDisabled}
+                className={`flex-1 flex justify-between items-center p-4 rounded-2xl transition-colors ${
+                  isDisabled
+                    ? 'cursor-not-allowed'
+                    : 'active:bg-accent-50 dark:active:bg-accent-900/30'
+                }`}
               >
                 <div className="flex items-center gap-4 text-left">
                   <div
@@ -209,9 +234,17 @@ const ExerciseLibrarySheet = ({
                     <p className="font-bold text-slate-700 dark:text-slate-200 text-sm capitalize">
                       {ex.name}
                     </p>
-                    <p className="text-[9px] font-bold text-slate-300 dark:text-slate-500 uppercase tracking-widest">
-                      {ex.muscle}
-                    </p>
+                    <div className='flex gap-2'>
+                      <p className="text-[9px] font-bold text-slate-300 dark:text-slate-500 uppercase tracking-widest">
+                        {ex.muscle}
+                      </p>
+                      {isDisabled && (
+                        <span className="shrink-0 px-1.5 py-[.5px] rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold uppercase tracking-widest">
+                          Added
+                        </span>
+                      )}
+
+                    </div>
                   </div>
                 </div>
               </button>
@@ -237,7 +270,8 @@ const ExerciseLibrarySheet = ({
                 </div>
               )}
             </div>
-          ))
+            );
+          })
         )}
       </div>
     </BottomSheet>
