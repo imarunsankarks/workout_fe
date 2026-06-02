@@ -37,6 +37,10 @@ import BottomSheet from './BottomSheet';
  *                   inside another modal (e.g. Home's edit-workout sheet).
  *  - maxHeight    : string — passed through to BottomSheet. Default "85vh".
  *  - initialMuscle: string — initial selected muscle filter. Default "Legs".
+ *  - lockedCategory: string — when provided (e.g. "Warmup" | "Strength" |
+ *                   "Stretching"), the category chip row is hidden and the
+ *                   list is forced to that single category. Useful when a
+ *                   parent screen has its own category tabs.
  */
 const MUSCLES = ['Chest', 'Back', 'Shoulders', 'Biceps', 'Triceps', 'Legs', 'Abs', 'Full Body'];
 const CATEGORIES = ['All', 'Warmup', 'Strength', 'Stretching'];
@@ -53,6 +57,7 @@ const ExerciseLibrarySheet = ({
   zIndex = 'z-[110]',
   maxHeight = '85vh',
   initialMuscle = 'Legs',
+  lockedCategory = null,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
@@ -60,9 +65,13 @@ const ExerciseLibrarySheet = ({
 
   if (!open) return null;
 
+  // When the parent has its own category tabs, force-filter to that one
+  // and skip rendering the in-sheet chip row entirely.
+  const effectiveCategory = lockedCategory || activeCategory;
+
   const filtered = library
     .filter((ex) =>
-      activeCategory === 'All' ? true : ex.type === activeCategory,
+      effectiveCategory === 'All' ? true : ex.type === effectiveCategory,
     )
     .filter(
       (ex) => (ex.muscle || '').toLowerCase() === activeMuscle.toLowerCase(),
@@ -114,25 +123,27 @@ const ExerciseLibrarySheet = ({
         />
       </div>
 
-      {/* Category filter */}
-      <div
-        className="flex gap-2 overflow-x-auto pb-2 no-scrollbar scroll-smooth"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-      >
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setActiveCategory(cat)}
-            className={`px-5 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${
-              activeCategory === cat
-                ? 'bg-slate-900 dark:bg-slate-700 text-white'
-                : 'bg-white/40 dark:bg-gray-300/5 backdrop-blur-md text-slate-400 dark:text-slate-500 border border-white/40 dark:border-white/10'
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
+      {/* Category filter — hidden when the parent locks the category */}
+      {!lockedCategory && (
+        <div
+          className="flex gap-2 overflow-x-auto pb-2 no-scrollbar scroll-smooth"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`px-5 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all whitespace-nowrap ${
+                activeCategory === cat
+                  ? 'bg-slate-900 dark:bg-slate-700 text-white'
+                  : 'bg-white/40 dark:bg-gray-300/5 backdrop-blur-md text-slate-400 dark:text-slate-500 border border-white/40 dark:border-white/10'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Muscle filter */}
       <div

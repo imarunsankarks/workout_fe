@@ -231,7 +231,15 @@ const ActiveWorkout = () => {
     return saved ? parseInt(saved) : isActive ? Date.now() : null;
   });
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // Which exercise category the library sheet should open with.
+  //   null              → sheet closed
+  //   "Warmup" |
+  //   "Strength" |
+  //   "Stretching"      → sheet open, list locked to that category
+  const [libraryCategory, setLibraryCategory] = useState(null);
+  // Filter tab for the active session's exercise list.
+  //   "All" | "Warmup" | "Strength" | "Stretching"
+  const [exerciseTypeTab, setExerciseTypeTab] = useState("All");
   const [showFinishPrompt, setShowFinishPrompt] = useState(false);
   const [showDiscardPrompt, setShowDiscardPrompt] = useState(false);
   const [workoutName, setWorkoutName] = useState("");
@@ -528,7 +536,7 @@ const ActiveWorkout = () => {
       sets: prefilledSets,
     };
     setExercises([...exercises, newEx]);
-    setIsModalOpen(false);
+    setLibraryCategory(null);
   };
 
   const handleConfirmRepeat = () => {
@@ -809,6 +817,49 @@ const ActiveWorkout = () => {
         <ChevronRight size={18} className="text-slate-300 dark:text-slate-600" />
       </button>
 
+      {/* Type filter tabs — restrict the active list (and the quick-add
+          buttons below) to a single category. */}
+      <div
+        className="flex gap-2 overflow-x-auto pb-2 mb-4 no-scrollbar scroll-smooth"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
+        {[
+          { key: "All", label: "All", icon: null },
+          { key: "Warmup", label: "Warmup", icon: Flame },
+          { key: "Strength", label: "Strength", icon: Dumbbell },
+          { key: "Stretching", label: "Stretch", icon: Move },
+        ].map(({ key, label, icon: Icon }) => {
+          const active = exerciseTypeTab === key;
+          const count =
+            key === "All"
+              ? exercises.length
+              : exercises.filter((ex) => ex.type === key).length;
+          return (
+            <button
+              key={key}
+              onClick={() => setExerciseTypeTab(key)}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-all ${
+                active
+                  ? "bg-slate-900 dark:bg-slate-700 text-white shadow-md"
+                  : "bg-white/40 dark:bg-gray-300/5 backdrop-blur-md text-slate-400 dark:text-slate-500 border border-white/40 dark:border-white/10"
+              }`}
+            >
+              {Icon && <Icon size={12} />}
+              <span>{label}</span>
+              <span
+                className={`ml-1 px-1.5 rounded-full text-[9px] ${
+                  active
+                    ? "bg-white/20 text-white"
+                    : "bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400"
+                }`}
+              >
+                {count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Active Exercise List */}
       <DndContext
         sensors={sensors}
@@ -818,11 +869,17 @@ const ActiveWorkout = () => {
         onDragCancel={handleExerciseDragCancel}
       >
         <SortableContext
-          items={exercises.map((e) => `ex-${e.instanceId}`)}
+          items={(exerciseTypeTab === "All"
+            ? exercises
+            : exercises.filter((e) => e.type === exerciseTypeTab)
+          ).map((e) => `ex-${e.instanceId}`)}
           strategy={verticalListSortingStrategy}
         >
       <div className="space-y-4">
-        {exercises.map((ex) => (
+        {(exerciseTypeTab === "All"
+          ? exercises
+          : exercises.filter((ex) => ex.type === exerciseTypeTab)
+        ).map((ex) => (
           <SortableExercise key={ex.instanceId} id={`ex-${ex.instanceId}`}>
             {({ dragHandleProps }) => (
           <div
@@ -1100,13 +1157,50 @@ const ActiveWorkout = () => {
           </SortableExercise>
         ))}
 
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="w-full py-8 bg-white/30 dark:bg-slate-800/30 backdrop-blur-xl border-2 border-dashed border-white/40 dark:border-white/10 rounded-[40px] text-slate-400 dark:text-slate-500 font-bold flex flex-col items-center gap-2 active:bg-white/50 dark:active:bg-slate-800/50 transition-all shadow-sm"
-        >
-          <Plus size={24} />{" "}
-          <span className="text-sm">Add Exercise / Stretch</span>
-        </button>
+        {/* Quick-add buttons. On the "All" tab show all three so the user
+            can pick any category; otherwise show only the button matching
+            the current tab. Each opens the library sheet locked to that
+            category. */}
+        {(() => {
+          const baseCls =
+            "w-full flex items-center justify-center gap-2 px-5 py-4 text-sm font-semibold rounded-[20px] border-2 border-dashed bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl transition-colors shadow-sm";
+
+          // Per-category styling: matching icon, text color, and dashed
+          // border tint. "All" stays neutral slate with a generic +.
+          const variants = {
+            All: {
+              label: "Add Exercise",
+              Icon: Plus,
+              tone: "border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:text-accent-600 dark:hover:text-accent-400 hover:border-accent-400/60 dark:hover:border-accent-500/60",
+            },
+            Warmup: {
+              label: "Add Warmup",
+              Icon: Flame,
+              tone: "border-amber-300/70 dark:border-amber-700/50 text-amber-600 dark:text-amber-400 hover:border-amber-400 dark:hover:border-amber-500",
+            },
+            Strength: {
+              label: "Add Strength",
+              Icon: Dumbbell,
+              tone: "border-accent-300/70 dark:border-accent-700/50 text-accent-600 dark:text-accent-400 hover:border-accent-400 dark:hover:border-accent-500",
+            },
+            Stretching: {
+              label: "Add Stretch",
+              Icon: Move,
+              tone: "border-fuchsia-300/70 dark:border-fuchsia-700/50 text-fuchsia-600 dark:text-fuchsia-400 hover:border-fuchsia-400 dark:hover:border-fuchsia-500",
+            },
+          };
+
+          const v = variants[exerciseTypeTab] || variants.All;
+          const onClick = () =>
+            setLibraryCategory(exerciseTypeTab === "All" ? "All" : exerciseTypeTab);
+
+          return (
+            <button onClick={onClick} className={`${baseCls} ${v.tone} mt-2`}>
+              <v.Icon size={16} strokeWidth={2.5} />
+              <span>{v.label}</span>
+            </button>
+          );
+        })()}
       </div>
         </SortableContext>
 
@@ -1492,15 +1586,26 @@ const ActiveWorkout = () => {
         </div>
       )}
 
-      {/* LIBRARY MODAL */}
+      {/* LIBRARY MODAL — opens with the category locked to whichever
+          quick-add tab the user tapped. Title reflects the chosen tab. */}
       <ExerciseLibrarySheet
-        open={isModalOpen}
+        open={!!libraryCategory}
         library={library}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => setLibraryCategory(null)}
         onPick={addExercise}
         onEdit={setEditingExercise}
         onDelete={setShowDeleteConfirm}
         showAddNew
+        lockedCategory={libraryCategory === "All" ? null : libraryCategory}
+        title={
+          libraryCategory === "Stretching"
+            ? "Stretch Library"
+            : libraryCategory === "Warmup"
+            ? "Warmup Library"
+            : libraryCategory === "Strength"
+            ? "Strength Library"
+            : "Library"
+        }
       />
 
       {/* EDIT LIBRARY ITEM MODAL */}
