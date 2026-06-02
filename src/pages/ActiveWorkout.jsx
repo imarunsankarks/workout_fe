@@ -549,7 +549,7 @@ const ActiveWorkout = () => {
       // will simply roundtrip undefined and rely on the name fallback.
       exerciseId: ex.exerciseId,
       instanceId: Date.now() + idx,
-      isCollapsed: false,
+      isCollapsed: true,
       isRunning: false,
       activeSetIdx: 0,
       sets:
