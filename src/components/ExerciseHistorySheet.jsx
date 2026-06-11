@@ -13,7 +13,7 @@ import BottomSheet from './BottomSheet';
  *  - historyLimit : number — how many sessions to display.
  *  - onLoadMore   : () => void — invoked when "Show 5 More Sessions" is tapped.
  */
-const ExerciseHistorySheet = ({ data, onClose, historyLimit, onLoadMore }) => {
+const ExerciseHistorySheet = ({ data, onClose, historyLimit, onLoadMore, zIndex = "z-[500]" }) => {
   if (!data) return null;
 
   const { name, history } = data;
@@ -24,7 +24,7 @@ const ExerciseHistorySheet = ({ data, onClose, historyLimit, onLoadMore }) => {
     <BottomSheet
       open
       onClose={onClose}
-      zIndex="z-[500]"
+      zIndex={zIndex}
       maxHeight="85vh"
     >
       {/* Header */}

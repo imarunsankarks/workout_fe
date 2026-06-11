@@ -24,6 +24,8 @@ import {
   Loader2,
   GripVertical,
   PartyPopper,
+  RefreshCw,
+  Settings,
 } from "lucide-react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
@@ -265,7 +267,7 @@ const ActiveWorkout = () => {
   const [showRepeatModal, setShowRepeatModal] = useState(false);
   const [workoutToRepeat, setWorkoutToRepeat] = useState(null);
 
-  const [showInfo, setShowInfo] = useState({});
+  const [selectedExerciseActions, setSelectedExerciseActions] = useState(null);
   const [allWorkouts, setAllWorkouts] = useState([]);
   const [selectedPrHistory, setSelectedPrHistory] = useState(null);
   const [historyLimit, setHistoryLimit] = useState(5);
@@ -637,6 +639,65 @@ const ActiveWorkout = () => {
   // Match by canonical id; the displayName argument is just used as the
   // history sheet header so we can render a label even though the
   // saved workout details no longer carry a `name` snapshot.
+  // Fetch latest workout data for a specific exercise and update its sets
+  const fetchLatestForExercise = (instanceId) => {
+    const exercise = exercises.find((e) => e.instanceId === instanceId);
+    if (!exercise || !exercise.exerciseId) return;
+
+    const templateId = String(exercise.exerciseId);
+
+    // Find the most recent workout containing this exercise
+    const latestEntry = allWorkouts
+      .filter((workout) =>
+        workout.details?.some(
+          (ex) => String(ex.exerciseId) === templateId,
+        ),
+      )
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .map((workout) =>
+        workout.details.find(
+          (ex) => String(ex.exerciseId) === templateId,
+        ),
+      )[0];
+
+    if (!latestEntry) return;
+
+    setExercises((prev) =>
+      prev.map((e) => {
+        if (e.instanceId !== instanceId) return e;
+
+        // Build new sets based on latest entry
+        let newSets;
+        if (e.type === "Strength") {
+          newSets =
+            latestEntry.sets && latestEntry.sets.length > 0
+              ? latestEntry.sets.map((s) => ({
+                  weight: s.weight ?? "",
+                  reps: s.reps ?? "",
+                }))
+              : [{ weight: "", reps: "" }];
+        } else if (e.type === "Warmup" && e.sets?.[0]?.reps !== undefined) {
+          // Warmup in reps mode - preserve mode but reset values
+          newSets = latestEntry.sets?.[0]?.reps !== undefined
+            ? latestEntry.sets.map((s) => ({ reps: s.reps ?? "" }))
+            : [{ reps: "" }];
+        } else {
+          // Warmup/Stretching time mode - reset to fresh set
+          newSets = [{ time: 0 }];
+        }
+
+        return {
+          ...e,
+          resistance: latestEntry.resistance ?? e.resistance ?? 0,
+          execution: latestEntry.execution ?? e.execution ?? "Bilateral",
+          sets: newSets,
+          isRunning: false,
+          activeSetIdx: 0,
+        };
+      }),
+    );
+  };
+
   const handlePrClick = (exerciseId, displayName) => {
     if (!exerciseId) return;
     setHistoryLimit(5);
@@ -1029,14 +1090,11 @@ const ActiveWorkout = () => {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    setShowInfo((prev) => ({
-                      ...prev,
-                      [ex.instanceId]: !prev[ex.instanceId],
-                    }));
+                    setSelectedExerciseActions(ex);
                   }}
-                  className={`p-2 transition-colors ${showInfo[ex.instanceId] ? "text-accent-500 dark:text-accent-400" : "text-slate-300 dark:text-slate-500 hover:text-slate-500 dark:hover:text-slate-400"}`}
+                  className="p-2 text-slate-300 dark:text-slate-500 hover:text-accent-500 dark:hover:text-accent-400 transition-colors"
                 >
-                  <Info size={18} />
+                  <Settings size={18} />
                 </button>
                 {/* DRAG HANDLE - reorder exercises */}
                 <button
@@ -1050,50 +1108,6 @@ const ActiveWorkout = () => {
               </div>
             </div>
 
-            {showInfo[ex.instanceId] && (
-              <div className="mt-4 animate-in fade-in slide-in-from-top-1 duration-300">
-                <div className="flex items-center bg-white/30 dark:bg-gray-300/5 backdrop-blur-md border border-white/40 dark:border-white/10 rounded-2xl p-1.5 justify-between gap-1">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1 px-2 py-1.5 bg-white/60 dark:bg-slate-800/50 backdrop-blur-md rounded-xl shadow-sm border border-white/40 dark:border-white/10">
-                      <div className="w-1 h-1 rounded-full bg-accent-500"></div>
-                      <input 
-                        type="number"
-                        className="w-10 text-[11px] font-bold text-slate-700 dark:text-slate-200 outline-none bg-transparent"
-                        value={ex.resistance || 0}
-                        onChange={(e) => setExercises(exercises.map(item => item.instanceId === ex.instanceId ? { ...item, resistance: e.target.value } : item))}
-                      />
-                      <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase">kg</span>
-                    </div>
-
-                    <button 
-                      onClick={() => setExercises(exercises.map(item => item.instanceId === ex.instanceId ? { ...item, execution: ex.execution === "Unilateral" ? "Bilateral" : "Unilateral" } : item))}
-                      className="flex items-center gap-1 px-3 py-1.5 bg-white/60 dark:bg-slate-800/50 backdrop-blur-md rounded-xl shadow-sm border border-white/40 dark:border-white/10 active:scale-95 transition-all"
-                    >
-                      <div className="w-1 h-1 rounded-full bg-fuchsia-700"></div>
-                      <span className="text-[10px] font-bold text-slate-700 dark:text-slate-200">
-                        {ex.execution === "Unilateral" ? "Unilateral" : "Bilateral"}
-                      </span>
-                    </button>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handlePrClick(ex.exerciseId, getDisplayName(ex, libraryMap))}
-                      className="p-1 text-amber-500 dark:text-amber-400 rounded-xl active:scale-90 transition-all"
-                    >
-                      <History size={18} strokeWidth={1.5} />
-                    </button>
-
-                    <button
-                      onClick={() => setExerciseToDelete(ex.instanceId)}
-                      className="p-1 text-red-500 dark:text-red-400 rounded-xl active:scale-90 transition-all"
-                    >
-                      <Trash2 size={18} strokeWidth={1.5} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {!ex.isCollapsed && (
               <div className="animate-in fade-in slide-in-from-top-2 duration-300">
@@ -1907,7 +1921,17 @@ const ActiveWorkout = () => {
       {/* PR HISTORY BOTTOM SHEET */}
       <ExerciseHistorySheet
         data={selectedPrHistory}
-        onClose={() => setSelectedPrHistory(null)}
+        zIndex="z-[600]"
+        onClose={() => {
+          setSelectedPrHistory(null);
+          // Reopen exercise actions if we came from there
+          if (selectedExerciseActions && !exerciseToDelete) {
+            const exercise = exercises.find(e => e.instanceId === selectedExerciseActions.instanceId);
+            if (exercise) {
+              setSelectedExerciseActions(exercise);
+            }
+          }
+        }}
         historyLimit={historyLimit}
         onLoadMore={() => setHistoryLimit((prev) => prev + 5)}
       />
@@ -1927,6 +1951,138 @@ const ActiveWorkout = () => {
         confirmLabel="Yes, Remove it"
         icon={AlertTriangle}
       />
+
+      {/* EXERCISE ACTIONS BOTTOM SHEET */}
+      {selectedExerciseActions && (
+        <BottomSheet
+          open
+          onClose={() => setSelectedExerciseActions(null)}
+          zIndex="z-[500]"
+          maxHeight="60vh"
+        >
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight capitalize">
+                {getDisplayName(selectedExerciseActions, libraryMap)}
+              </h2>
+              <p className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">
+                {selectedExerciseActions.type} • {selectedExerciseActions.muscle}
+              </p>
+            </div>
+            <button 
+              onClick={() => setSelectedExerciseActions(null)} 
+              className="bg-white/50 dark:bg-white/10 backdrop-blur-md p-2 rounded-full text-slate-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-white/20 transition-colors"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Settings Section */}
+          <div className="mb-6">
+            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Settings</p>
+            <div className="bg-white/40 dark:bg-gray-300/5 backdrop-blur-md border border-white/40 dark:border-white/10 rounded-2xl p-4 space-y-4">
+              {/* Resistance */}
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Resistance</span>
+                <div className="flex items-center gap-1 px-3 py-2 bg-white/60 dark:bg-slate-800/50 backdrop-blur-md rounded-xl shadow-sm border border-white/40 dark:border-white/10">
+                  <input 
+                    type="number"
+                    className="w-12 text-sm font-bold text-slate-700 dark:text-slate-200 outline-none bg-transparent text-right"
+                    value={selectedExerciseActions.resistance || 0}
+                    onChange={(e) => {
+                      setExercises(exercises.map(item => 
+                        item.instanceId === selectedExerciseActions.instanceId 
+                          ? { ...item, resistance: e.target.value } 
+                          : item
+                      ));
+                      setSelectedExerciseActions({
+                        ...selectedExerciseActions,
+                        resistance: e.target.value
+                      });
+                    }}
+                  />
+                  <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase">kg</span>
+                </div>
+              </div>
+
+              {/* Execution */}
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Execution</span>
+                <button 
+                  onClick={() => {
+                    const newExecution = selectedExerciseActions.execution === "Unilateral" ? "Bilateral" : "Unilateral";
+                    setExercises(exercises.map(item => 
+                      item.instanceId === selectedExerciseActions.instanceId 
+                        ? { ...item, execution: newExecution } 
+                        : item
+                    ));
+                    setSelectedExerciseActions({
+                      ...selectedExerciseActions,
+                      execution: newExecution
+                    });
+                  }}
+                  className="flex items-center gap-2 px-3 py-2 bg-white/60 dark:bg-slate-800/50 backdrop-blur-md rounded-xl shadow-sm border border-white/40 dark:border-white/10 active:scale-95 transition-all"
+                >
+                  <div className={`w-2 h-2 rounded-full ${selectedExerciseActions.execution === "Unilateral" ? "bg-fuchsia-500" : "bg-accent-500"}`}></div>
+                  <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                    {selectedExerciseActions.execution === "Unilateral" ? "Unilateral" : "Bilateral"}
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Actions Section */}
+          <div className="mb-6">
+            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Actions</p>
+            <div className="space-y-2">
+              <button
+                onClick={() => {
+                  fetchLatestForExercise(selectedExerciseActions.instanceId);
+                  setSelectedExerciseActions(null);
+                }}
+                className="w-full bg-white/40 dark:bg-gray-300/5 backdrop-blur-md border border-white/40 dark:border-white/10 p-4 rounded-2xl flex items-center gap-3 hover:bg-white/60 dark:hover:bg-white/10 hover:border-accent-200 dark:hover:border-accent-700 transition-all active:scale-[0.98]"
+              >
+                <div className="bg-accent-50 dark:bg-accent-900/30 p-2 rounded-xl text-accent-500 dark:text-accent-400">
+                  <RefreshCw size={18} strokeWidth={2} />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm">Fetch Latest Data</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">Update with your most recent performance</p>
+                </div>
+                <ChevronRight size={18} className="text-slate-300 dark:text-slate-600" />
+              </button>
+
+              <button
+                onClick={() => {
+                  handlePrClick(selectedExerciseActions.exerciseId, getDisplayName(selectedExerciseActions, libraryMap));
+                }}
+                className="w-full bg-white/40 dark:bg-gray-300/5 backdrop-blur-md border border-white/40 dark:border-white/10 p-4 rounded-2xl flex items-center gap-3 hover:bg-white/60 dark:hover:bg-white/10 hover:border-amber-200 dark:hover:border-amber-700 transition-all active:scale-[0.98]"
+              >
+                <div className="bg-amber-50 dark:bg-amber-900/30 p-2 rounded-xl text-amber-500 dark:text-amber-400">
+                  <History size={18} strokeWidth={2} />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm">View History</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">See all past performances</p>
+                </div>
+                <ChevronRight size={18} className="text-slate-300 dark:text-slate-600" />
+              </button>
+            </div>
+          </div>
+
+          {/* Remove Section */}
+          <button
+            onClick={() => {
+              setExerciseToDelete(selectedExerciseActions.instanceId);
+            }}
+            className="w-full bg-red-50/50 dark:bg-red-900/20 backdrop-blur-md border border-red-100 dark:border-red-900/30 p-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all active:scale-[0.98]"
+          >
+            <Trash2 size={18} className="text-red-500 dark:text-red-400" />
+            <span className="font-semibold text-red-500 dark:text-red-400 text-sm">Remove Exercise</span>
+          </button>
+        </BottomSheet>
+      )}
     </div>
   );
 };
