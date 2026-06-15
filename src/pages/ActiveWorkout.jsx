@@ -26,7 +26,7 @@ import {
   PartyPopper,
   RefreshCw,
   Settings,
-} from "lucide-react";
+  } from "lucide-react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
 
@@ -903,43 +903,36 @@ const ActiveWorkout = () => {
     }
   };
 
-  // Fire a celebratory confetti burst from both bottom corners whenever the
-  // finish-celebration overlay is shown. Repeats a few times so the cannons
-  // feel sustained, then stops.
+  // Fireworks-style confetti bursts from center when workout finishes.
   useEffect(() => {
     if (!finishedSummary) return undefined;
 
-    const duration = 1800;
+    const duration = 2500;
     const end = Date.now() + duration;
-    const colors = ["#6366f1", "#d946ef", "#f59e0b", "#ffffff"]; // accent gradient stops
+    const colors = ["#6366f1", "#d946ef", "#f59e0b", "#ffffff"];
 
     const tick = () => {
       const timeLeft = end - Date.now();
       if (timeLeft <= 0) return;
-      // Left cannon — angled up-and-right.
+
+      // Random fireworks burst from center area
       confetti({
-        particleCount: 4,
-        startVelocity: 55,
-        spread: 70,
-        angle: 60,
-        origin: { x: 0, y: 1 },
+        particleCount: Math.random() * 50 + 50,
+        spread: Math.random() * 100 + 50,
+        origin: {
+          x: Math.random() * 0.4 + 0.3, // 0.3 to 0.7 (center area)
+          y: Math.random() * 0.3 + 0.3, // 0.3 to 0.6 (upper-middle)
+        },
         colors,
-        ticks: 200,
+        startVelocity: Math.random() * 30 + 30,
+        decay: 0.9,
+        ticks: 300,
         zIndex: 600,
       });
-      // Right cannon — angled up-and-left.
-      confetti({
-        particleCount: 4,
-        startVelocity: 55,
-        spread: 70,
-        angle: 120,
-        origin: { x: 1, y: 1 },
-        colors,
-        ticks: 200,
-        zIndex: 600,
-      });
-      requestAnimationFrame(tick);
+
+      setTimeout(tick, Math.random() * 400 + 200); // Random interval between bursts
     };
+
     tick();
   }, [finishedSummary]);
 
@@ -1431,47 +1424,27 @@ const ActiveWorkout = () => {
           </SortableExercise>
         ))}
 
-        {/* Quick-add buttons. On the "All" tab show all three so the user
-            can pick any category; otherwise show only the button matching
-            the current tab. Each opens the library sheet locked to that
-            category. */}
+        {/* Quick-add button */}
         {(() => {
-          const baseCls =
-            "w-full flex items-center justify-center gap-2 px-5 py-6 text-sm font-semibold rounded-[32px] border-2 border-dashed bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl transition-colors shadow-sm";
-
-          // Per-category styling: matching icon, text color, and dashed
-          // border tint. "All" stays neutral slate with a generic +.
-          const variants = {
-            All: {
-              label: "Add Exercise",
-              Icon: Plus,
-              tone: "border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:text-accent-600 dark:hover:text-accent-400 hover:border-accent-400/60 dark:hover:border-accent-500/60",
-            },
-            Warmup: {
-              label: "Add Warmup",
-              Icon: Flame,
-              tone: "border-amber-300/70 dark:border-amber-700/50 text-amber-600 dark:text-amber-400 hover:border-amber-400 dark:hover:border-amber-500",
-            },
-            Strength: {
-              label: "Add Strength",
-              Icon: Dumbbell,
-              tone: "border-accent-300/70 dark:border-accent-700/50 text-accent-600 dark:text-accent-400 hover:border-accent-400 dark:hover:border-accent-500",
-            },
-            Stretching: {
-              label: "Add Stretch",
-              Icon: Move,
-              tone: "border-fuchsia-300/70 dark:border-fuchsia-700/50 text-fuchsia-600 dark:text-fuchsia-400 hover:border-fuchsia-400 dark:hover:border-fuchsia-500",
-            },
-          };
-
-          const v = variants[exerciseTypeTab] || variants.All;
           const onClick = () =>
             setLibraryCategory(exerciseTypeTab === "All" ? "All" : exerciseTypeTab);
 
           return (
-            <button onClick={onClick} className={`${baseCls} ${v.tone} mt-2`}>
-              <v.Icon size={16} strokeWidth={2.5} />
-              <span style={{padding:"7px 0"}}>{v.label}</span>
+            <button
+              onClick={onClick}
+              className="w-full mt-4 bg-accent-gradient rounded-[32px] p-0.5 shadow-lg shadow-accent-500/20 active:scale-[0.98] transition-all group"
+            >
+              <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-[30px] px-6 py-5 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-accent-gradient flex items-center justify-center text-white shadow-md">
+                    <Plus size={20} strokeWidth={2.5} />
+                  </div>
+                  <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                    Add {exerciseTypeTab === 'All' ? 'Exercise' : exerciseTypeTab}
+                  </span>
+                </div>
+                <ChevronRight size={18} className="text-slate-400 dark:text-slate-500 group-hover:translate-x-1 transition-transform" />
+              </div>
             </button>
           );
         })()}
@@ -1945,6 +1918,7 @@ const ActiveWorkout = () => {
             exercises.filter((e) => e.instanceId !== exerciseToDelete),
           );
           setExerciseToDelete(null);
+          setSelectedExerciseActions(null);
         }}
         title="Remove Exercise?"
         message="Are you sure you want to remove this exercise from your active session?"
