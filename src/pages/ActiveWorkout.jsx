@@ -26,6 +26,7 @@ import {
   PartyPopper,
   RefreshCw,
   Settings,
+  Activity
   } from "lucide-react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
@@ -967,47 +968,60 @@ const ActiveWorkout = () => {
         <ChevronRight size={18} className="text-slate-300 dark:text-slate-600" />
       </button>
 
-      {/* Type filter tabs — restrict the active list (and the quick-add
-          buttons below) to a single category. */}
-      <div
-        className="flex gap-2 overflow-x-auto pb-2 mb-4 no-scrollbar scroll-smooth"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-      >
-        {[
-          { key: "All", label: "All", icon: null },
-          { key: "Warmup", label: "Warmup", icon: Flame },
-          { key: "Strength", label: "Strength", icon: Dumbbell },
-          { key: "Stretching", label: "Stretch", icon: Move },
-        ].map(({ key, label, icon: Icon }) => {
+      {/* Type filter tabs and add button in one row */}
+      <div className="flex items-center gap-2 mb-4">
+        {/* Scrollable tabs container */}
+         {/* Add button at end of scrollable tabs */}
+          <button
+            onClick={() => setLibraryCategory(exerciseTypeTab)}
+            className="flex-shrink-0 flex items-center gap-2 bg-accent-gradient text-white px-4 py-2 rounded-full shadow-md shadow-accent-500/20 active:scale-[0.98] transition-all"
+          >
+            <Plus size={18} strokeWidth={2.5} />
+            <span className="text-[10px] font-bold uppercase tracking-widest">{exerciseTypeTab === "All" ? "Exercise" : exerciseTypeTab}</span>
+          </button>
+        <div
+          className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth flex-1"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {[
+          { key: "All", icon: Activity },
+          { key: "Warmup", icon: Flame, color: "amber" },
+          { key: "Strength", icon: Dumbbell, color: "accent" },
+          { key: "Stretching", icon: Move, color: "fuchsia" },
+        ].map(({ key, icon: Icon, color }) => {
           const active = exerciseTypeTab === key;
           const count =
             key === "All"
               ? exercises.length
               : exercises.filter((ex) => ex.type === key).length;
+
+          const inactiveStyle = "bg-white/40 dark:bg-gray-300/5 text-slate-400 dark:text-slate-500 border border-white/40 dark:border-white/10";
+
+          const activeStyles = {
+            All: "bg-slate-900 dark:bg-slate-700 text-white shadow-md",
+            Warmup: "bg-amber-500 text-white shadow-md shadow-amber-500/30",
+            Strength: "bg-accent-500 text-white shadow-md shadow-accent-500/30",
+            Stretching: "bg-fuchsia-500 text-white shadow-md shadow-fuchsia-500/30",
+          };
+
           return (
             <button
               key={key}
               onClick={() => setExerciseTypeTab(key)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-all ${
-                active
-                  ? "bg-slate-900 dark:bg-slate-700 text-white shadow-md"
-                  : "bg-white/40 dark:bg-gray-300/5 backdrop-blur-md text-slate-400 dark:text-slate-500 border border-white/40 dark:border-white/10"
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-[10px] font-bold transition-all ${
+                active ? activeStyles[key] : inactiveStyle
               }`}
             >
-              {Icon && <Icon size={12} />}
-              <span>{label}</span>
-              <span
-                className={`ml-1 px-1.5 rounded-full text-[9px] ${
-                  active
-                    ? "bg-white/20 text-white"
-                    : "bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400"
-                }`}
-              >
+              <Icon size={14} />
+              <span className={`px-1.5 rounded-full text-[10px] ${active ? "bg-white/20" : "bg-white/50 dark:bg-white/10"}`}>
                 {count}
               </span>
             </button>
           );
         })}
+
+         
+        </div>
       </div>
 
       {/* Active Exercise List */}
@@ -1026,10 +1040,28 @@ const ActiveWorkout = () => {
           strategy={verticalListSortingStrategy}
         >
       <div className="space-y-4">
-        {(exerciseTypeTab === "All"
-          ? exercises
-          : exercises.filter((ex) => ex.type === exerciseTypeTab)
-        ).map((ex) => (
+        {(() => {
+          const filteredExercises = exerciseTypeTab === "All"
+            ? exercises
+            : exercises.filter((ex) => ex.type === exerciseTypeTab);
+
+          if (filteredExercises.length === 0) {
+            const emptyMessages = {
+              All: "No exercises added",
+              Warmup: "No warmups added",
+              Strength: "No strength exercises added",
+              Stretching: "No stretches added",
+            };
+            return (
+              <div className="text-center py-12">
+                <p className="text-slate-400 dark:text-slate-500 text-md capitalize">
+                  {emptyMessages[exerciseTypeTab] || emptyMessages.All}
+                </p>
+              </div>
+            );
+          }
+
+          return filteredExercises.map((ex) => (
           <SortableExercise key={ex.instanceId} id={`ex-${ex.instanceId}`}>
             {({ dragHandleProps }) => (
           <div
@@ -1422,32 +1454,7 @@ const ActiveWorkout = () => {
           </div>
             )}
           </SortableExercise>
-        ))}
-
-        {/* Quick-add button */}
-        {(() => {
-          const onClick = () =>
-            setLibraryCategory(exerciseTypeTab === "All" ? "All" : exerciseTypeTab);
-
-          return (
-            <button
-              onClick={onClick}
-              className="w-full mt-4 bg-accent-gradient rounded-[32px] p-0.5 shadow-lg shadow-accent-500/20 active:scale-[0.98] transition-all group"
-            >
-              <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-[30px] px-6 py-5 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-accent-gradient flex items-center justify-center text-white shadow-md">
-                    <Plus size={20} strokeWidth={2.5} />
-                  </div>
-                  <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
-                    Add {exerciseTypeTab === 'All' ? 'Exercise' : exerciseTypeTab}
-                  </span>
-                </div>
-                <ChevronRight size={18} className="text-slate-400 dark:text-slate-500 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </button>
-          );
-        })()}
+        ))})()}
       </div>
         </SortableContext>
 
