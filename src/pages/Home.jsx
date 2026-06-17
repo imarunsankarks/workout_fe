@@ -25,6 +25,7 @@ import {
   Plus,
   GripVertical,
   ChevronDown,
+  Filter,
 } from "lucide-react";
 import {
   DndContext,
@@ -144,6 +145,8 @@ const Home = () => {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedWorkout, setSelectedWorkout] = useState(null);
+  const [selectedWorkoutTab, setSelectedWorkoutTab] = useState("All");
+  const [showFilterTabs, setShowFilterTabs] = useState(false);
   const [hasActiveSession, setHasActiveSession] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [showStartPrompt, setShowStartPrompt] = useState(false);
@@ -194,7 +197,10 @@ const Home = () => {
     const currentName = currentWorkout.name.toLowerCase().trim();
     const currentScore = parseFloat(calculateIntensity(currentWorkout));
 
-    const previousSameWorkout = history
+    // Use filtered workouts when a tab is selected, otherwise use full history
+    const workoutList = selectedWorkoutTab === "All" ? history : filteredWorkouts;
+    
+    const previousSameWorkout = workoutList
       .slice(index + 1)
       .find((w) => w.name.toLowerCase().trim() === currentName);
 
@@ -257,6 +263,46 @@ const Home = () => {
   // Build a quick lookup so any render path can resolve a detail's
   // canonical name without scanning the array.
   const libraryMap = useMemo(() => buildLibraryMap(library), [library]);
+
+  // Group workouts by name and count occurrences
+  const workoutGroups = useMemo(() => {
+    const groups = {};
+    history.forEach(workout => {
+      const name = workout.name.toLowerCase().trim();
+      groups[name] = (groups[name] || 0) + 1;
+    });
+    
+    // Separate into repeated workouts and one-time workouts
+    const repeated = [];
+    const oneTime = [];
+    
+    Object.entries(groups).forEach(([name, count]) => {
+      if (count > 1) {
+        repeated.push({ name, count });
+      } else {
+        oneTime.push({ name, count });
+      }
+    });
+    
+    return { repeated, oneTime };
+  }, [history]);
+
+  // Get filtered workouts based on selected tab
+  const filteredWorkouts = useMemo(() => {
+    if (selectedWorkoutTab === "All") {
+      return history;
+    } else if (selectedWorkoutTab === "Other") {
+      return history.filter(workout => {
+        const name = workout.name.toLowerCase().trim();
+        const count = workoutGroups.oneTime.find(w => w.name === name)?.count || 0;
+        return count === 1;
+      });
+    } else {
+      return history.filter(workout => 
+        workout.name.toLowerCase().trim() === selectedWorkoutTab.toLowerCase()
+      );
+    }
+  }, [history, selectedWorkoutTab, workoutGroups]);
 
   const fetchLibrary = async () => {
     if (!user?.id) return;
@@ -767,14 +813,25 @@ const onFileChange = async (e, workoutId) => {
 
       {/* History List */}
       <div className="flex justify-between items-center mb-4">
-        <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg flex items-center gap-2">
-          <Activity size={20} className="text-accent-500" /> Recent Workouts
-        </h3>
-        {history.length > 0 && (
-          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 bg-slate-200 dark:bg-slate-800 px-2 py-1 rounded-md uppercase">
-            Last {Math.min(history.length, visibleLimit)} Workouts
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          <h3 className="font-bold text-slate-800 dark:text-slate-100 text-lg flex items-center gap-2">
+          <Activity size={20} className="text-accent-500" /> 
+          {history.length > 0 ? (selectedWorkoutTab === "All" 
+              ? `Latest Workouts`
+              : `${selectedWorkoutTab} Workouts`)
+            : "No workouts yet"}
+          </h3>
+          <button
+            onClick={() => setShowFilterTabs(!showFilterTabs)}
+            className={`p-1 rounded-lg transition-all ${
+              showFilterTabs
+                ? "bg-accent-500/0 text-white"
+                : "bg-white/40 dark:bg-slate-800/0 text-slate-400 dark:text-slate-500"
+            }`}
+          >
+            <Filter size={16} />
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -798,9 +855,75 @@ const onFileChange = async (e, workoutId) => {
         </div>
       ) : (
         <div className="space-y-4">
-          {history.length > 0 ? (
+          {history.length > 0 && showFilterTabs && (
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar scroll-smooth" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              <button
+                onClick={() => setSelectedWorkoutTab("All")}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-all ${
+                  selectedWorkoutTab === "All"
+                    ? "bg-slate-900 dark:bg-slate-700 text-white shadow-md"
+                    : "bg-white/40 dark:bg-gray-300/5 backdrop-blur-md text-slate-400 dark:text-slate-500 border border-white/40 dark:border-white/10"
+                }`}
+              >
+                <span>All</span>
+                <span className={`px-1.5 rounded-full text-[9px] ${
+                  selectedWorkoutTab === "All"
+                    ? "bg-white/20 text-white"
+                    : "bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400"
+                }`}>
+                  {history.length}
+                </span>
+              </button>
+
+              {workoutGroups.repeated.map(({ name, count }) => {
+                const displayName = history.find(w => w.name.toLowerCase().trim() === name)?.name || name;
+                return (
+                  <button
+                    key={name}
+                    onClick={() => setSelectedWorkoutTab(displayName)}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-all ${
+                      selectedWorkoutTab === displayName
+                        ? "bg-accent-500 text-white shadow-md shadow-accent-500/30"
+                        : "bg-white/40 dark:bg-gray-300/5 backdrop-blur-md text-slate-400 dark:text-slate-500 border border-white/40 dark:border-white/10"
+                    }`}
+                  >
+                    <span>{displayName}</span>
+                    <span className={`px-1.5 rounded-full text-[9px] ${
+                      selectedWorkoutTab === displayName
+                        ? "bg-white/20 text-white"
+                        : "bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400"
+                    }`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+
+              {workoutGroups.oneTime.length > 0 && (
+                <button
+                  onClick={() => setSelectedWorkoutTab("Other")}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-all ${
+                    selectedWorkoutTab === "Other"
+                      ? "bg-fuchsia-500 text-white shadow-md shadow-fuchsia-500/30"
+                      : "bg-white/40 dark:bg-gray-300/5 backdrop-blur-md text-slate-400 dark:text-slate-500 border border-white/40 dark:border-white/10"
+                  }`}
+                >
+                  <span>Other</span>
+                  <span className={`px-1.5 rounded-full text-[9px] ${
+                    selectedWorkoutTab === "Other"
+                      ? "bg-white/20 text-white"
+                      : "bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400"
+                  }`}>
+                    {workoutGroups.oneTime.length}
+                  </span>
+                </button>
+              )}
+            </div>
+          )}
+
+          {filteredWorkouts.length > 0 ? (
             <>
-              {history.slice(0, visibleLimit).map((workout, index) => {
+              {filteredWorkouts.slice(0, visibleLimit).map((workout, index) => {
                 const progress = getProgress(workout, index);
                 const intensity = calculateIntensity(workout);
 
@@ -869,7 +992,7 @@ const onFileChange = async (e, workoutId) => {
                 );
               })}
 
-              {visibleLimit < history.length && (
+              {visibleLimit < filteredWorkouts.length && (
                 <button
                   onClick={() => setVisibleLimit((prev) => prev + 8)}
                   className="w-full py-4 mt-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-white/10 shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2"
@@ -883,7 +1006,10 @@ const onFileChange = async (e, workoutId) => {
             <div className="bg-white/30 dark:bg-slate-800/30 backdrop-blur-xl p-12 rounded-[32px] border-2 border-dashed border-white/40 dark:border-white/10 text-center">
               <Dumbbell size={24} className="mx-auto mb-3 text-slate-300 dark:text-slate-600" />
               <p className="text-slate-400 dark:text-slate-500 text-sm italic">
-                No workouts recorded yet.
+                {history.length === 0 
+                  ? "No workouts recorded yet."
+                  : `No workouts found in "${selectedWorkoutTab}" category.`
+                }
               </p>
             </div>
           )}
