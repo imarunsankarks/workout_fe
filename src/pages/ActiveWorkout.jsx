@@ -26,7 +26,8 @@ import {
   PartyPopper,
   RefreshCw,
   Settings,
-  Activity
+  Activity,
+  Filter,
   } from "lucide-react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
@@ -267,6 +268,8 @@ const ActiveWorkout = () => {
   // --- REPEAT WORKOUT STATES ---
   const [showRepeatModal, setShowRepeatModal] = useState(false);
   const [workoutToRepeat, setWorkoutToRepeat] = useState(null);
+  const [repeatFilterTab, setRepeatFilterTab] = useState("All");
+  const [showRepeatFilter, setShowRepeatFilter] = useState(false);
 
   const [selectedExerciseActions, setSelectedExerciseActions] = useState(null);
   const [allWorkouts, setAllWorkouts] = useState([]);
@@ -1524,18 +1527,101 @@ const ActiveWorkout = () => {
           zIndex="z-[500]"
           maxHeight="85vh"
         >
-            <div className="flex justify-between items-center mb-8">
-              <div>
-                <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">Recent Sessions</h2>
-                <p className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">Select a workout to repeat</p>
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setShowRepeatFilter((v) => !v)}
+                  className={`p-2 rounded-lg transition-all ${
+                    showRepeatFilter
+                      ? "bg-accent-500 text-white shadow-md shadow-accent-500/30"
+                      : "bg-white/40 dark:bg-slate-800/30 text-slate-400 dark:text-slate-500 border border-white/40 dark:border-white/10"
+                  }`}
+                >
+                  <Filter size={18} />
+                </button>
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">Recent Sessions</h2>
+                  <p className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-widest mt-1">Select a workout to repeat</p>
+                </div>
               </div>
               <button onClick={() => setShowRepeatModal(false)} className="bg-white/50 dark:bg-white/10 backdrop-blur-md p-2 rounded-full text-slate-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-white/20 transition-colors">
                 <X size={20} />
               </button>
             </div>
 
-            <div className="space-y-3">
-              {allWorkouts.slice(0, 8).map((w) => (
+            {(() => {
+              // Group by name (case-insensitive) and keep last 4 of each
+              const nameOrder = [];
+              const buckets = {};
+              allWorkouts.forEach((w) => {
+                const key = (w.name || "").toLowerCase().trim();
+                if (!buckets[key]) {
+                  buckets[key] = { displayName: w.name, items: [] };
+                  nameOrder.push(key);
+                }
+                if (buckets[key].items.length < 4) buckets[key].items.push(w);
+              });
+
+              const availableTabs = nameOrder.map((k) => ({
+                key: k,
+                displayName: buckets[k].displayName,
+                count: buckets[k].items.length,
+              }));
+
+              const displayWorkouts =
+                repeatFilterTab === "All"
+                  ? nameOrder.flatMap((k) => buckets[k].items)
+                  : buckets[repeatFilterTab]?.items || [];
+
+              return (
+                <>
+                  {showRepeatFilter && availableTabs.length > 0 && (
+                    <div
+                      className="flex items-center gap-2 overflow-x-auto pb-2 mb-4 no-scrollbar scroll-smooth"
+                      style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                    >
+                      <button
+                        onClick={() => setRepeatFilterTab("All")}
+                        className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-all ${
+                          repeatFilterTab === "All"
+                            ? "bg-slate-900 dark:bg-slate-700 text-white shadow-md"
+                            : "bg-white/40 dark:bg-gray-300/5 backdrop-blur-md text-slate-400 dark:text-slate-500 border border-white/40 dark:border-white/10"
+                        }`}
+                      >
+                        <span>All</span>
+                        <span className={`px-1.5 rounded-full text-[9px] ${
+                          repeatFilterTab === "All"
+                            ? "bg-white/20 text-white"
+                            : "bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400"
+                        }`}>
+                          {allWorkouts.length}
+                        </span>
+                      </button>
+                      {availableTabs.map((t) => (
+                        <button
+                          key={t.key}
+                          onClick={() => setRepeatFilterTab(t.key)}
+                          className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-all ${
+                            repeatFilterTab === t.key
+                              ? "bg-accent-500 text-white shadow-md shadow-accent-500/30"
+                              : "bg-white/40 dark:bg-gray-300/5 backdrop-blur-md text-slate-400 dark:text-slate-500 border border-white/40 dark:border-white/10"
+                          }`}
+                        >
+                          <span>{t.displayName}</span>
+                          <span className={`px-1.5 rounded-full text-[9px] ${
+                            repeatFilterTab === t.key
+                              ? "bg-white/20 text-white"
+                              : "bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400"
+                          }`}>
+                            {t.count}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    {displayWorkouts.map((w) => (
                 <button
                   key={w._id}
                   onClick={() => setWorkoutToRepeat(w)}
@@ -1556,11 +1642,18 @@ const ActiveWorkout = () => {
                   </div>
                   <ChevronRight size={18} className="text-slate-300 dark:text-slate-600" />
                 </button>
-              ))}
-              {allWorkouts.length === 0 && (
-                <div className="py-12 text-center text-slate-400 dark:text-slate-500 italic text-sm">No workout history found yet.</div>
-              )}
-            </div>
+                    ))}
+                    {displayWorkouts.length === 0 && (
+                      <div className="py-12 text-center text-slate-400 dark:text-slate-500 italic text-sm">
+                        {allWorkouts.length === 0
+                          ? "No workout history found yet."
+                          : `No sessions found for "${buckets[repeatFilterTab]?.displayName || repeatFilterTab}".`}
+                      </div>
+                    )}
+                  </div>
+                </>
+              );
+            })()}
         </BottomSheet>
       )}
 
