@@ -811,30 +811,6 @@ const Reports = () => {
         )}
       </div>
 
-      {/* Muscle Focus */}
-      <div className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-6 rounded-[32px] shadow-sm border border-white/40 dark:border-white/10 mb-6">
-        <div className="flex items-center gap-2 mb-6">
-          <Target size={18} className="text-accent-500" />
-          <h3 className="font-bold text-slate-700 dark:text-slate-200 uppercase text-[10px] tracking-widest">Muscle Volume (%)</h3>
-        </div>
-        <div className="space-y-5">
-          {muscleDistribution.length > 0 ? muscleDistribution.map((muscle) => (
-            <div key={muscle.name}>
-              <div className="flex justify-between items-end mb-2">
-                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{muscle.name}</span>
-                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">{muscle.percentage}%</span>
-              </div>
-              <div className="h-2 w-full bg-slate-50 dark:bg-slate-800 rounded-full overflow-hidden border border-slate-100 dark:border-slate-700">
-                <div
-                  className="h-full rounded-full transition-all duration-1000"
-                  style={{ width: `${muscle.percentage}%`, backgroundColor: muscle.color }}
-                ></div>
-              </div>
-            </div>
-          )) : <div className="text-center text-slate-300 dark:text-slate-600 text-xs italic py-4">No data available</div>}
-        </div>
-      </div>
-
       {/* Body Heatmap */}
       <div className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-6 rounded-[32px] shadow-sm border border-white/40 dark:border-white/10 mb-6">
         <div className="flex items-center gap-2 mb-6">
