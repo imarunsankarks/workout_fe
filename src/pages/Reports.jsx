@@ -13,6 +13,7 @@ import BottomSheet from '../components/BottomSheet';
 import ExerciseHistorySheet from '../components/ExerciseHistorySheet';
 import LoadingScreen from '../components/LoadingScreen';
 import { buildLibraryMap, getDisplayName } from '../utils/exerciseLookup';
+import Model from 'react-body-highlighter';
 
 // Mount-only-when-open fullscreen image carousel. Mounting fresh on every
 // open means useEmblaCarousel initializes once with the correct startIndex,
@@ -110,6 +111,104 @@ const FullscreenCarousel = ({ images, startIdx, onClose }) => {
           className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full text-white text-[10px] font-bold uppercase tracking-widest border border-white/10"
         >
           {selected + 1} / {images.length}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Maps app muscle-group names to react-body-highlighter muscle ids.
+const MUSCLE_MAP = {
+  Chest: ['chest'],
+  Back: ['upper-back', 'lower-back', 'trapezius'],
+  Shoulders: ['front-deltoids', 'back-deltoids'],
+  Biceps: ['biceps'],
+  Triceps: ['triceps'],
+  Legs: ['quadriceps', 'hamstring', 'calves', 'gluteal', 'adductor', 'abductors'],
+  Abs: ['abs', 'obliques'],
+  'Full Body': [
+    'chest', 'upper-back', 'lower-back', 'trapezius', 'front-deltoids',
+    'back-deltoids', 'biceps', 'triceps', 'forearm', 'quadriceps', 'hamstring',
+    'calves', 'gluteal', 'abs', 'obliques', 'adductor', 'abductors',
+  ],
+};
+
+// Anatomical muscle heatmap for the week. Uses react-body-highlighter to
+// render proper front/back views; intensity is a hit-count derived from
+// each group's percentage relative to the most-worked group.
+const MuscleBodyMap = ({ distribution }) => {
+  const maxPct = Math.max(1, ...distribution.map((d) => d.percentage));
+
+  // Convert distribution -> per-exercise data. Each group emits N entries
+  // (N ∝ its share) so the library naturally shades higher-frequency
+  // muscles darker via `highlightedColors`.
+  const data = distribution.flatMap((d) => {
+    const muscles = MUSCLE_MAP[d.name];
+    if (!muscles || muscles.length === 0 || d.percentage === 0) return [];
+    const hits = Math.max(1, Math.round((d.percentage / maxPct) * 5));
+    return Array.from({ length: hits }, (_, i) => ({
+      name: `${d.name}-${i}`,
+      muscles,
+    }));
+  });
+
+  // Brand palette: indigo -> fuchsia -> orange (matches --accent-gradient).
+  const highlightedColors = ['#c7d2fe', '#818cf8', '#6366f1', '#cb2d9c', '#f97316'];
+
+  return (
+    <div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col items-center">
+          <Model
+            data={data}
+            type="anterior"
+            style={{ width: '100%', maxWidth: '180px' }}
+            bodyColor="#e2e8f0"
+            highlightedColors={highlightedColors}
+          />
+          <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-2">Front</p>
+        </div>
+        <div className="flex flex-col items-center">
+          <Model
+            data={data}
+            type="posterior"
+            style={{ width: '100%', maxWidth: '180px' }}
+            bodyColor="#e2e8f0"
+            highlightedColors={highlightedColors}
+          />
+          <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-2">Back</p>
+        </div>
+      </div>
+
+      {/* Intensity legend */}
+      <div className="mt-5 flex items-center gap-2">
+        <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Low</span>
+        <div
+          className="flex-1 h-2 rounded-full"
+          style={{ background: 'linear-gradient(to right, #c7d2fe, #818cf8, #6366f1, #cb2d9c, #f97316)' }}
+        />
+        <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">High</span>
+      </div>
+
+      {/* Muscle chips */}
+      {distribution.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {distribution.map((m) => {
+            const level = Math.max(0, Math.min(4, Math.round((m.percentage / maxPct) * 4)));
+            return (
+              <div
+                key={m.name}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-white/40 dark:border-white/10 bg-white/30 dark:bg-slate-800/40 backdrop-blur-md"
+              >
+                <span
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: highlightedColors[level] }}
+                />
+                <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">{m.name}</span>
+                <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500">{m.percentage}%</span>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -734,6 +833,19 @@ const Reports = () => {
             </div>
           )) : <div className="text-center text-slate-300 dark:text-slate-600 text-xs italic py-4">No data available</div>}
         </div>
+      </div>
+
+      {/* Body Heatmap */}
+      <div className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl p-6 rounded-[32px] shadow-sm border border-white/40 dark:border-white/10 mb-6">
+        <div className="flex items-center gap-2 mb-6">
+          <Activity size={18} className="text-accent-500" />
+          <h3 className="font-bold text-slate-700 dark:text-slate-200 uppercase text-[10px] tracking-widest">Body Heatmap</h3>
+        </div>
+        {muscleDistribution.length > 0 ? (
+          <MuscleBodyMap distribution={muscleDistribution} />
+        ) : (
+          <div className="text-center text-slate-300 dark:text-slate-600 text-xs italic py-4">No data available</div>
+        )}
       </div>
 
       {/* Efficiency Banner */}
