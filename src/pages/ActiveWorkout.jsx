@@ -270,6 +270,7 @@ const ActiveWorkout = () => {
   const [workoutToRepeat, setWorkoutToRepeat] = useState(null);
   const [repeatFilterTab, setRepeatFilterTab] = useState("All");
   const [showRepeatFilter, setShowRepeatFilter] = useState(false);
+  const [workoutInfoPreview, setWorkoutInfoPreview] = useState(null);
 
   const [selectedExerciseActions, setSelectedExerciseActions] = useState(null);
   const [allWorkouts, setAllWorkouts] = useState([]);
@@ -1559,7 +1560,7 @@ const ActiveWorkout = () => {
                   buckets[key] = { displayName: w.name, items: [] };
                   nameOrder.push(key);
                 }
-                if (buckets[key].items.length < 4) buckets[key].items.push(w);
+                if (buckets[key].items.length < 6) buckets[key].items.push(w);
               });
 
               const availableTabs = nameOrder.map((k) => ({
@@ -1570,7 +1571,7 @@ const ActiveWorkout = () => {
 
               const displayWorkouts =
                 repeatFilterTab === "All"
-                  ? nameOrder.flatMap((k) => buckets[k].items)
+                  ? allWorkouts.slice(0, 12)
                   : buckets[repeatFilterTab]?.items || [];
 
               return (
@@ -1622,10 +1623,10 @@ const ActiveWorkout = () => {
 
                   <div className="space-y-3">
                     {displayWorkouts.map((w) => (
-                <button
+                <div
                   key={w._id}
                   onClick={() => setWorkoutToRepeat(w)}
-                  className="w-full bg-white/40 dark:bg-gray-300/5 backdrop-blur-md border border-white/40 dark:border-white/10 p-5 rounded-[28px] flex items-center justify-between hover:bg-white/60 dark:hover:bg-white/10 hover:border-accent-200 dark:hover:border-accent-700 transition-all active:scale-[0.98]"
+                  className="w-full cursor-pointer bg-white/40 dark:bg-gray-300/5 backdrop-blur-md border border-white/40 dark:border-white/10 p-5 rounded-[28px] flex items-center justify-between hover:bg-white/60 dark:hover:bg-white/10 hover:border-accent-200 dark:hover:border-accent-700 transition-all active:scale-[0.98]"
                 >
                   <div className="text-left">
                     <h4 className="font-bold text-slate-800 dark:text-slate-100 capitalize mb-1">{w.name}</h4>
@@ -1638,10 +1639,25 @@ const ActiveWorkout = () => {
                         <ClockIcon size={12} className="text-accent-500" />
                         {w.duration} mins
                       </div>
+                      <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">
+                        <Dumbbell size={12} className="text-accent-500" />
+                        {(w.details?.length || 0)} ex
+                      </div>
                     </div>
                   </div>
-                  <ChevronRight size={18} className="text-slate-300 dark:text-slate-600" />
-                </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setWorkoutInfoPreview(w);
+                      }}
+                      className="p-2 rounded-full text-slate-400 dark:text-slate-500 hover:text-accent-500 dark:hover:text-accent-400 hover:bg-white/50 dark:hover:bg-white/10 transition-colors"
+                    >
+                      <Info size={18} />
+                    </button>
+                    <ChevronRight size={18} className="text-slate-300 dark:text-slate-600" />
+                  </div>
+                </div>
                     ))}
                     {displayWorkouts.length === 0 && (
                       <div className="py-12 text-center text-slate-400 dark:text-slate-500 italic text-sm">
@@ -1654,6 +1670,74 @@ const ActiveWorkout = () => {
                 </>
               );
             })()}
+        </BottomSheet>
+      )}
+
+      {/* WORKOUT INFO PREVIEW (exercises done) */}
+      {workoutInfoPreview && (
+        <BottomSheet
+          open
+          onClose={() => setWorkoutInfoPreview(null)}
+          zIndex="z-[600]"
+          maxHeight="80vh"
+        >
+          <div className="flex justify-between items-start mb-6">
+            <div>
+              <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight capitalize">
+                {workoutInfoPreview.name}
+              </h2>
+              <div className="flex items-center gap-3 mt-1">
+                <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                  <Calendar size={12} className="text-accent-500" />
+                  {new Date(workoutInfoPreview.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                </div>
+                <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                  <ClockIcon size={12} className="text-accent-500" />
+                  {workoutInfoPreview.duration} mins
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => setWorkoutInfoPreview(null)}
+              className="bg-white/50 dark:bg-white/10 backdrop-blur-md p-2 rounded-full text-slate-400 dark:text-slate-500 hover:bg-white/70 dark:hover:bg-white/20 transition-colors"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          <div className="space-y-2">
+            {(workoutInfoPreview.details || []).map((ex, idx) => {
+              const setCount = ex.sets?.length || 0;
+              return (
+                <div
+                  key={idx}
+                  className="bg-white/40 dark:bg-gray-300/5 backdrop-blur-md border border-white/40 dark:border-white/10 p-4 rounded-2xl flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="bg-accent-50 dark:bg-accent-500/10 text-accent-600 dark:text-accent-400 w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-bold shrink-0">
+                      {idx + 1}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-bold text-slate-800 dark:text-slate-100 text-sm capitalize truncate">
+                        {getDisplayName(ex, libraryMap)}
+                      </p>
+                      <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">
+                        {ex.type}{ex.muscle ? ` • ${ex.muscle}` : ""}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest whitespace-nowrap ml-3">
+                    {setCount} {setCount === 1 ? "set" : "sets"}
+                  </div>
+                </div>
+              );
+            })}
+            {(workoutInfoPreview.details || []).length === 0 && (
+              <div className="py-8 text-center text-slate-400 dark:text-slate-500 italic text-sm">
+                No exercises recorded.
+              </div>
+            )}
+          </div>
         </BottomSheet>
       )}
 
