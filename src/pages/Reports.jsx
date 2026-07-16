@@ -199,20 +199,24 @@ const Reports = () => {
             const muscleGroup = exercise.muscle || 'Other';
             const exerciseId = String(exercise.exerciseId);
             const baseResistance = Number(exercise.resistance) || 0;
+            
+            // Unilateral (Single) lifts count double per side.
+            const executionMultiplier = exercise.execution === 'Unilateral' ? 2 : 1;
             const maxSet = exercise.sets.reduce((prev, current) => {
-              const prevTotal = (Number(prev.weight) || 0) + baseResistance;
-              const currentTotal = (Number(current.weight) || 0) + baseResistance;
+              const prevTotal = ((Number(prev.weight) || 0) + baseResistance) * executionMultiplier;
+              const currentTotal = ((Number(current.weight) || 0) + baseResistance) * executionMultiplier;
               return (prevTotal > currentTotal) ? prev : current;
             }, { weight: 0, reps: 0 });
 
-            const currentSetTotal = (Number(maxSet.weight) || 0) + baseResistance;
+            const currentSetTotal = ((Number(maxSet.weight) || 0) + baseResistance) * executionMultiplier;
 
             if (maxSet.weight >= 0) {
               if (!prMap[muscleGroup]) prMap[muscleGroup] = {};
 
               const existingRecord = prMap[muscleGroup][exerciseId];
+              const existingMultiplier = existingRecord?.execution === 'Unilateral' ? 2 : 1;
               const existingTotal = existingRecord
-                ? (existingRecord.weight + existingRecord.resistance)
+                ? (existingRecord.weight + existingRecord.resistance) * existingMultiplier
                 : -1;
 
               if (!existingRecord || currentSetTotal > existingTotal) {
@@ -223,6 +227,7 @@ const Reports = () => {
                   reps: maxSet.reps,
                   date: workout.date,
                   resistance: baseResistance,
+                  execution: exercise.execution || 'Bilateral',
                 };
               }
             }
@@ -578,8 +583,16 @@ const Reports = () => {
                         )}
                       </div>
                     </div>
-                    <div className="bg-accent-50 dark:bg-accent-500/10 px-4 py-2 rounded-2xl border border-accent-100 dark:border-accent-500/30 text-right">
-                      <p className="text-xl font-bold text-accent-600 dark:text-accent-400 leading-none">{data.weight}<span className="text-[10px] ml-0.5">kg</span></p>
+                    <div className={`px-4 py-2 rounded-2xl border text-right ${
+                      data?.execution === 'Unilateral'
+                        ? 'bg-fuchsia-50 dark:bg-fuchsia-500/10 border-fuchsia-100 dark:border-fuchsia-500/30'
+                        : 'bg-accent-50 dark:bg-accent-500/10 border-accent-100 dark:border-accent-500/30'
+                    }`}>
+                      <p className={`text-xl font-bold leading-none ${
+                        data?.execution === 'Unilateral'
+                          ? 'text-fuchsia-600 dark:text-fuchsia-400'
+                          : 'text-accent-600 dark:text-accent-400'
+                      }`}>{(data.weight + data.resistance)* (data?.execution === 'Unilateral' ? 2 : 1)}<span className="text-[10px] ml-0.5">kg</span></p>
                     </div>
                   </div>
                 ))}
