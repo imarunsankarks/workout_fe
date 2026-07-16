@@ -691,7 +691,7 @@ const Reports = () => {
                         data?.execution === 'Unilateral'
                           ? 'text-fuchsia-600 dark:text-fuchsia-400'
                           : 'text-accent-600 dark:text-accent-400'
-                      }`}>{(data.weight + data.resistance)* (data?.execution === 'Unilateral' ? 2 : 1)}<span className="text-[10px] ml-0.5">kg</span></p>
+                      }`}>{(data.weight + data.resistance)}<span className="text-[10px] ml-0.5">kg</span></p>
                     </div>
                   </div>
                 ))}
