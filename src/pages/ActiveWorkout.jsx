@@ -70,24 +70,28 @@ const formatTime = (s) => {
 // Subscribes to the shared workoutTimer so we only run a single global
 // interval. Only this memoized component re-renders each tick; the parent
 // ActiveWorkout (with the exercise list / drag-and-drop) is not affected.
-const SessionTimer = React.memo(({ isActive, onToggle, onTick }) => {
+const SessionTimer = React.memo(({ isActive, onToggle, onTick, isAllowedEntry }) => {
   const [seconds, setSeconds] = useState(() => {
+    if (!isAllowedEntry) return 0;
     const saved = localStorage.getItem("active_session_seconds");
     return saved ? parseInt(saved) : 0;
   });
 
   useEffect(() => {
+    if (!isAllowedEntry) return;
+    
     const unsubscribe = subscribeWorkoutTimer((state) => {
       if (!state) return;
       setSeconds(state.seconds);
       onTick?.(state.seconds);
     });
     return unsubscribe;
-  }, [onTick]);
+  }, [onTick, isAllowedEntry]);
 
   useEffect(() => {
+    if (!isAllowedEntry) return;
     localStorage.setItem("active_session_seconds", seconds.toString());
-  }, [seconds]);
+  }, [seconds, isAllowedEntry]);
 
   return (
     <div className="bg-white/40 dark:bg-slate-800/30 backdrop-blur-xl rounded-3xl p-6 shadow-sm mb-6 flex justify-between items-center border border-white/40 dark:border-white/10">
@@ -273,6 +277,7 @@ const ActiveWorkout = () => {
   const [workoutInfoPreview, setWorkoutInfoPreview] = useState(null);
 
   const [selectedExerciseActions, setSelectedExerciseActions] = useState(null);
+  const [exerciseToSwap, setExerciseToSwap] = useState(null);
   const [allWorkouts, setAllWorkouts] = useState([]);
   const [selectedPrHistory, setSelectedPrHistory] = useState(null);
   const [historyLimit, setHistoryLimit] = useState(5);
@@ -375,6 +380,7 @@ const ActiveWorkout = () => {
     }
   };
   useEffect(() => {
+    if (!isAllowedEntry) return;
     localStorage.setItem("active_session_exercises", JSON.stringify(exercises));
     localStorage.setItem("active_session_is_active", JSON.stringify(isActive));
     if (lastUnpausedAt) {
@@ -385,7 +391,7 @@ const ActiveWorkout = () => {
     } else {
       localStorage.removeItem("active_session_last_unpaused");
     }
-  }, [exercises, isActive, lastUnpausedAt]);
+  }, [exercises, isActive, lastUnpausedAt, isAllowedEntry]);
 
   // Eagerly request notification permission on entering the workout page so
   // the prompt fires while the user gesture is still fresh. The actual
@@ -605,7 +611,18 @@ const ActiveWorkout = () => {
       activeSetIdx: 0,
       sets: prefilledSets,
     };
-    setExercises([...exercises, newEx]);
+
+    // If swapping an exercise, replace the old one; otherwise add new
+    if (exerciseToSwap) {
+      setExercises(
+        exercises.map((ex) =>
+          ex.instanceId === exerciseToSwap.instanceId ? newEx : ex
+        )
+      );
+      setExerciseToSwap(null);
+    } else {
+      setExercises([...exercises, newEx]);
+    }
     setLibraryCategory(null);
   };
 
@@ -954,6 +971,7 @@ const ActiveWorkout = () => {
         isActive={isActive}
         onToggle={toggleGlobalTimer}
         onTick={handleTick}
+        isAllowedEntry={isAllowedEntry}
       />
       {/* REPEAT WORKOUT BUTTON */}
       <button 
@@ -2194,6 +2212,24 @@ const ActiveWorkout = () => {
           <div className="mb-6">
             <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Actions</p>
             <div className="space-y-2">
+              <button
+                onClick={() => {
+                  setExerciseToSwap(selectedExerciseActions);
+                  setSelectedExerciseActions(null);
+                  setLibraryCategory(selectedExerciseActions.type);
+                }}
+                className="w-full bg-white/40 dark:bg-gray-300/5 backdrop-blur-md border border-white/40 dark:border-white/10 p-4 rounded-2xl flex items-center gap-3 hover:bg-white/60 dark:hover:bg-white/10 hover:border-accent-200 dark:hover:border-accent-700 transition-all active:scale-[0.98]"
+              >
+                <div className="bg-accent-50 dark:bg-accent-900/30 p-2 rounded-xl text-accent-500 dark:text-accent-400">
+                  <Dumbbell size={18} strokeWidth={2} />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm">Change Exercise</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">Swap for a different exercise</p>
+                </div>
+                <ChevronRight size={18} className="text-slate-300 dark:text-slate-600" />
+              </button>
+
               <button
                 onClick={() => {
                   fetchLatestForExercise(selectedExerciseActions.instanceId);
