@@ -17,8 +17,6 @@ import {
   TrendingUp,
   TrendingDown,
   MoveHorizontal,
-  Zap,
-  CheckCircle2,
   Loader2,
   Edit3,
   AlertTriangle,
@@ -152,8 +150,6 @@ const Home = () => {
   const [showStartPrompt, setShowStartPrompt] = useState(false);
   const [workoutToDelete, setWorkoutToDelete] = useState(null);
   const [visibleLimit, setVisibleLimit] = useState(8);
-  const [isWarming, setIsWarming] = useState(false);
-  const [warmupStatus, setWarmupStatus] = useState("idle");
   const [fullscreenImage, setFullscreenImage] = useState(null);
   const [showImageDeleteConfirm, setShowImageDeleteConfirm] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -391,25 +387,6 @@ const Home = () => {
     const mins = Math.floor(s / 60);
     const secs = s % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  const handleWarmup = async () => {
-    setIsWarming(true);
-    setWarmupStatus("loading");
-    try {
-      await axios.get(process.env.REACT_APP_API_URL);
-      setWarmupStatus("success");
-      setTimeout(() => {
-        setIsWarming(false);
-        setWarmupStatus("idle");
-      }, 2000);
-    } catch (err) {
-      setWarmupStatus("success");
-      setTimeout(() => {
-        setIsWarming(false);
-        setWarmupStatus("idle");
-      }, 2000);
-    }
   };
 
   // --- DRAG-AND-DROP (edit-workout exercise reorder) ---
@@ -660,15 +637,6 @@ const onFileChange = async (e, workoutId) => {
           <p className="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-[0.2em]">
             {streak > 0 ? "Streak active" : "No streak"}
           </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleWarmup}
-            className="p-2.5 bg-amber-50 text-amber-500 rounded-xl hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-300 dark:hover:bg-amber-500/20 transition-all active:scale-90 shadow-sm border border-amber-100 dark:border-amber-400/20"
-            title="Warmup Server"
-          >
-            <Zap size={20} strokeWidth={1.5} />
-          </button>
         </div>
       </div>
 
@@ -1512,41 +1480,6 @@ const onFileChange = async (e, workoutId) => {
           .map(String)}
       />
 
-      <ConfirmModal
-        open={isWarming}
-        onClose={() => setIsWarming(false)}
-        dismissible={false}
-        hideActions
-        title={warmupStatus === "loading" ? "Warming Up" : "Engine Ready"}
-        message={
-          warmupStatus === "loading"
-            ? "Waking up the backend. Preparing your training environment..."
-            : "Database connection established. Let's get these gains!"
-        }
-        icon={
-          warmupStatus === "loading" ? (
-            <div className="relative w-24 h-24">
-              <div className="absolute inset-0 rounded-full bg-amber-500/20 animate-ping"></div>
-              <div className="relative bg-amber-500 w-24 h-24 rounded-full flex items-center justify-center text-white shadow-xl dark:shadow-md shadow-amber-200">
-                <Loader2 size={40} className="animate-spin" />
-              </div>
-            </div>
-          ) : (
-            <div className="relative bg-accent-gradient w-24 h-24 rounded-full flex items-center justify-center text-white shadow-xl dark:shadow-md shadow-accent-200 animate-in zoom-in">
-              <CheckCircle2 size={48} />
-            </div>
-          )
-        }
-      >
-        <div className="mt-6 h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-          <div
-            className={`h-full transition-all duration-[3000ms] ${warmupStatus === "loading" ? "w-full bg-amber-500" : "w-full bg-accent-500"}`}
-          ></div>
-        </div>
-        <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-[0.2em] mt-4 text-center">
-          {warmupStatus === "loading" ? "System Syncing" : "Ready to Lift"}
-        </p>
-      </ConfirmModal>
       {/* FULLSCREEN IMAGE LIGHTBOX */}
       {fullscreenImage && (
         <div 

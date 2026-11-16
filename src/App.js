@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, AuthContext } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { useContext } from 'react';
+import BackendGate from './components/BackendGate';
 import Login from './pages/Login';
 import Home from './pages/Home';
 import ActiveWorkout from './pages/ActiveWorkout';
@@ -24,7 +25,7 @@ const AppContent = () => {
   useKeepAlive();
   useWorkoutNotification();
 
-  return (
+  const content = (
     <div className="pb-20 select-none">
       {/* Animated gradient blobs — global background (dark mode only) */}
       <div className="fixed inset-0 -z-10 overflow-hidden bg-slate-50 dark:bg-black pointer-events-none">
@@ -49,6 +50,8 @@ const AppContent = () => {
       {user && <Navbar />}
     </div>
   );
+
+  return user ? <BackendGate>{content}</BackendGate> : content;
 };
 
 const RootApp = () => {
