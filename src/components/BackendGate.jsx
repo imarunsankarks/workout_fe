@@ -52,12 +52,12 @@ const BackendGate = ({ children }) => {
               <rect x="160" y="50" width="10" height="60" rx="3" />
             </g>
             <g className="startup-plates-middle">
-              <rect x="53" y="50" width="12" height="60" rx="3" />
-              <rect x="175" y="50" width="12" height="60" rx="3" />
+              <rect x="55" y="55" width="10" height="50" rx="3" />
+              <rect x="175" y="55" width="10" height="50" rx="3" />
             </g>
             <g className="startup-plates-outer">
-              <rect x="34" y="50" width="14" height="60" rx="4" />
-              <rect x="192" y="50" width="14" height="60" rx="4" />
+              <rect x="40" y="60" width="10" height="40" rx="4" />
+              <rect x="190" y="60" width="10" height="40" rx="4" />
             </g>
           </svg>
         </div>
