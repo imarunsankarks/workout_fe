@@ -56,8 +56,10 @@ import BottomSheet from "../components/BottomSheet";
 import EditExerciseModal from "../components/EditExerciseModal";
 import ExerciseLibrarySheet from "../components/ExerciseLibrarySheet";
 import LoadingScreen from "../components/LoadingScreen";
+import RestTimer from "../components/RestTimer";
 import confetti from "canvas-confetti";
 import { buildLibraryMap, getDisplayName } from "../utils/exerciseLookup";
+import { findActiveRest, toggleCompletedSet, finishRest } from "../utils/restTracking";
 
 // --- TIMER UTIL ---
 const formatTime = (s) => {
@@ -177,6 +179,28 @@ const SortableExercise = ({ id, children }) => {
   );
 };
 
+const SetCompleteButton = ({ number, set, onClick }) => {
+  const completed = Boolean(set.completed);
+  const restTime = completed && !set.restStartedAt ? formatTime(set.restSeconds || 0) : null;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={`${completed ? "Unmark" : "Complete"} set ${number}${restTime ? `, rest ${restTime}` : ""}`}
+      aria-pressed={completed}
+      title={`${completed ? "Unmark" : "Complete"} set ${number}${restTime ? `, rest ${restTime}` : ""}`}
+      className={`w-[50px] min-h-[44px] shrink-0 flex flex-col items-center justify-center gap-0.5 rounded-xl text-xs font-bold transition-colors ${
+        completed
+          ? "bg-accent-500 text-white shadow-sm"
+          : "bg-white/40 dark:bg-gray-300/5 text-slate-500 dark:text-slate-300 border border-white/40 dark:border-white/10"
+      }`}
+    >
+      <span>{number}</span>
+      {restTime && <span className="text-[9px] font-mono font-medium leading-none opacity-80">{restTime}</span>}
+    </button>
+  );
+};
+
 const ActiveWorkout = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -197,6 +221,25 @@ const ActiveWorkout = () => {
     const saved = localStorage.getItem("active_session_exercises");
     return saved ? JSON.parse(saved) : [];
   });
+  const [activeRest, setActiveRest] = useState(() => findActiveRest(exercises));
+
+  const toggleSetComplete = (exerciseId, setIndex) => {
+    const result = toggleCompletedSet(exercises, exerciseId, setIndex, Date.now());
+    setExercises(result.exercises);
+    setActiveRest(result.rest);
+  };
+
+  const closeRestTimer = () => {
+    if (!activeRest) return;
+    setExercises((prev) => finishRest(prev, activeRest, Date.now()));
+    setActiveRest(null);
+  };
+
+  const removeSet = (exerciseId, setIndex) => {
+    setExercises((prev) => prev.map((ex) => ex.instanceId === exerciseId
+      ? { ...ex, sets: ex.sets.filter((_, index) => index !== setIndex) }
+      : ex));
+  };
 
   const secondsRef = useRef(
     parseInt(localStorage.getItem("active_session_seconds") || "0"),
@@ -770,24 +813,29 @@ const ActiveWorkout = () => {
       const formattedDetails = exercises
         .map((ex) => {
           const flushedSets = ex.sets.map((s) => {
+            if (!s) return s;
+            // Completion and rest timing are only part of the local active session.
+            const workoutSet = { ...s };
+            delete workoutSet.completed;
+            delete workoutSet.restSeconds;
+            delete workoutSet.restStartedAt;
             if (
-              s &&
-              s.startedAt &&
+              workoutSet.startedAt &&
               (ex.type === "Warmup" || ex.type === "Stretching")
             ) {
               const elapsed = Math.max(
                 0,
-                Math.floor((nowMs - s.startedAt) / 1000),
+                Math.floor((nowMs - workoutSet.startedAt) / 1000),
               );
-              const { startedAt: _drop, ...rest } = s;
-              return { ...rest, time: (s.time || 0) + elapsed };
+              const { startedAt: _drop, ...rest } = workoutSet;
+              return { ...rest, time: (workoutSet.time || 0) + elapsed };
             }
             // Always strip the client-only anchor before persisting.
-            if (s && s.startedAt !== undefined) {
-              const { startedAt: _drop, ...rest } = s;
+            if (workoutSet.startedAt !== undefined) {
+              const { startedAt: _drop, ...rest } = workoutSet;
               return rest;
             }
-            return s;
+            return workoutSet;
           });
           const validSets = flushedSets.filter((set) => {
             if (ex.type === "Strength") {
@@ -1122,6 +1170,17 @@ const ActiveWorkout = () => {
                     <p className="text-[9px] font-bold text-slate-300 dark:text-slate-500 uppercase tracking-widest">
                       {ex.muscle}
                     </p>
+                    <span
+                      title={ex.execution === "Unilateral" ? "Unilateral movement" : "Bilateral movement"}
+                      aria-label={ex.execution === "Unilateral" ? "Unilateral movement" : "Bilateral movement"}
+                      className={`inline-flex w-4 h-4 items-center justify-center rounded-[10px] text-[9px] font-black ${
+                        ex.execution === "Unilateral"
+                          ? "bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400"
+                          : "bg-accent-500/10 text-accent-600 dark:text-accent-400"
+                      }`}
+                    >
+                      {ex.execution === "Unilateral" ? "U" : "B"}
+                    </span>
                     <div className="p-0.5 rounded-lg bg-white/40 dark:bg-gray-300/5 backdrop-blur-md text-slate-400 dark:text-slate-500">
                       {ex.isCollapsed ? (
                         <ChevronDown size={12} />
@@ -1217,9 +1276,11 @@ const ActiveWorkout = () => {
                             key={sIdx}
                             className="grid grid-cols-[50px_1fr_25px] gap-3 items-center"
                           >
-                            <div className="bg-white/40 dark:bg-gray-300/5 backdrop-blur-md rounded-xl py-3 text-center text-xs font-bold text-slate-400 dark:text-slate-300 uppercase">
-                              {sIdx + 1}
-                            </div>
+                            <SetCompleteButton
+                              number={sIdx + 1}
+                              set={set}
+                              onClick={() => toggleSetComplete(ex.instanceId, sIdx)}
+                            />
                             <input
                               type="number"
                               placeholder="reps"
@@ -1234,13 +1295,7 @@ const ActiveWorkout = () => {
                               className="w-full bg-white/50 dark:bg-gray-300/5 backdrop-blur-md border border-white/50 dark:border-white/10 py-3 rounded-xl text-center font-bold outline-none focus:border-amber-500 text-slate-800 dark:text-slate-200"
                             />
                             <button
-                              onClick={() => {
-                                const newExs = [...exercises];
-                                newExs
-                                  .find((i) => i.instanceId === ex.instanceId)
-                                  .sets.splice(sIdx, 1);
-                                setExercises(newExs);
-                              }}
+                              onClick={() => removeSet(ex.instanceId, sIdx)}
                               className="text-slate-200 dark:text-slate-500 hover:text-red-400 dark:hover:text-red-400 transition-colors flex justify-center items-center"
                             >
                               <X size={16} />
@@ -1253,9 +1308,11 @@ const ActiveWorkout = () => {
                         key={sIdx}
                         className="grid grid-cols-[50px_1fr_1fr_25px] gap-3 items-center"
                       >
-                        <div className="bg-white/40 dark:bg-gray-300/5 backdrop-blur-md rounded-xl py-3 text-center text-xs font-bold text-slate-400 dark:text-slate-300 uppercase">
-                          {sIdx + 1}
-                        </div>
+                        <SetCompleteButton
+                          number={sIdx + 1}
+                          set={set}
+                          onClick={() => toggleSetComplete(ex.instanceId, sIdx)}
+                        />
                         <input
                           type="number"
                           placeholder="kg"
@@ -1283,13 +1340,7 @@ const ActiveWorkout = () => {
                           className="w-full bg-white/50 dark:bg-gray-300/5 backdrop-blur-md border border-white/50 dark:border-white/10 py-3 rounded-xl text-center font-bold outline-none focus:border-accent-500 text-slate-800 dark:text-slate-200"
                         />
                         <button
-                          onClick={() => {
-                            const newExs = [...exercises];
-                            newExs
-                              .find((i) => i.instanceId === ex.instanceId)
-                              .sets.splice(sIdx, 1);
-                            setExercises(newExs);
-                          }}
+                          onClick={() => removeSet(ex.instanceId, sIdx)}
                           className="text-slate-200 dark:text-slate-500 hover:text-red-400 dark:hover:text-red-400 transition-colors flex justify-center items-center"
                         >
                           <X size={16} />
@@ -1307,12 +1358,14 @@ const ActiveWorkout = () => {
                       return (
                         <div
                           key={sIdx}
-                          className="flex items-center gap-2 bg-white/40 dark:bg-gray-300/5 backdrop-blur-md p-2 pl-4 rounded-2xl"
+                          className="flex items-center gap-2 bg-white/40 dark:bg-gray-300/5 backdrop-blur-md p-2 rounded-2xl"
                         >
-                          <span className="text-[10px] font-bold text-slate-300 dark:text-slate-500 uppercase min-w-[40px]">
-                            Set {sIdx + 1}
-                          </span>
-                          <span className="flex-1 font-mono font-bold text-slate-700 dark:text-slate-200 text-center">
+                          <SetCompleteButton
+                            number={sIdx + 1}
+                            set={set}
+                            onClick={() => toggleSetComplete(ex.instanceId, sIdx)}
+                          />
+                          <span className="flex-1 min-w-0 text-center font-mono font-bold text-slate-700 dark:text-slate-200">
                             {formatTime(set.time || 0)}
                           </span>
                           <div className="flex items-center gap-1.5">
@@ -2276,6 +2329,9 @@ const ActiveWorkout = () => {
             <span className="font-semibold text-red-500 dark:text-red-400 text-sm">Remove Exercise</span>
           </button>
         </BottomSheet>
+      )}
+      {activeRest && (
+        <RestTimer startedAt={activeRest.startedAt} onClose={closeRestTimer} />
       )}
     </div>
   );
